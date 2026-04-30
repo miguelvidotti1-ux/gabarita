@@ -1,0 +1,5 @@
+{
+  "name": "Vestibular Pro",
+  "description": "Plataforma completa para preparação para vestibulares brasileiros (ENEM, Fuvest, Unicamp, Unesp, UERJ, ITA).",
+  "requestFramePermissions": ["camera"]
+}

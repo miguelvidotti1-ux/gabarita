@@ -1,0 +1,233 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - role: string (admin/user)
+    //   - createdAt: string (date-time)
+    //
+    // Collection: exams
+    // Document ID: examId
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - year: integer (required)
+    //   - description: string
+    //
+    // Collection: exams/{examId}/questions
+    // Document ID: questionId
+    // Fields:
+    //   - id: string (required)
+    //   - examId: string
+    //   - subject: string
+    //   - topic: string
+    //   - text: string (required)
+    //   - options: array (required)
+    //   - correctOption: integer (required)
+    //   - explanation: string
+    //   - isOriginal: boolean
+    //
+    // Collection: essayThemes
+    // Document ID: themeId
+    // Fields:
+    //   - id: string (required)
+    //   - examId: string
+    //   - year: integer
+    //   - theme: string (required)
+    //   - description: string
+    //
+    // Collection: users/{userId}/progress
+    // Document ID: progressId
+    // Fields:
+    //   - userId: string (required)
+    //   - examId: string (required)
+    //   - score: number (required)
+    //   - completedAt: string (date-time)
+    //
+    // Collection: users/{userId}/subject_performance
+    // Document ID: subject
+    // Fields:
+    //   - userId: string (required)
+    //   - subject: string (required)
+    //   - totalQuestions: number (required)
+    //   - correctQuestions: number (required)
+    //   - percentage: number (required)
+    //
+    // Collection: quiz_results
+    // Document ID: resultId
+    // Fields:
+    //   - userId: string (required)
+    //   - score: number (required)
+    //   - totalQuestions: number (required)
+    //   - percentage: number (required)
+    //   - questions: array (required)
+    //   - timestamp: timestamp (required)
+    //
+    // Collection: users/{userId}/goals
+    // Document ID: subject
+    // Fields:
+    //   - userId: string (required)
+    //   - subject: string (required)
+    //   - targetAccuracy: number (required)
+    //   - targetHours: number (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "miguelvidotti1@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isRecent(ts) {
+      return ts is timestamp && ts > request.time - duration.value(5, 'm') && ts <= request.time;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string && data.uid.size() < 128 &&
+             data.email is string && data.email.size() < 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 128)) &&
+             (!('role' in data) || (data.role in ['admin', 'user'])) &&
+             (!('createdAt' in data) || (data.createdAt is string));
+    }
+
+    function isValidExam(data) {
+      return data.keys().hasAll(['id', 'name', 'year']) &&
+             data.id is string && data.id.size() < 64 &&
+             data.name is string && data.name.size() < 128 &&
+             data.year is int &&
+             (!('description' in data) || (data.description is string && data.description.size() < 1000));
+    }
+
+    function isValidQuestion(data) {
+      return data.keys().hasAll(['id', 'text', 'options', 'correctOption']) &&
+             data.id is string && data.id.size() < 64 &&
+             data.text is string && data.text.size() < 5000 &&
+             data.options is list && data.options.size() == 5 &&
+             data.correctOption is int && data.correctOption >= 0 && data.correctOption <= 4 &&
+             (!('explanation' in data) || (data.explanation is string && data.explanation.size() < 2000)) &&
+             (!('subject' in data) || (data.subject is string && data.subject.size() < 128)) &&
+             (!('topic' in data) || (data.topic is string && data.topic.size() < 128));
+    }
+
+    function isValidEssayTheme(data) {
+      return data.keys().hasAll(['id', 'theme']) &&
+             data.id is string && data.id.size() < 64 &&
+             data.theme is string && data.theme.size() < 512 &&
+             (!('description' in data) || (data.description is string && data.description.size() < 2000));
+    }
+
+    function isValidProgress(data) {
+      return data.keys().hasAll(['userId', 'examId', 'score']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.examId is string && data.examId.size() < 64 &&
+             data.score is number && data.score >= 0;
+    }
+
+    function isValidSubjectPerformance(data) {
+      return data.keys().hasAll(['userId', 'subject', 'totalQuestions', 'correctQuestions', 'percentage']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.subject is string && data.subject.size() < 128 &&
+             data.totalQuestions is number && data.totalQuestions >= 0 &&
+             data.correctQuestions is number && data.correctQuestions >= 0 &&
+             data.percentage is number && data.percentage >= 0 && data.percentage <= 100;
+    }
+
+    function isValidGoal(data) {
+      return data.keys().hasAll(['userId', 'subject', 'targetAccuracy', 'targetHours']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.subject is string && data.subject.size() < 128 &&
+             data.targetAccuracy is number && data.targetAccuracy >= 0 && data.targetAccuracy <= 100 &&
+             data.targetHours is number && data.targetHours >= 0;
+    }
+
+    function isValidQuizResult(data) {
+      return data.keys().hasAll(['userId', 'score', 'totalQuestions', 'percentage', 'questions', 'timestamp']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.score is number && data.score >= 0 &&
+             data.totalQuestions is number && data.totalQuestions > 0 &&
+             data.percentage is number && data.percentage >= 0 && data.percentage <= 100 &&
+             data.questions is list && data.questions.size() < 200 &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidEssay(data) {
+      return data.keys().hasAll(['userId', 'theme', 'essayText', 'status', 'timestamp']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.theme is string && data.theme.size() < 512 &&
+             data.essayText is string && data.essayText.size() < 10000 &&
+             data.status is string && data.status in ['draft', 'corrected'] &&
+             data.timestamp is timestamp &&
+             (!('generalCorrection' in data) || (data.generalCorrection is string && data.generalCorrection.size() < 5000)) &&
+             (!('competencies' in data) || (data.competencies is list && data.competencies.size() <= 5)) &&
+             (!('grade' in data) || (data.grade is number && data.grade >= 0 && data.grade <= 1000));
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
+    }
+
+    match /exams/{examId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidExam(request.resource.data);
+
+      match /questions/{questionId} {
+        allow read: if true;
+        allow write: if isAdmin() && isValidQuestion(request.resource.data);
+      }
+    }
+
+    match /essayThemes/{themeId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidEssayTheme(request.resource.data);
+    }
+
+    match /users/{userId}/progress/{progressId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidProgress(request.resource.data);
+      allow update: if (isOwner(userId) || isAdmin()) && isValidProgress(request.resource.data);
+    }
+
+    match /users/{userId}/subject_performance/{subject} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isValidSubjectPerformance(request.resource.data);
+    }
+
+    match /users/{userId}/goals/{subject} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isValidGoal(request.resource.data);
+    }
+
+    match /quiz_results/{resultId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidQuizResult(request.resource.data) && isRecent(request.resource.data.timestamp);
+    }
+
+    match /essays/{essayId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidEssay(request.resource.data) && isRecent(request.resource.data.timestamp);
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && isValidEssay(request.resource.data) && isRecent(request.resource.data.timestamp);
+    }
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Information about a specific vestibular exam",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "enum": ["ENEM", "Fuvest", "Unicamp", "Unesp", "UERJ", "ITA"] },
+        "year": { "type": "integer" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "year"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "A single question from an exam or generated",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "examId": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "text": { "type": "string" },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctOption": { "type": "integer" },
+        "explanation": { "type": "string" },
+        "isOriginal": { "type": "boolean" }
+      },
+      "required": ["id", "text", "options", "correctOption"]
+    },
+    "EssayTheme": {
+      "title": "EssayTheme",
+      "description": "A theme for the essay part of the exam",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "examId": { "type": "string" },
+        "year": { "type": "integer" },
+        "theme": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "theme"]
+    },
+    "SubjectPerformance": {
+      "title": "SubjectPerformance",
+      "description": "User performance in a specific subject",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "totalQuestions": { "type": "number" },
+        "correctQuestions": { "type": "number" },
+        "percentage": { "type": "number" }
+      },
+      "required": ["userId", "subject", "totalQuestions", "correctQuestions", "percentage"]
+    },
+    "Progress": {
+      "title": "Progress",
+      "description": "User progress in a specific exam or subject",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "examId": { "type": "string" },
+        "score": { "type": "number" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "examId", "score"]
+    },
+    "QuizResult": {
+      "title": "QuizResult",
+      "description": "Result of a quiz attempt",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "percentage": { "type": "number" },
+        "questions": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "questionId": { "type": "string" },
+              "selectedAnswer": { "type": "number" },
+              "isCorrect": { "type": "boolean" }
+            }
+          }
+        },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "score", "totalQuestions", "percentage", "questions", "timestamp"]
+    },
+    "Essay": {
+      "title": "Essay",
+      "description": "User essay submissions and corrections",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "theme": { "type": "string" },
+        "essayText": { "type": "string" },
+        "generalCorrection": { "type": "string" },
+        "competencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "score": { "type": "number" },
+              "feedback": { "type": "string" },
+              "improvementExample": { "type": "string" }
+            }
+          }
+        },
+        "grade": { "type": "number" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "theme", "essayText", "status", "timestamp"]
+    },
+    "Goal": {
+      "title": "Goal",
+      "description": "User study goals for a subject",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "targetAccuracy": { "type": "number" },
+        "targetHours": { "type": "number" }
+      },
+      "required": ["userId", "subject", "targetAccuracy", "targetHours"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/exams/{examId}": {
+      "schema": "Exam",
+      "description": "Exams list"
+    },
+    "/exams/{examId}/questions/{questionId}": {
+      "schema": "Question",
+      "description": "Questions for an exam"
+    },
+    "/essayThemes/{themeId}": {
+      "schema": "EssayTheme",
+      "description": "Essay themes"
+    },
+    "/users/{userId}/progress/{progressId}": {
+      "schema": "Progress",
+      "description": "User progress records"
+    },
+    "/quiz_results/{resultId}": {
+      "schema": "QuizResult",
+      "description": "Quiz results"
+    },
+    "/users/{userId}/subject_performance/{subject}": {
+      "schema": "SubjectPerformance",
+      "description": "User performance by subject"
+    },
+    "/essays/{essayId}": {
+      "schema": "Essay",
+      "description": "User essay submissions"
+    },
+    "/users/{userId}/goals/{subject}": {
+      "schema": "Goal",
+      "description": "User goals per subject"
+    }
+  }
+}

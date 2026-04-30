@@ -1,0 +1,458 @@
+import { Vestibular, ContentTopic } from './types';
+
+export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
+  [Vestibular.ENEM]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Razão/Proporção', percentage: 33, summary: 'Cálculos de escala, regra de três e porcentagem.', youtubeId: 'evXrGaI6SVc', mindMapUrl: 'https://i.postimg.cc/KcPXgkkZ/lv-0-20260402085109.jpg' },
+        { name: 'Geometria Espacial', percentage: 33, summary: 'Volumes de prismas, cilindros e esferas.', youtubeId: 'Y_gD7S6OkC4' },
+        { name: 'Estatística', percentage: 34, summary: 'Média, moda, mediana e análise de gráficos.', youtubeId: 'A2b_f_8_8_10' },
+        { name: 'Funções', percentage: 34, summary: 'Tipos de funções, gráficos e aplicações.', youtubeId: 'hIc5y6IXi-4' }
+      ]
+    },
+    {
+      subject: 'Biologia',
+      topics: [
+        { name: 'Ecologia', percentage: 33, summary: 'Relações entre seres vivos e meio ambiente.', youtubeId: 'L8m_f_8_8_23' },
+        { name: 'Genética/Biotecnologia', percentage: 33, summary: 'Leis de Mendel, DNA e biotecnologia.', youtubeId: 'L8m_f_8_8_24' },
+        { name: 'Fisiologia Humana', percentage: 34, summary: 'Sistemas do corpo humano e funcionamento.', youtubeId: 'L8m_f_8_8_25' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Mecânica (Energia)', percentage: 33, summary: 'Leis de conservação e trabalho.', youtubeId: 'L8m_f_8_8_26' },
+        { name: 'Eletrodinâmica', percentage: 33, summary: 'Circuitos elétricos e potência.', youtubeId: 'L8m_f_8_8_27' },
+        { name: 'Termologia', percentage: 34, summary: 'Calorimetria e leis da termodinâmica.', youtubeId: 'L8m_f_8_8_28' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Estequiometria', percentage: 33, summary: 'Cálculos de massa e reações químicas.', youtubeId: 'L8m_f_8_8_29' },
+        { name: 'Química Orgânica', percentage: 33, summary: 'Cadeias carbônicas e funções orgânicas.', youtubeId: 'L8m_f_8_8_30' },
+        { name: 'Eletroquímica', percentage: 34, summary: 'Reações de oxirredução e pilhas.', youtubeId: 'L8m_f_8_8_31' }
+      ]
+    },
+    {
+      subject: 'História',
+      topics: [
+        { name: 'Brasil Colônia/Império', percentage: 33, summary: 'Formação do Brasil e período imperial.', youtubeId: 'L8m_f_8_8_32' },
+        { name: 'Era Vargas', percentage: 33, summary: 'Políticas e transformações sociais.', youtubeId: 'L8m_f_8_8_33' },
+        { name: 'Idade Contemporânea', percentage: 34, summary: 'Eventos mundiais e transformações sociais.', youtubeId: 'L8m_f_8_8_34' }
+      ]
+    },
+    {
+      subject: 'Geografia',
+      topics: [
+        { name: 'Questões Ambientais', percentage: 33, summary: 'Impactos e sustentabilidade.', youtubeId: 'L8m_f_8_8_35' },
+        { name: 'Urbanização', percentage: 33, summary: 'Crescimento das cidades e problemas urbanos.', youtubeId: 'L8m_f_8_8_36' },
+        { name: 'Geopolítica', percentage: 34, summary: 'Conflitos e relações internacionais.', youtubeId: 'L8m_f_8_8_37' }
+      ]
+    },
+    {
+      subject: 'Português',
+      topics: [
+        { name: 'Interpretação de Texto', percentage: 33, summary: 'Análise de gêneros textuais.', youtubeId: 'L8m_f_8_8_13' },
+        { name: 'Gramática Aplicada', percentage: 33, summary: 'Uso da língua em contextos.', youtubeId: 'L8m_f_8_8_14' },
+        { name: 'Modernismo', percentage: 34, summary: 'Movimentos e obras modernistas.', youtubeId: 'L8m_f_8_8_17' }
+      ]
+    },
+    {
+      subject: 'Filo/Socio',
+      topics: [
+        { name: 'Ética e Cidadania', percentage: 33, summary: 'Valores e deveres na sociedade.', youtubeId: 'L8m_f_8_8_38' },
+        { name: 'Contratualismo', percentage: 33, summary: 'Teorias sobre o contrato social.', youtubeId: 'L8m_f_8_8_39' },
+        { name: 'Cultura e Indústria Cultural', percentage: 34, summary: 'Produção cultural e sociedade.', youtubeId: 'L8m_f_8_8_40' }
+      ]
+    }
+  ],
+  [Vestibular.FUVEST]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Geometria Plana', percentage: 20, summary: 'Áreas, semelhança de triângulos e trigonometria.', youtubeId: 'Fuv_m_1_real' },
+        { name: 'Trigonometria', percentage: 15, summary: 'Funções trigonométricas e identidades.', youtubeId: 'Fuv_m_2_real' },
+        { name: 'Geometria Analítica', percentage: 12, summary: 'Retas, circunferências e cônicas.', youtubeId: 'Fuv_m_3_real' },
+        { name: 'Logaritmos e Exponenciais', percentage: 10, summary: 'Propriedades e equações.', youtubeId: 'Fuv_m_4_real' },
+        { name: 'Análise Combinatória', percentage: 8, summary: 'Arranjos, combinações e permutações.', youtubeId: 'Fuv_m_5_real' }
+      ]
+    },
+    {
+      subject: 'Português',
+      topics: [
+        { name: 'Gramática', percentage: 30, summary: 'Sintaxe, morfologia e pontuação.', youtubeId: 'Fuv_p_1' },
+        { name: 'Literatura Brasileira', percentage: 25, summary: 'Obras obrigatórias e escolas literárias.', youtubeId: 'Fuv_p_2' },
+        { name: 'Figuras de Linguagem', percentage: 10, summary: 'Metáfora, metonímia, antítese, etc.', youtubeId: 'Fuv_p_3' },
+        { name: 'Coesão e Coerência', percentage: 10, summary: 'Mecanismos de articulação textual.', youtubeId: 'Fuv_p_4' }
+      ]
+    },
+    {
+      subject: 'Biologia',
+      topics: [
+        { name: 'Ecologia', percentage: 20, summary: 'Cadeias alimentares, ciclos biogeoquímicos e impactos ambientais.', youtubeId: 'Fuv_b_1' },
+        { name: 'Genética', percentage: 15, summary: 'Leis de Mendel, biotecnologia e DNA.', youtubeId: 'Fuv_b_2' },
+        { name: 'Fisiologia Animal', percentage: 12, summary: 'Sistemas do corpo humano.', youtubeId: 'Fuv_b_3' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Mecânica', percentage: 35, summary: 'Dinâmica, estática e gravitação.', youtubeId: 'Fuv_f_1' },
+        { name: 'Óptica', percentage: 15, summary: 'Reflexão, refração e lentes.', youtubeId: 'Fuv_f_2' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Físico-Química', percentage: 30, summary: 'Equilíbrio químico e soluções.', youtubeId: 'Fuv_q_1' },
+        { name: 'Química Orgânica', percentage: 25, summary: 'Reações orgânicas e isomeria.', youtubeId: 'Fuv_q_2' }
+      ]
+    },
+    {
+      subject: 'História',
+      topics: [
+        { name: 'História Geral', percentage: 40, summary: 'Antiguidade, Idade Média e Contemporânea.', youtubeId: 'Fuv_h_1' },
+        { name: 'História do Brasil', percentage: 40, summary: 'Império e República.', youtubeId: 'Fuv_h_2' }
+      ]
+    },
+    {
+      subject: 'Geografia',
+      topics: [
+        { name: 'Geografia Física', percentage: 30, summary: 'Clima, relevo e vegetação.', youtubeId: 'Fuv_g_1' },
+        { name: 'Geografia Humana', percentage: 30, summary: 'Demografia e urbanização.', youtubeId: 'Fuv_g_2' }
+      ]
+    },
+    {
+      subject: 'Filosofia',
+      topics: [
+        { name: 'Filosofia Moderna', percentage: 20, summary: 'Racionalismo e Empirismo.', youtubeId: 'Fuv_phi_1' }
+      ]
+    },
+    {
+      subject: 'Sociologia',
+      topics: [
+        { name: 'Mundo do Trabalho', percentage: 20, summary: 'Transformações produtivas e sociais.', youtubeId: 'Fuv_soc_1' }
+      ]
+    },
+    {
+      subject: 'Artes',
+      topics: [
+        { name: 'História da Arte', percentage: 20, summary: 'Movimentos artísticos e análise de obras.', youtubeId: 'Fuv_art_1' }
+      ]
+    },
+    {
+      subject: 'Inglês',
+      topics: [
+        { name: 'Interpretação de Texto', percentage: 100, summary: 'Análise de textos acadêmicos e jornalísticos.', youtubeId: 'Fuv_eng_1' }
+      ]
+    }
+  ],
+  [Vestibular.UNICAMP]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Funções', percentage: 20, summary: 'Análise de gráficos e modelagem.', youtubeId: 'Uni_m_1' },
+        { name: 'Probabilidade', percentage: 15, summary: 'Cálculos de chances e análise combinatória.', youtubeId: 'Uni_m_2' }
+      ]
+    },
+    {
+      subject: 'Português',
+      topics: [
+        { name: 'Gêneros Textuais', percentage: 40, summary: 'Produção e análise de diversos gêneros.', youtubeId: 'Uni_p_1' },
+        { name: 'Literatura', percentage: 30, summary: 'Obras obrigatórias e intertextualidade.', youtubeId: 'Uni_p_2' }
+      ]
+    },
+    {
+      subject: 'História',
+      topics: [
+        { name: 'Brasil Colônia', percentage: 18, summary: 'Ciclo do açúcar, ouro e escravidão.', youtubeId: 'Uni_h_1' },
+        { name: 'Idade Moderna', percentage: 15, summary: 'Renascimento e Reformas Religiosas.', youtubeId: 'Uni_h_2' },
+        { name: 'História da África', percentage: 10, summary: 'Reinos africanos e diáspora.', youtubeId: 'Uni_h_3' }
+      ]
+    },
+    {
+      subject: 'Geografia',
+      topics: [
+        { name: 'Geopolítica', percentage: 25, summary: 'Conflitos e relações internacionais.', youtubeId: 'Uni_g_1' },
+        { name: 'Geografia do Brasil', percentage: 25, summary: 'Regiões e economia brasileira.', youtubeId: 'Uni_g_2' }
+      ]
+    },
+    {
+      subject: 'Biologia',
+      topics: [
+        { name: 'Botânica', percentage: 15, summary: 'Fisiologia e morfologia vegetal.', youtubeId: 'Uni_b_1' },
+        { name: 'Evolução', percentage: 15, summary: 'Teorias evolutivas e especiação.', youtubeId: 'Uni_b_2' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Termodinâmica', percentage: 20, summary: 'Leis da termodinâmica e máquinas térmicas.', youtubeId: 'Uni_f_1' },
+        { name: 'Ondulatória', percentage: 20, summary: 'Fenômenos ondulatórios e som.', youtubeId: 'Uni_f_2' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Atomística', percentage: 20, summary: 'Modelos atômicos e tabela periódica.', youtubeId: 'Uni_q_1' },
+        { name: 'Estequiometria', percentage: 20, summary: 'Cálculos químicos e leis ponderais.', youtubeId: 'Uni_q_2' }
+      ]
+    },
+    {
+      subject: 'Filosofia',
+      topics: [
+        { name: 'Ética', percentage: 20, summary: 'Valores e conduta humana.', youtubeId: 'Uni_phi_1' }
+      ]
+    },
+    {
+      subject: 'Sociologia',
+      topics: [
+        { name: 'Cidadania', percentage: 20, summary: 'Direitos e deveres na sociedade.', youtubeId: 'Uni_soc_1' }
+      ]
+    },
+    {
+      subject: 'Artes',
+      topics: [
+        { name: 'Linguagens Visuais', percentage: 20, summary: 'Elements da imagem e história da arte.', youtubeId: 'Uni_art_1' }
+      ]
+    },
+    {
+      subject: 'Inglês',
+      topics: [
+        { name: 'Interpretação', percentage: 100, summary: 'Textos de diversas fontes.', youtubeId: 'Uni_eng_1' }
+      ]
+    }
+  ],
+  [Vestibular.UNESP]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Geometria', percentage: 25, summary: 'Plana e espacial.', youtubeId: 'Une_m_1' },
+        { name: 'Álgebra', percentage: 20, summary: 'Equações e sistemas.', youtubeId: 'Une_m_2' }
+      ]
+    },
+    {
+      subject: 'Português',
+      topics: [
+        { name: 'Literatura', percentage: 30, summary: 'Autores brasileiros e portugueses.', youtubeId: 'Une_p_1' },
+        { name: 'Gramática Aplicada', percentage: 30, summary: 'Uso da língua em contextos.', youtubeId: 'Une_p_2' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Fisico-Química', percentage: 25, summary: 'Termoquímica, cinética e equilíbrio.', youtubeId: 'Une_q_1' },
+        { name: 'Química Orgânica', percentage: 20, summary: 'Funções orgânicas e reações.', youtubeId: 'Une_q_2' },
+        { name: 'Química Geral', percentage: 20, summary: 'Ligações e reações inorgânicas.', youtubeId: 'Une_q_3' }
+      ]
+    },
+    {
+      subject: 'Biologia',
+      topics: [
+        { name: 'Zoologia', percentage: 15, summary: 'Classificação e fisiologia animal.', youtubeId: 'Une_b_1' },
+        { name: 'Citologia', percentage: 15, summary: 'Estrutura e função celular.', youtubeId: 'Une_b_2' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Mecânica', percentage: 30, summary: 'Leis de Newton e trabalho.', youtubeId: 'Une_f_1' },
+        { name: 'Eletromagnetismo', percentage: 15, summary: 'Ímãs e correntes.', youtubeId: 'Une_f_2' }
+      ]
+    },
+    {
+      subject: 'História',
+      topics: [
+        { name: 'Brasil República', percentage: 25, summary: 'Da proclamação aos dias atuais.', youtubeId: 'Une_h_1' },
+        { name: 'História Contemporânea', percentage: 20, summary: 'Guerras Mundiais e Guerra Fria.', youtubeId: 'Une_h_2' }
+      ]
+    },
+    {
+      subject: 'Geografia',
+      topics: [
+        { name: 'Cartografia', percentage: 15, summary: 'Mapas, escalas e projeções.', youtubeId: 'Une_g_1' },
+        { name: 'Geografia Econômica', percentage: 20, summary: 'Globalização e blocos.', youtubeId: 'Une_g_2' }
+      ]
+    },
+    {
+      subject: 'Filosofia',
+      topics: [
+        { name: 'Filosofia Política', percentage: 20, summary: 'Contratualismo e Estado.', youtubeId: 'Une_phi_1' }
+      ]
+    },
+    {
+      subject: 'Sociologia',
+      topics: [
+        { name: 'Cultura', percentage: 20, summary: 'Diversidade e identidade.', youtubeId: 'Une_soc_1' }
+      ]
+    },
+    {
+      subject: 'Inglês',
+      topics: [
+        { name: 'Interpretação', percentage: 100, summary: 'Textos variados.', youtubeId: 'Une_eng_1' }
+      ]
+    }
+  ],
+  [Vestibular.UERJ]: [
+    {
+      subject: 'Língua Portuguesa',
+      topics: [
+        { name: 'Análise de Discurso', percentage: 40, summary: 'Ideologia e persuasão nos textos.', youtubeId: 'Uerj_p_1' }
+      ]
+    },
+    {
+      subject: 'Literatura',
+      topics: [
+        { name: 'Livro do Exame', percentage: 30, summary: 'Análise da obra indicada para o vestibular.', youtubeId: 'Uerj_l_1' }
+      ]
+    },
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Aritmética', percentage: 25, summary: 'Operações e problemas.', youtubeId: 'Uerj_m_1' },
+        { name: 'Geometria', percentage: 20, summary: 'Cálculos de áreas e volumes.', youtubeId: 'Uerj_m_2' }
+      ]
+    },
+    {
+      subject: 'Geografia',
+      topics: [
+        { name: 'Geopolítica', percentage: 30, summary: 'Conflitos mundiais e blocos econômicos.', youtubeId: 'Uerj_g_1' },
+        { name: 'Urbanização', percentage: 20, summary: 'Crescimento das cidades e problemas urbanos.', youtubeId: 'Uerj_g_2' },
+        { name: 'Questões Ambientais', percentage: 15, summary: 'Rio de Janeiro e Brasil.', youtubeId: 'Uerj_g_3' }
+      ]
+    },
+    {
+      subject: 'História',
+      topics: [
+        { name: 'História do Rio de Janeiro', percentage: 15, summary: 'Formação e transformações.', youtubeId: 'Uerj_h_1' },
+        { name: 'Brasil Contemporâneo', percentage: 25, summary: 'Ditadura e Redemocratização.', youtubeId: 'Uerj_h_2' }
+      ]
+    },
+    {
+      subject: 'Filosofia',
+      topics: [
+        { name: 'Filosofia e Cidadania', percentage: 15, summary: 'Conceitos de ética e política.', youtubeId: 'Uerj_phi_1' }
+      ]
+    },
+    {
+      subject: 'Sociologia',
+      topics: [
+        { name: 'Estrutura Social', percentage: 15, summary: 'Classes sociais e desigualdade.', youtubeId: 'Uerj_soc_1' }
+      ]
+    },
+    {
+      subject: 'Biologia',
+      topics: [
+        { name: 'Bioquímica', percentage: 20, summary: 'Proteínas, enzimas e metabolismo.', youtubeId: 'Uerj_b_1' },
+        { name: 'Saúde Pública', percentage: 15, summary: 'Doenças e vacinação.', youtubeId: 'Uerj_b_2' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Mecânica dos Fluidos', percentage: 15, summary: 'Empuxo e pressão.', youtubeId: 'Uerj_f_1' },
+        { name: 'Eletrodinâmica', percentage: 20, summary: 'Leis de Ohm.', youtubeId: 'Uerj_f_2' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Radioatividade', percentage: 10, summary: 'Emissões e meia-vida.', youtubeId: 'Uerj_q_1' },
+        { name: 'Química Ambiental', percentage: 15, summary: 'Poluição e tratamento.', youtubeId: 'Uerj_q_2' }
+      ]
+    },
+    {
+      subject: 'Língua Estrangeira',
+      topics: [
+        { name: 'Interpretação', percentage: 100, summary: 'Inglês, Espanhol ou Francês.', youtubeId: 'Uerj_eng_1' }
+      ]
+    }
+  ],
+  [Vestibular.ITA]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Números Complexos', percentage: 15, summary: 'Forma algébrica e trigonométrica.', youtubeId: 'Ita_m_1' },
+        { name: 'Polinômios', percentage: 15, summary: 'Raízes e divisibilidade.', youtubeId: 'Ita_m_2' },
+        { name: 'Matrizes e Determinantes', percentage: 12, summary: 'Sistemas lineares.', youtubeId: 'Ita_m_3' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Mecânica', percentage: 35, summary: 'Cinemática, dinâmica e estática de corpos rígidos.', youtubeId: 'Ita_f_1' },
+        { name: 'Eletromagnetismo', percentage: 25, summary: 'Campos elétricos, magnéticos e indução.', youtubeId: 'Ita_f_2' },
+        { name: 'Física Moderna', percentage: 10, summary: 'Relatividade e física quântica.', youtubeId: 'Ita_f_3' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Termodinâmica Química', percentage: 20, summary: 'Entropia e energia livre.', youtubeId: 'Ita_q_1' },
+        { name: 'Cinética e Equilíbrio', percentage: 20, summary: 'Velocidade de reação.', youtubeId: 'Ita_q_2' },
+        { name: 'Química Orgânica Avançada', percentage: 15, summary: 'Mecanismos de reação.', youtubeId: 'Ita_q_3' }
+      ]
+    },
+    {
+      subject: 'Português',
+      topics: [
+        { name: 'Literatura Brasileira', percentage: 40, summary: 'Obras clássicas e modernas.', youtubeId: 'Ita_p_1' },
+        { name: 'Redação', percentage: 30, summary: 'Dissertação argumentativa.', youtubeId: 'Ita_p_2' }
+      ]
+    },
+    {
+      subject: 'Inglês',
+      topics: [
+        { name: 'Vocabulário Técnico', percentage: 40, summary: 'Termos científicos.', youtubeId: 'Ita_eng_1' },
+        { name: 'Interpretação Avançada', percentage: 60, summary: 'Textos complexos.', youtubeId: 'Ita_eng_2' }
+      ]
+    }
+  ]
+};
+
+export const ESSAY_THEMES: Record<Vestibular, { year: number; theme: string }[]> = {
+  [Vestibular.ENEM]: [
+    { year: 2025, theme: 'A inteligência artificial e os limites da ética na sociedade' },
+    { year: 2024, theme: 'Desafios para a valorização da herança africana no Brasil' },
+    { year: 2023, theme: 'Invisibilidade do trabalho de cuidado realizado pela mulher' },
+    { year: 2022, theme: 'Valorização de comunidades e povos tradicionais no Brasil' },
+    { year: 2021, theme: 'Invisibilidade e registro civil: acesso à cidadania' },
+    { year: 2020, theme: 'O estigma associado às doenças mentais' },
+    { year: 2019, theme: 'Democratização do acesso ao cinema no Brasil' },
+    { year: 2018, theme: 'Manipulação do comportamento pelo controle de dados' }
+  ],
+  [Vestibular.FUVEST]: [
+    { year: 2025, theme: 'O papel da tecnologia na preservação das relações humanas' },
+    { year: 2024, theme: 'Educação básica: direito de todos ou privilégio de poucos?' },
+    { year: 2023, theme: 'Refugiados no Brasil: a busca pela dignidade' },
+    { year: 2022, theme: 'As diferentes faces do riso' },
+    { year: 2021, theme: 'O mundo contemporâneo: a importância da empatia' },
+    { year: 2020, theme: 'O papel da ciência no mundo contemporâneo' },
+    { year: 2019, theme: 'Importância do passado para compreensão do presente' },
+    { year: 2018, theme: 'Devem existir limites para a arte?' }
+  ],
+  [Vestibular.UNICAMP]: [
+    { year: 2024, theme: 'A importância da preservação da memória indígena' },
+    { year: 2023, theme: 'A justiça social e o acesso à educação de qualidade' },
+    { year: 2022, theme: 'A pós-verdade no mundo digital' },
+    { year: 2021, theme: 'A importância do pensamento crítico na sociedade' },
+    { year: 2020, theme: 'O consumismo e seus impactos ambientais' }
+  ],
+  [Vestibular.UNESP]: [
+    { year: 2024, theme: 'A tecnologia a serviço da inclusão social' },
+    { year: 2023, theme: 'O desafio da mobilidade urbana sustentável' },
+    { year: 2022, theme: 'A importância do voto consciente para a democracia' }
+  ],
+  [Vestibular.UERJ]: [
+    { year: 2025, theme: 'Preservação do patrimônio histórico no RJ' },
+    { year: 2024, theme: 'Educação e redução de desigualdades' },
+    { year: 2023, theme: 'A importância da cultura popular na identidade nacional' },
+    { year: 2022, theme: 'O papel do Estado na garantia da saúde pública' }
+  ],
+  [Vestibular.ITA]: [
+    { year: 2024, theme: 'O avanço da aeroespacial e seus impactos na sociedade' },
+    { year: 2023, theme: 'A ética no desenvolvimento de novas tecnologias' }
+  ]
+};
