@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { generateStudyPlan, StudyPlan } from '../services/geminiService';
 import { levelSystem, LevelSystemStatus } from '../services/levelService';
 import DailyMissions from './DailyMissions';
+import StudyDashboard from './StudyDashboard';
 import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 
@@ -260,25 +261,13 @@ export default function Dashboard() {
             </div>
             <p className="text-slate-500 dark:text-blue-300 text-sm font-medium">{stat.label}</p>
             <p className="text-2xl font-bold text-slate-800 dark:text-white mb-4">{stat.value}</p>
-            <div className="mt-2">
-              <label className="text-xs text-slate-500 dark:text-blue-300 font-medium block mb-1">Matéria com Maior Dificuldade</label>
-              <input 
-                type="text"
-                value={difficulties[i]}
-                onChange={(e) => {
-                  const newDifficulties = [...difficulties];
-                  newDifficulties[i] = e.target.value;
-                  setDifficulties(newDifficulties);
-                }}
-                className="w-full p-2 rounded-lg border border-slate-200 dark:border-blue-800 bg-white dark:bg-blue-950 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Ex: Física"
-              />
-            </div>
           </div>
         ))}
       </div>
 
       <DailyMissions />
+
+      <StudyDashboard />
 
       <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
         <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Progresso por Disciplina</h3>

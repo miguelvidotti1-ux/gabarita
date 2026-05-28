@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, GraduationCap, LayoutDashboard, FileText, Video, User, LogOut, Menu, X, Moon, Sun, Sparkles, Users } from 'lucide-react';
+import { Book, BookOpen, GraduationCap, LayoutDashboard, FileText, Video, User, LogOut, Menu, X, Moon, Sun, Sparkles, Users, Zap, Trophy, Calendar, Award } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import ThemeToggle from './ThemeToggle';
@@ -20,11 +20,14 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
   const navItems = [
     { id: 'home', label: 'Home', icon: BookOpen },
     { id: 'vestibulares', label: 'Vestibulares', icon: GraduationCap },
-    { id: 'todas-provas', label: 'Todas as Provas', icon: FileText },
+    { id: 'desafio', label: 'Desafio Semanal', icon: Trophy, isNew: true },
+    { id: 'agenda', label: 'Agenda / Cronograma', icon: Calendar, isNew: true },
+    { id: 'conquistas', label: 'Metas e Conquistas', icon: Award, isNew: true },
     { id: 'redacao', label: 'Redação', icon: FileText },
     { id: 'conteudos', label: 'Conteúdos', icon: BookOpen },
     { id: 'videos', label: 'Vídeos', icon: Video },
     { id: 'chat', label: 'Conversar com IA', icon: Sparkles },
+    { id: 'biblioteca', label: 'Biblioteca', icon: Book },
     { id: 'sobre', label: 'Sobre', icon: Users },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   ];
@@ -85,7 +88,12 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
               `}
             >
               <item.icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <span className="font-medium flex-1 text-left">{item.label}</span>
+              {item.isNew && (
+                <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                  Novo
+                </span>
+              )}
             </button>
           ))}
         </nav>

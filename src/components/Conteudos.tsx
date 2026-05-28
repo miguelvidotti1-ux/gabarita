@@ -21,7 +21,8 @@ const SUBJECT_COLORS: Record<string, { bg: string, text: string, border: string,
   'Geografia': { bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-200', btn: 'bg-orange-600' },
   'Sociologia': { bg: 'bg-violet-500/10', text: 'text-violet-600', border: 'border-violet-200', btn: 'bg-violet-600' },
   'English': { bg: 'bg-sky-500/10', text: 'text-sky-600', border: 'border-sky-200', btn: 'bg-sky-600' },
-  'Filosofia': { bg: 'bg-purple-500/10', text: 'text-purple-600', border: 'border-purple-200', btn: 'bg-purple-600' }
+  'Filosofia': { bg: 'bg-purple-500/10', text: 'text-purple-600', border: 'border-purple-200', btn: 'bg-purple-600' },
+  'Artes': { bg: 'bg-teal-500/10', text: 'text-teal-600', border: 'border-teal-200', btn: 'bg-teal-600' }
 };
 
 const getSubjectStyles = (subject: string) => {
@@ -38,17 +39,20 @@ const VestibularContents: {
       Matematica: ['Álgebra', 'Geometria', 'Trigonometria', 'Probabilidade'],
       Fisica: ['Mecânica', 'Termodinâmica', 'Ondas', 'Eletricidade'],
       Quimica: ['Estequiometria', 'Orgânica', 'Físico-Química'],
-      Biologia: ['Genética', 'Ecologia', 'Fisiologia']
+      Biologia: ['Genética', 'Ecologia', 'Fisiologia'],
+      Artes: ['Barroco', 'Romantismo', 'Realismo', 'Modernismo', 'Arte Contemporânea']
     },
     FUVEST: {
       Matematica: ['Funções', 'Limites', 'Derivadas'],
       Fisica: ['Cinemática', 'Dinâmica', 'Óptica'],
-      Portugues: ['Interpretação de texto', 'Gramática', 'Literatura']
+      Portugues: ['Interpretação de texto', 'Gramática', 'Literatura'],
+      Artes: ['Barroco', 'Romantismo', 'Realismo', 'Modernismo', 'Arte Contemporânea']
     },
     UNICAMP: {
       Matematica: ['Matrizes', 'Vetores', 'Análise Combinatória'],
       Quimica: ['Cinética Química', 'Equilíbrio', 'Eletroquímica'],
-      Historia: ['Brasil Colonial', 'República', 'Ditadura Militar']
+      Historia: ['Brasil Colonial', 'República', 'Ditadura Militar'],
+      Artes: ['Barroco', 'Romantismo', 'Realismo', 'Modernismo', 'Arte Contemporânea']
     },
     UERJ: {
       Matematica: ['Geometria Analítica', 'Sequências'],
@@ -62,7 +66,8 @@ const VestibularContents: {
     UNESP: {
       Matematica: ['Polinômios', 'Logaritmos'],
       Quimica: ['Inorgânica', 'Termoquímica'],
-      Sociologia: ['Estrutura Social', 'Desigualdades']
+      Sociologia: ['Estrutura Social', 'Desigualdades'],
+      Artes: ['Barroco', 'Romantismo', 'Realismo', 'Modernismo', 'Arte Contemporânea']
     }
   },
 
@@ -119,7 +124,7 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
   const [loadingTopic, setLoadingTopic] = useState<string | null>(null);
   const [loadingQuizTopic, setLoadingQuizTopic] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [timePerQuestion, setTimePerQuestion] = useState(0);
+  const [totalTimeLimit, setTotalTimeLimit] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleVerResumos = async (subject: string, topics: string[]) => {
@@ -190,7 +195,7 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
     setLoadingQuizTopic(topicName);
     try {
       const questions = await generateQuestions(vestibular, { [`${subject}: ${topicName}`]: { count: 5, difficulty: 'médio' } });
-      const totalTime = timePerQuestion > 0 ? timePerQuestion * 60 * questions.length : undefined;
+      const totalTime = totalTimeLimit > 0 ? totalTimeLimit * 60 : undefined;
       onStartQuiz(questions, false, totalTime);
     } catch (error) {
       console.error("Erro ao gerar quiz do tópico:", error);
@@ -207,7 +212,7 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
       const subjects = data.map(s => s.subject);
       const randomSubjects = subjects.sort(() => 0.5 - Math.random()).slice(0, 3);
       const questions = await generateQuestions(vestibular, randomSubjects.reduce((acc, s) => ({ ...acc, [s]: { count: 5, difficulty: 'médio' } }), {}));
-      const totalTime = timePerQuestion > 0 ? timePerQuestion * 60 * questions.length : undefined;
+      const totalTime = totalTimeLimit > 0 ? totalTimeLimit * 60 : undefined;
       onStartQuiz(questions, false, totalTime);
     } catch (error) {
       console.error("Erro ao gerar quiz:", error);
@@ -617,19 +622,19 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
             <div className="flex flex-col md:flex-row items-center gap-6">
               <h3 className="text-4xl font-black tracking-tight">Quizzes Dinâmicos</h3>
               <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl backdrop-blur-md">
-                <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest leading-none">Minutos p/ Questão</span>
+                <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest leading-none">Tempo Geral</span>
                 <div className="flex items-center gap-4">
                   <button 
-                    onClick={() => setTimePerQuestion(Math.max(0, timePerQuestion - 5))}
+                    onClick={() => setTotalTimeLimit(Math.max(0, totalTimeLimit - 5))}
                     className="p-1.5 hover:bg-white/10 rounded-lg text-white transition-colors"
                   >
                     <Minus size={14} />
                   </button>
                   <span className="text-sm font-black text-white min-w-[3rem] text-center">
-                    {timePerQuestion === 0 ? 'ILIMITADO' : `${timePerQuestion} MIN`}
+                    {totalTimeLimit === 0 ? 'ILIMITADO' : `${totalTimeLimit} MIN`}
                   </span>
                   <button 
-                    onClick={() => setTimePerQuestion(timePerQuestion + 5)}
+                    onClick={() => setTotalTimeLimit(totalTimeLimit + 5)}
                     className="p-1.5 hover:bg-white/10 rounded-lg text-white transition-colors"
                   >
                     <Plus size={14} />

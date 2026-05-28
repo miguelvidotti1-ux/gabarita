@@ -14,7 +14,7 @@ export default function SimuladoPersonalizado({ vestibular, onStartQuiz }: Props
   const subjects = vestibularInfo.map(s => s.subject);
   const [selectedSubjects, setSelectedSubjects] = useState<Record<string, SubjectConfig>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [timePerQuestion, setTimePerQuestion] = useState(0); // 0 means unlimited
+  const [totalTimeLimit, setTotalTimeLimit] = useState(0); // 0 means unlimited
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
 
   const toggleSubject = (subject: string) => {
@@ -75,7 +75,7 @@ export default function SimuladoPersonalizado({ vestibular, onStartQuiz }: Props
     setIsGenerating(true);
     try {
       const questions = await generateQuestions(vestibular, selectedSubjects);
-      const totalTime = timePerQuestion > 0 ? timePerQuestion * 60 * questions.length : undefined;
+      const totalTime = totalTimeLimit > 0 ? totalTimeLimit * 60 : undefined;
       onStartQuiz(questions, false, totalTime);
     } catch (error) {
       console.error("Erro ao gerar simulado:", error);
@@ -94,19 +94,19 @@ export default function SimuladoPersonalizado({ vestibular, onStartQuiz }: Props
         </h2>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-blue-950 rounded-xl border dark:border-blue-800">
-            <span className="text-xs font-bold text-slate-500 dark:text-blue-400 uppercase tracking-wider">Tempo/Ques:</span>
+            <span className="text-xs font-bold text-slate-500 dark:text-blue-400 uppercase tracking-wider">Tempo Geral:</span>
             <div className="flex items-center gap-2">
               <button 
-                onClick={() => setTimePerQuestion(Math.max(0, timePerQuestion - 5))}
+                onClick={() => setTotalTimeLimit(Math.max(0, totalTimeLimit - 5))}
                 className="p-1 hover:bg-slate-200 dark:hover:bg-blue-800 rounded text-slate-600 dark:text-blue-300"
               >
                 <Minus size={14} />
               </button>
               <span className="text-sm font-black text-blue-600 dark:text-blue-400 min-w-[3rem] text-center">
-                {timePerQuestion === 0 ? 'Livre' : `${timePerQuestion} min`}
+                {totalTimeLimit === 0 ? 'Livre' : `${totalTimeLimit} min`}
               </span>
               <button 
-                onClick={() => setTimePerQuestion(timePerQuestion + 5)}
+                onClick={() => setTotalTimeLimit(totalTimeLimit + 5)}
                 className="p-1 hover:bg-slate-200 dark:hover:bg-blue-800 rounded text-slate-600 dark:text-blue-300"
               >
                 <Plus size={14} />

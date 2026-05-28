@@ -4,7 +4,14 @@ export enum Vestibular {
   UNICAMP = 'Unicamp',
   UNESP = 'Unesp',
   UERJ = 'UERJ',
-  ITA = 'ITA'
+  ITA = 'ITA',
+  FGV = 'FGV',
+  MACKENZIE = 'Mackenzie',
+  PUC_SP = 'PUC-SP',
+  UNIFESP = 'UNIFESP',
+  ANHEMBI_MORUMBI = 'Anhembi Morumbi',
+  ESTACIO = 'Estácio de Sá',
+  UNISINOS = 'Unisinos'
 }
 
 export interface UserProfile {

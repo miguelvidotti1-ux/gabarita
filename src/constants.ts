@@ -66,6 +66,16 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
         { name: 'Contratualismo', percentage: 33, summary: 'Teorias sobre o contrato social.', youtubeId: 'L8m_f_8_8_39' },
         { name: 'Cultura e Indústria Cultural', percentage: 34, summary: 'Produção cultural e sociedade.', youtubeId: 'L8m_f_8_8_40' }
       ]
+    },
+    {
+      subject: 'Artes',
+      topics: [
+        { name: 'Barroco', percentage: 20, summary: 'O estilo Barroco no Brasil e na Europa: contraste, drama e religiosidade.', youtubeId: 'X7K6GZJnyIs' },
+        { name: 'Romantismo', percentage: 20, summary: 'A subjetividade, emoção e nacionalismo nas artes do Romantismo.', youtubeId: 'Z0lVfB_J3k4' },
+        { name: 'Realismo', percentage: 20, summary: 'O Realismo nas artes: a representação fiel do cotidiano e a crítica social.', youtubeId: 'v8A9U1T5tRE' },
+        { name: 'Modernismo', percentage: 20, summary: 'A Semana de Arte Moderna de 1922 e as vanguardas artísticas europeias.', youtubeId: 'pS2tE6a-T5g' },
+        { name: 'Arte Contemporânea', percentage: 20, summary: 'As novas linguagens: conceitualismo, performance, instalações e efemeridade.', youtubeId: 'lZ_2p18Y0qg' }
+      ]
     }
   ],
   [Vestibular.FUVEST]: [
@@ -139,7 +149,11 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
     {
       subject: 'Artes',
       topics: [
-        { name: 'História da Arte', percentage: 20, summary: 'Movimentos artísticos e análise de obras.', youtubeId: 'Fuv_art_1' }
+        { name: 'Barroco', percentage: 20, summary: 'O estilo Barroco no Brasil e na Europa: contraste, drama e religiosidade.', youtubeId: 'X7K6GZJnyIs' },
+        { name: 'Romantismo', percentage: 20, summary: 'A subjetividade, emoção e nacionalismo nas artes do Romantismo.', youtubeId: 'Z0lVfB_J3k4' },
+        { name: 'Realismo', percentage: 20, summary: 'O Realismo nas artes: a representação fiel do cotidiano e a crítica social.', youtubeId: 'v8A9U1T5tRE' },
+        { name: 'Modernismo', percentage: 20, summary: 'A Semana de Arte Moderna de 1922 e as vanguardas artísticas europeias.', youtubeId: 'pS2tE6a-T5g' },
+        { name: 'Arte Contemporânea', percentage: 20, summary: 'As novas linguagens: conceitualismo, performance, instalações e efemeridade.', youtubeId: 'lZ_2p18Y0qg' }
       ]
     },
     {
@@ -215,7 +229,11 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
     {
       subject: 'Artes',
       topics: [
-        { name: 'Linguagens Visuais', percentage: 20, summary: 'Elements da imagem e história da arte.', youtubeId: 'Uni_art_1' }
+        { name: 'Barroco', percentage: 20, summary: 'O estilo Barroco no Brasil e na Europa: contraste, drama e religiosidade.', youtubeId: 'X7K6GZJnyIs' },
+        { name: 'Romantismo', percentage: 20, summary: 'A subjetividade, emoção e nacionalismo nas artes do Romantismo.', youtubeId: 'Z0lVfB_J3k4' },
+        { name: 'Realismo', percentage: 20, summary: 'O Realismo nas artes: a representação fiel do cotidiano e a crítica social.', youtubeId: 'v8A9U1T5tRE' },
+        { name: 'Modernismo', percentage: 20, summary: 'A Semana de Arte Moderna de 1922 e as vanguardas artísticas europeias.', youtubeId: 'pS2tE6a-T5g' },
+        { name: 'Arte Contemporânea', percentage: 20, summary: 'As novas linguagens: conceitualismo, performance, instalações e efemeridade.', youtubeId: 'lZ_2p18Y0qg' }
       ]
     },
     {
@@ -292,6 +310,16 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
       subject: 'Inglês',
       topics: [
         { name: 'Interpretação', percentage: 100, summary: 'Textos variados.', youtubeId: 'Une_eng_1' }
+      ]
+    },
+    {
+      subject: 'Artes',
+      topics: [
+        { name: 'Barroco', percentage: 20, summary: 'O estilo Barroco no Brasil e na Europa: contraste, drama e religiosidade.', youtubeId: 'X7K6GZJnyIs' },
+        { name: 'Romantismo', percentage: 20, summary: 'A subjetividade, emoção e nacionalismo nas artes do Romantismo.', youtubeId: 'Z0lVfB_J3k4' },
+        { name: 'Realismo', percentage: 20, summary: 'O Realismo nas artes: a representação fiel do cotidiano e a crítica social.', youtubeId: 'v8A9U1T5tRE' },
+        { name: 'Modernismo', percentage: 20, summary: 'A Semana de Arte Moderna de 1922 e as vanguardas artísticas europeias.', youtubeId: 'pS2tE6a-T5g' },
+        { name: 'Arte Contemporânea', percentage: 20, summary: 'As novas linguagens: conceitualismo, performance, instalações e efemeridade.', youtubeId: 'lZ_2p18Y0qg' }
       ]
     }
   ],
@@ -409,6 +437,69 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
         { name: 'Interpretação Avançada', percentage: 60, summary: 'Textos complexos.', youtubeId: 'Ita_eng_2' }
       ]
     }
+  ],
+  [Vestibular.FGV]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Matemática Financeira', percentage: 30, summary: 'Juros, descontos e taxas.', youtubeId: 'Fgv_m_1' },
+        { name: 'Análise de Dados', percentage: 25, summary: 'Gráficos e tabelas.', youtubeId: 'Fgv_m_2' }
+      ]
+    },
+    {
+      subject: 'Português',
+      topics: [
+        { name: 'Interpretação e Lógica', percentage: 50, summary: 'Raciocínio crítico e textual.', youtubeId: 'Fgv_p_1' }
+      ]
+    }
+  ],
+  [Vestibular.MACKENZIE]: [
+    {
+      subject: 'Linguagens',
+      topics: [
+        { name: 'Literatura e Gramática', percentage: 40, summary: 'Norma culta e escolas literárias.', youtubeId: 'Mack_L_1' }
+      ]
+    }
+  ],
+  [Vestibular.PUC_SP]: [
+    {
+      subject: 'Humanas',
+      topics: [
+        { name: 'História e Geografia', percentage: 40, summary: 'Atualidades e fundamentos.', youtubeId: 'Puc_H_1' }
+      ]
+    }
+  ],
+  [Vestibular.UNIFESP]: [
+    {
+      subject: 'Ciências da Natureza',
+      topics: [
+        { name: 'Biologia e Química', percentage: 40, summary: 'Fisiologia e Bioquímica.', youtubeId: 'Unf_N_1' }
+      ]
+    }
+  ],
+  [Vestibular.ANHEMBI_MORUMBI]: [
+    {
+      subject: 'Geral',
+      topics: [
+        { name: 'Conhecimentos Gerais', percentage: 100, summary: 'Tópicos variados do ensino médio.', youtubeId: 'Am_G_1' }
+      ]
+    }
+  ],
+  [Vestibular.ESTACIO]: [
+    {
+      subject: 'Geral',
+      topics: [
+        { name: 'Conhecimentos Gerais', percentage: 100, summary: 'Base nacional comum.', youtubeId: 'Est_G_1' }
+      ]
+    }
+  ],
+  [Vestibular.UNISINOS]: [
+    {
+      subject: 'Geral',
+      topics: [
+        { name: 'Conhecimentos Gerais', percentage: 100, summary: 'Base nacional comum e atualidades.', youtubeId: 'Uni_G_1' }
+      ]
+    }
   ]
 };
 
@@ -454,5 +545,12 @@ export const ESSAY_THEMES: Record<Vestibular, { year: number; theme: string }[]>
   [Vestibular.ITA]: [
     { year: 2024, theme: 'O avanço da aeroespacial e seus impactos na sociedade' },
     { year: 2023, theme: 'A ética no desenvolvimento de novas tecnologias' }
-  ]
+  ],
+  [Vestibular.FGV]: [{ year: 2024, theme: 'O impacto da economia digital no Brasil' }],
+  [Vestibular.MACKENZIE]: [{ year: 2024, theme: 'Cidadania e responsabilidade social' }],
+  [Vestibular.PUC_SP]: [{ year: 2024, theme: 'Justiça social no mundo contemporâneo' }],
+  [Vestibular.UNIFESP]: [{ year: 2024, theme: 'Ética e avanços na medicina' }],
+  [Vestibular.ANHEMBI_MORUMBI]: [{ year: 2024, theme: 'O mercado de trabalho e as novas tecnologias' }],
+  [Vestibular.ESTACIO]: [{ year: 2024, theme: 'Inclusão digital e educação' }],
+  [Vestibular.UNISINOS]: [{ year: 2024, theme: 'Sustentabilidade e inovação' }]
 };

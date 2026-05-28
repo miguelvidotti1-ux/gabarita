@@ -101,6 +101,26 @@ class LevelSystem {
     this.save();
   }
 
+  public spendXP(amount: number): boolean {
+    const totalXP = this.getTotalXP();
+    if (totalXP >= amount) {
+      // Deduct from subjects proportionally or just from the first available?
+      // Since it's global, we can deduct from the first subject that has enough, or spread it.
+      // Easiest is to just track a "global deduction" or deduct from the largest pool.
+      let remainingToSpend = amount;
+      const subjects = Object.keys(this.subjectsXP);
+      for (const sub of subjects) {
+        const canTake = Math.min(this.subjectsXP[sub], remainingToSpend);
+        this.subjectsXP[sub] -= canTake;
+        remainingToSpend -= canTake;
+        if (remainingToSpend <= 0) break;
+      }
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
   public getStatus(): LevelSystemStatus {
     const totalXP = this.getTotalXP();
     const subjectsStatus: Record<string, SubjectStatus> = {};

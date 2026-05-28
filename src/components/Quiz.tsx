@@ -32,6 +32,12 @@ export default function Quiz({ questions, onComplete, isFullExam = false, vestib
   const currentQuestion = questions[currentQuestionIndex];
 
   React.useEffect(() => {
+    if (isTimeUp) {
+      setQuizFinished(true);
+    }
+  }, [isTimeUp]);
+
+  React.useEffect(() => {
     if ((!isFullExam && !timeLimit) || quizFinished || isTimeUp) return;
 
     const timer = setInterval(() => {

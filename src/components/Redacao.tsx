@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Vestibular } from '../types';
 import { FileText, Sparkles, PenTool, CheckCircle, BookOpen, Loader2, Award, History, Camera, Target, Zap, Clock, Info, Share2, ArrowRight } from 'lucide-react';
 import { ESSAY_THEMES } from '../constants';
-import { generateEssayTheme, analyzeEssay, EssayAnalysis, Competency } from '../services/geminiService';
+import { generateEssayTheme, analyzeEssay, analyzeEssayFromImage, EssayAnalysis, Competency } from '../services/geminiService';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { missionEngine } from '../services/missionService';
 import { collection, addDoc, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
@@ -27,6 +27,7 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
   const [selectedTheme, setSelectedTheme] = useState<string>(themes[0]?.theme || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzingFromImage, setIsAnalyzingFromImage] = useState(false);
   const [essayText, setEssayText] = useState('');
   const [correction, setCorrection] = useState<EssayAnalysis | null>(null);
   const [essayHistory, setEssayHistory] = useState<EssayResult[]>([]);
@@ -37,6 +38,37 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
     setSelectedTheme(themes[0]?.theme || '');
     setCorrection(null);
   }, [vestibular]);
+
+  const handleImageEssayCorrection = async (file: File) => {
+    if (!auth.currentUser) return alert("Você precisa estar logado.");
+
+    setIsAnalyzingFromImage(true);
+    try {
+      const result = await analyzeEssayFromImage(vestibular, selectedTheme, file);
+      setCorrection(result);
+      
+      // Store draft or corrected essay directly? For now just corrected
+      await addDoc(collection(db, 'essays'), {
+        userId: auth.currentUser.uid,
+        theme: selectedTheme,
+        essayText: 'Transcrição da imagem...', // Optionally store transcribed text
+        generalCorrection: result.generalCorrection,
+        competencies: result.competencies,
+        grade: result.grade,
+        status: 'corrected',
+        timestamp: Timestamp.now()
+      });
+
+      alert("Redação corrigida com sucesso!");
+    } catch (error) {
+      console.error("Error analyzing essay from image:", error);
+      alert("Erro ao analisar imagem. Tente novamente.");
+    } finally {
+      setIsAnalyzingFromImage(false);
+      setShowCamera(false);
+      setShowGallery(false);
+    }
+  };
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -229,9 +261,8 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
                       className="bg-blue-50 dark:bg-blue-950 rounded-3xl p-8 border border-blue-100 dark:border-blue-800"
                     >
                       <NativeCameraLauncher onImageCapture={(file) => {
-                        setShowCamera(false);
-                        alert('Integração OCR em processamento...');
-                      }} />
+                          handleImageEssayCorrection(file);
+                        }} />
                     </motion.div>
                   )}
 
@@ -244,14 +275,29 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
                       className="bg-blue-50 dark:bg-blue-950 rounded-3xl p-8 border border-blue-100 dark:border-blue-800"
                     >
                       <GalleryPicker onFilesSelect={(files) => {
-                        setShowGallery(false);
-                        alert('Redação enviada da galeria!');
-                      }} />
+                          if (files.length > 0) handleImageEssayCorrection(files[0]);
+                        }} />
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className={`space-y-6 ${(showCamera || showGallery) ? 'hidden' : ''}`}>
+                <AnimatePresence mode="wait">
+                  {isAnalyzingFromImage && (
+                    <motion.div 
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-col items-center justify-center py-20 space-y-6"
+                    >
+                      <Loader2 size={48} className="animate-spin text-blue-600" />
+                      <h3 className="text-2xl font-black text-slate-800 dark:text-white">Analizando sua Redação...</h3>
+                      <p className="text-slate-500 dark:text-blue-300">Isso pode levar alguns segundos.</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className={`space-y-6 ${(showCamera || showGallery || isAnalyzingFromImage) ? 'hidden' : ''}`}>
                   <div className="space-y-3">
                     <label className="text-xs font-black text-blue-600 dark:text-blue-300 uppercase tracking-widest pl-1">Escolha o Tema</label>
                     <div className="flex flex-col md:flex-row gap-3">
