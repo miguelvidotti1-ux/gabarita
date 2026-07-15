@@ -1,139 +1,48 @@
 import { useState, useMemo } from 'react';
 import { Vestibular } from '../types';
 import { Play, Search, Filter, Clock, GraduationCap } from 'lucide-react';
+import { auth } from '../firebase';
+import { achievementService } from '../services/achievementService';
+import { missionEngine } from '../services/missionService';
 
 const VIDEOS = [
-  {
-    title: "Resolução de Equações Quadráticas",
-    materia: "Matemática",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format&fit=crop",
-    duracao: "12:45"
-  },
-  {
-    title: "Funções Trigonométricas",
-    materia: "Matemática",
-    vestibular: "FUVEST",
-    thumbnail: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&auto=format&fit=crop",
-    duracao: "15:30"
-  },
-  {
-    title: "Geometria Analítica",
-    materia: "Matemática",
-    vestibular: "UNICAMP",
-    thumbnail: "https://images.unsplash.com/photo-1543286386-2e671340c33c?w=800&auto=format&fit=crop",
-    duracao: "10:15"
-  },
-  {
-    title: "Razão e Proporção - Prof. Robson Liers",
-    materia: "Matemática",
-    vestibular: "ENEM",
-    thumbnail: "https://img.youtube.com/vi/OC3GHbT7-uI/maxresdefault.jpg",
-    duracao: "4:27",
-    url: "https://www.youtube.com/watch?v=OC3GHbT7-uI"
-  },
-  {
-    title: "Interpretação de Textos Narrativos",
-    materia: "Português",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop",
-    duracao: "08:20"
-  },
-  {
-    title: "Gramática Normativa",
-    materia: "Português",
-    vestibular: "FUVEST",
-    thumbnail: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop",
-    duracao: "11:05"
-  },
-  {
-    title: "Células e Tecidos",
-    materia: "Biologia",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=800&auto=format&fit=crop",
-    duracao: "14:00"
-  },
-  {
-    title: "Genética Mendelliana",
-    materia: "Biologia",
-    vestibular: "UNICAMP",
-    thumbnail: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800&auto=format&fit=crop",
-    duracao: "13:40"
-  },
-  {
-    title: "Leis de Newton",
-    materia: "Física",
-    vestibular: "FUVEST",
-    thumbnail: "https://images.unsplash.com/photo-1636466484362-ad1388d21cf7?w=800&auto=format&fit=crop",
-    duracao: "16:25"
-  },
-  {
-    title: "Ondulatória",
-    materia: "Física",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1517466787929-bc904b77ed21?w=800&auto=format&fit=crop",
-    duracao: "09:50"
-  },
-  {
-    title: "Reações Químicas",
-    materia: "Química",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?w=800&auto=format&fit=crop",
-    duracao: "12:10"
-  },
-  {
-    title: "Revolução Industrial",
-    materia: "História",
-    vestibular: "FUVEST",
-    thumbnail: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&auto=format&fit=crop",
-    duracao: "17:00"
-  },
-  {
-    title: "O Barroco no Brasil: Arte, Arquitetura e Contexto Histórico",
-    materia: "Artes",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=800&auto=format&fit=crop",
-    duracao: "14:20",
-    url: "https://www.youtube.com/watch?v=X7K6GZJnyIs"
-  },
-  {
-    title: "Romantismo nas Artes: Emoção e Nacionalismo",
-    materia: "Artes",
-    vestibular: "FUVEST",
-    thumbnail: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop",
-    duracao: "11:15",
-    url: "https://www.youtube.com/watch?v=Z0lVfB_J3k4"
-  },
-  {
-    title: "Realismo e a Crítica Social na Pintura",
-    materia: "Artes",
-    vestibular: "UNICAMP",
-    thumbnail: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop",
-    duracao: "13:10",
-    url: "https://www.youtube.com/watch?v=v8A9U1T5tRE"
-  },
-  {
-    title: "Modernismo e a Semana de Arte Moderna de 1922",
-    materia: "Artes",
-    vestibular: "ENEM",
-    thumbnail: "https://images.unsplash.com/photo-1601887389937-0b02c26b6c3c?w=800&auto=format&fit=crop",
-    duracao: "18:45",
-    url: "https://www.youtube.com/watch?v=pS2tE6a-T5g"
-  },
-  {
-    title: "Arte Contemporânea: Conceitos, Performances e Instalações",
-    materia: "Artes",
-    vestibular: "FUVEST",
-    thumbnail: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&auto=format&fit=crop",
-    duracao: "15:22",
-    url: "https://www.youtube.com/watch?v=lZ_2p18Y0qg"
-  }
+  { title: "Introdução à Química Geral", materia: "Química", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?w=800&auto=format&fit=crop", duracao: "12:10" },
+  { title: "Leis de Newton na Prática", materia: "Física", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1636466484362-ad1388d21cf7?w=800&auto=format&fit=crop", duracao: "16:25" },
+  { title: "Ecologia e Meio Ambiente", materia: "Biologia", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=800&auto=format&fit=crop", duracao: "14:00" },
+  { title: "Matemática Básica para o ENEM", materia: "Matemática", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format&fit=crop", duracao: "12:45" },
+  { title: "Brasil Colônia: Sociedade e Economia", materia: "História", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&auto=format&fit=crop", duracao: "17:00" },
+  { title: "Geografia e Globalização", materia: "Geografia", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1526628929780-1a7428f57279?w=800&auto=format&fit=crop", duracao: "15:45" },
+  { title: "Sociologia: Cultura e Indústria Cultural", materia: "Sociologia", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop", duracao: "14:30" },
+  { title: "Filosofia: O pensamento Socrático", materia: "Filosofia", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&auto=format&fit=crop", duracao: "16:15" },
+  { title: "O Barroco no Brasil", materia: "Artes", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=800&auto=format&fit=crop", duracao: "14:20", url: "https://www.youtube.com/watch?v=X7K6GZJnyIs" }
 ];
 
 export default function Videos({ vestibular: currentVestibularProp }: { vestibular: Vestibular }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [materiaFilter, setMateriaFilter] = useState('all');
   const [vestibularFilter, setVestibularFilter] = useState('all');
+
+  const handleVideoClick = (video: any) => {
+    // Open URL if available (if not, search on YouTube)
+    const url = video.url || "https://www.youtube.com/results?search_query=" + encodeURIComponent("Aula " + video.title);
+    window.open(url, '_blank');
+
+    // Update Daily Missions for video-watching ('watch')
+    try {
+      missionEngine.getMissionsForToday().forEach(m => {
+        if (m.type === 'watch' && (m.topic === video.materia || m.topic === 'review')) {
+          missionEngine.updateProgress(m.id, 1);
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    // Update User Metas/Achievements automatically
+    if (auth.currentUser) {
+      achievementService.trackActivity(auth.currentUser.uid, 'aulas', 1);
+    }
+  };
 
   const materias = useMemo(() => ['all', ...new Set(VIDEOS.map(v => v.materia))].sort(), []);
   const vestibularesList = useMemo(() => ['all', ...new Set(VIDEOS.map(v => v.vestibular))].sort(), []);
@@ -236,7 +145,7 @@ export default function Videos({ vestibular: currentVestibularProp }: { vestibul
                 {videos.map((video, idx) => (
                   <div 
                     key={idx} 
-                    onClick={() => (video as any).url && window.open((video as any).url, '_blank')}
+                    onClick={() => handleVideoClick(video)}
                     className="group bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[var(--text-accent)]/10 hover:-translate-y-2 transition-all duration-500 cursor-pointer"
                   >
                     <div className="relative aspect-video overflow-hidden">

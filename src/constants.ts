@@ -3,68 +3,123 @@ import { Vestibular, ContentTopic } from './types';
 export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
   [Vestibular.ENEM]: [
     {
-      subject: 'Matemática',
+      subject: 'Química',
       topics: [
-        { name: 'Razão/Proporção', percentage: 33, summary: 'Cálculos de escala, regra de três e porcentagem.', youtubeId: 'evXrGaI6SVc', mindMapUrl: 'https://i.postimg.cc/KcPXgkkZ/lv-0-20260402085109.jpg' },
-        { name: 'Geometria Espacial', percentage: 33, summary: 'Volumes de prismas, cilindros e esferas.', youtubeId: 'Y_gD7S6OkC4' },
-        { name: 'Estatística', percentage: 34, summary: 'Média, moda, mediana e análise de gráficos.', youtubeId: 'A2b_f_8_8_10' },
-        { name: 'Funções', percentage: 34, summary: 'Tipos de funções, gráficos e aplicações.', youtubeId: 'hIc5y6IXi-4' }
-      ]
-    },
-    {
-      subject: 'Biologia',
-      topics: [
-        { name: 'Ecologia', percentage: 33, summary: 'Relações entre seres vivos e meio ambiente.', youtubeId: 'L8m_f_8_8_23' },
-        { name: 'Genética/Biotecnologia', percentage: 33, summary: 'Leis de Mendel, DNA e biotecnologia.', youtubeId: 'L8m_f_8_8_24' },
-        { name: 'Fisiologia Humana', percentage: 34, summary: 'Sistemas do corpo humano e funcionamento.', youtubeId: 'L8m_f_8_8_25' }
+        { name: 'Ligações químicas', percentage: 10, summary: 'Estudo das uniões entre átomos.' },
+        { name: 'Funções orgânicas', percentage: 10, summary: 'Estudo dos grupos funcionais orgânicos.' },
+        { name: 'Estequiometria', percentage: 10, summary: 'Cálculos químicos.' },
+        { name: 'Soluções', percentage: 10, summary: 'Misturas homogêneas.' },
+        { name: 'pH e pOH', percentage: 10, summary: 'Acidez e alcalinidade.' },
+        { name: 'Reações químicas', percentage: 10, summary: 'Transformações da matéria.' },
+        { name: 'Eletroquímica', percentage: 10, summary: 'Oxirredução e pilhas.' },
+        { name: 'Química ambiental', percentage: 10, summary: 'Solos, água e atmosfera.' },
+        { name: 'Petróleo e polímeros', percentage: 10, summary: 'Combustíveis e macromoléculas.' },
+        { name: 'Separação de misturas', percentage: 10, summary: 'Processos de separação.' },
       ]
     },
     {
       subject: 'Física',
       topics: [
-        { name: 'Mecânica (Energia)', percentage: 33, summary: 'Leis de conservação e trabalho.', youtubeId: 'L8m_f_8_8_26' },
-        { name: 'Eletrodinâmica', percentage: 33, summary: 'Circuitos elétricos e potência.', youtubeId: 'L8m_f_8_8_27' },
-        { name: 'Termologia', percentage: 34, summary: 'Calorimetria e leis da termodinâmica.', youtubeId: 'L8m_f_8_8_28' }
+        { name: 'Cinemática', percentage: 10, summary: 'Estudo do movimento.' },
+        { name: 'Leis de Newton', percentage: 10, summary: 'Dinâmica clássica.' },
+        { name: 'Trabalho e energia', percentage: 10, summary: 'Conceitos de energia.' },
+        { name: 'Potência', percentage: 10, summary: 'Taxa de realização de trabalho.' },
+        { name: 'Calorimetria', percentage: 10, summary: 'Trocas de calor.' },
+        { name: 'Ondulatória', percentage: 10, summary: 'Propriedades das ondas.' },
+        { name: 'Eletricidade básica', percentage: 10, summary: 'Carga e campo elétrico.' },
+        { name: 'Circuitos elétricos', percentage: 10, summary: 'Resistores e leis de Ohm.' },
+        { name: 'Pressão e hidrostática', percentage: 10, summary: 'Fluidos em equilíbrio.' },
+        { name: 'Óptica', percentage: 10, summary: 'Luz e fontes luminosas.' },
       ]
     },
     {
-      subject: 'Química',
+      subject: 'Biologia',
       topics: [
-        { name: 'Estequiometria', percentage: 33, summary: 'Cálculos de massa e reações químicas.', youtubeId: 'L8m_f_8_8_29' },
-        { name: 'Química Orgânica', percentage: 33, summary: 'Cadeias carbônicas e funções orgânicas.', youtubeId: 'L8m_f_8_8_30' },
-        { name: 'Eletroquímica', percentage: 34, summary: 'Reações de oxirredução e pilhas.', youtubeId: 'L8m_f_8_8_31' }
+        { name: 'Ecologia', percentage: 10, summary: 'Estudo das interações.' },
+        { name: 'Cadeia alimentar', percentage: 10, summary: 'Fluxo de energia.' },
+        { name: 'Genética', percentage: 10, summary: 'Hereditariedade.' },
+        { name: 'DNA e RNA', percentage: 10, summary: 'Ácidos nucleicos.' },
+        { name: 'Evolução', percentage: 10, summary: 'Seleção natural.' },
+        { name: 'Citologia', percentage: 10, summary: 'Estrutura celular.' },
+        { name: 'Sistema imunológico', percentage: 10, summary: 'Defesa do organismo.' },
+        { name: 'Fisiologia humana', percentage: 10, summary: 'Sistemas corporais.' },
+        { name: 'Biotecnologia', percentage: 10, summary: 'Tecnologias biológicas.' },
+        { name: 'Ciclos biogeoquímicos', percentage: 10, summary: 'Ciclos da matéria.' },
+      ]
+    },
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Funções (1º e 2º grau)', percentage: 10, summary: 'Modelagem algébrica.' },
+        { name: 'Porcentagem', percentage: 10, summary: 'Razões centesimais.' },
+        { name: 'Razão e proporção', percentage: 10, summary: 'Proporcionalidade.' },
+        { name: 'Regra de três', percentage: 10, summary: 'Resolução de problemas.' },
+        { name: 'Estatística', percentage: 10, summary: 'Média, moda, mediana.' },
+        { name: 'Probabilidade', percentage: 10, summary: 'Análise de chances.' },
+        { name: 'Geometria plana', percentage: 10, summary: 'Figuras bidimensionais.' },
+        { name: 'Geometria espacial', percentage: 10, summary: 'Corpos tridimensionais.' },
+        { name: 'Escala', percentage: 10, summary: 'Proporções em mapas e modelos.' },
+        { name: 'Análise de gráficos', percentage: 10, summary: 'Interpretação de dados visuais.' },
       ]
     },
     {
       subject: 'História',
       topics: [
-        { name: 'Brasil Colônia/Império', percentage: 33, summary: 'Formação do Brasil e período imperial.', youtubeId: 'L8m_f_8_8_32' },
-        { name: 'Era Vargas', percentage: 33, summary: 'Políticas e transformações sociais.', youtubeId: 'L8m_f_8_8_33' },
-        { name: 'Idade Contemporânea', percentage: 34, summary: 'Eventos mundiais e transformações sociais.', youtubeId: 'L8m_f_8_8_34' }
+        { name: 'Brasil Colônia', percentage: 10, summary: 'Período colonial.' },
+        { name: 'Escravidão', percentage: 10, summary: 'Estrutura social colônia/imperial.' },
+        { name: 'Independência do Brasil', percentage: 10, summary: 'Processo emancipatório.' },
+        { name: 'Brasil República', percentage: 10, summary: 'Início da República.' },
+        { name: 'Era Vargas', percentage: 10, summary: 'Governo de Getúlio Vargas.' },
+        { name: 'Ditadura militar', percentage: 10, summary: 'Regime pós-1964.' },
+        { name: 'Revolução Industrial', percentage: 10, summary: 'Transformações globais.' },
+        { name: 'Imperialismo', percentage: 10, summary: 'Expansão colonial tardia.' },
+        { name: 'Guerras Mundiais', percentage: 10, summary: 'Conflitos globais.' },
+        { name: 'Guerra Fria', percentage: 10, summary: 'Polarização global.' },
       ]
     },
     {
       subject: 'Geografia',
       topics: [
-        { name: 'Questões Ambientais', percentage: 33, summary: 'Impactos e sustentabilidade.', youtubeId: 'L8m_f_8_8_35' },
-        { name: 'Urbanização', percentage: 33, summary: 'Crescimento das cidades e problemas urbanos.', youtubeId: 'L8m_f_8_8_36' },
-        { name: 'Geopolítica', percentage: 34, summary: 'Conflitos e relações internacionais.', youtubeId: 'L8m_f_8_8_37' }
+        { name: 'Globalização', percentage: 10, summary: 'Interdependência mundial.' },
+        { name: 'Geopolítica', percentage: 10, summary: 'Poder e espaço.' },
+        { name: 'Urbanização', percentage: 10, summary: 'Processos urbanos.' },
+        { name: 'Industrialização', percentage: 10, summary: 'Mudanças no espaço industrial.' },
+        { name: 'Questões ambientais', percentage: 10, summary: 'Sustentabilidade.' },
+        { name: 'Energia', percentage: 10, summary: 'Fontes energéticas.' },
+        { name: 'Agricultura', percentage: 10, summary: 'Espaço rural.' },
+        { name: 'Demografia', percentage: 10, summary: 'Dinâmica populacional.' },
+        { name: 'Cartografia', percentage: 10, summary: 'Representação do espaço.' },
+        { name: 'Clima', percentage: 10, summary: 'Dinâmica climática.' },
       ]
     },
     {
-      subject: 'Português',
+      subject: 'Sociologia',
       topics: [
-        { name: 'Interpretação de Texto', percentage: 33, summary: 'Análise de gêneros textuais.', youtubeId: 'L8m_f_8_8_13' },
-        { name: 'Gramática Aplicada', percentage: 33, summary: 'Uso da língua em contextos.', youtubeId: 'L8m_f_8_8_14' },
-        { name: 'Modernismo', percentage: 34, summary: 'Movimentos e obras modernistas.', youtubeId: 'L8m_f_8_8_17' }
+        { name: 'Cultura', percentage: 10, summary: 'Conceitos culturais.' },
+        { name: 'Cidadania', percentage: 10, summary: 'Exercício de direitos.' },
+        { name: 'Movimentos sociais', percentage: 10, summary: 'Lutas por direitos.' },
+        { name: 'Desigualdade social', percentage: 10, summary: 'Estrutura de classes.' },
+        { name: 'Poder e política', percentage: 10, summary: 'Relações de domínio.' },
+        { name: 'Trabalho e sociedade', percentage: 10, summary: 'Relações laborales.' },
+        { name: 'Globalização', percentage: 10, summary: 'Aspectos sociológicos.' },
+        { name: 'Ideologia', percentage: 10, summary: 'Representações sociais.' },
+        { name: 'Indústria cultural', percentage: 10, summary: 'Produção em massa.' },
+        { name: 'Controle social', percentage: 10, summary: 'Regulação social.' },
       ]
     },
     {
-      subject: 'Filo/Socio',
+      subject: 'Filosofia',
       topics: [
-        { name: 'Ética e Cidadania', percentage: 33, summary: 'Valores e deveres na sociedade.', youtubeId: 'L8m_f_8_8_38' },
-        { name: 'Contratualismo', percentage: 33, summary: 'Teorias sobre o contrato social.', youtubeId: 'L8m_f_8_8_39' },
-        { name: 'Cultura e Indústria Cultural', percentage: 34, summary: 'Produção cultural e sociedade.', youtubeId: 'L8m_f_8_8_40' }
+        { name: 'Mito e filosofia', percentage: 10, summary: 'A passagem do mito ao logos.' },
+        { name: 'Sócrates, Platão e Aristóteles', percentage: 10, summary: 'Filosofia grega clássica.' },
+        { name: 'Ética', percentage: 10, summary: 'Teorias éticas.' },
+        { name: 'Moral', percentage: 10, summary: 'Fundamentos da moral.' },
+        { name: 'Política', percentage: 10, summary: 'Filosofia política.' },
+        { name: 'Contratualismo', percentage: 10, summary: 'Teorias do contrato social.' },
+        { name: 'Iluminismo', percentage: 10, summary: 'Século das Luzes.' },
+        { name: 'Existencialismo', percentage: 10, summary: 'Filosofia da existência.' },
+        { name: 'Filosofia moderna', percentage: 10, summary: 'Pensamento moderno.' },
+        { name: 'Filosofia contemporânea', percentage: 10, summary: 'Pensamento atual.' },
       ]
     },
     {

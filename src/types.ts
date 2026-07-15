@@ -58,6 +58,22 @@ export interface ProgressRecord {
   completedAt: string;
 }
 
+export interface GabaritoOficial {
+  id: string;
+  exame: Vestibular | string;
+  ano: number;
+  dia: number;
+  caderno: string;
+  questoes: {
+    numero: number;
+    resposta: string;
+    disciplina: string;
+    enunciado?: string;
+    alternativas?: string[];
+    justificativa?: string;
+  }[];
+}
+
 export interface ContentTopic {
   subject: string;
   topics: {

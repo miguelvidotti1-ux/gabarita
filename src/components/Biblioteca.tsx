@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { BookOpen, Book, Users, Target, Search } from 'lucide-react';
+import { BookOpen, Book, Users, Target, Search, FileText } from 'lucide-react';
+import ListaGabaritosExtra from './ListaGabaritosExtra';
 
 const Database = {
   repertorios: [
@@ -55,22 +56,116 @@ const Database = {
     { id: '50', tema: "Literatura", autor: "Clarice Lispector", obra: "A Hora da Estrela", conteudo: "A existência invisível de quem ninguém nota.", uso: "Marginalização, invisibilidade social." }
   ],
   leituras: [
-    { id: 'fuv26', obra: "Opúsculo Humanitário", autor: "Nísia Floresta", vestibular: "FUVEST", ano: 2026 },
-    { id: 'fuv27', obra: "A Paixão Segundo G.H.", autor: "Clarice Lispector", vestibular: "FUVEST", ano: 2027 },
-    { id: 'uni27', obra: "A vida não é útil", autor: "Ailton Krenak", vestibular: "UNICAMP", ano: 2027 },
-    { id: 'uerj27', obra: "Ainda estou aqui", autor: "Marcelo Rubens Paiva", vestibular: "UERJ", ano: 2027 },
-    { id: 'fuv28', obra: "João Miguel", autor: "Rachel de Queiroz", vestibular: "FUVEST", ano: 2028 }
+    // --- FUVEST ---
+    { id: 'fuv26_1', obra: "Alguma Poesia", autor: "Carlos Drummond de Andrade", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_2', obra: "Mensagem", autor: "Fernando Pessoa", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_3', obra: "Marília de Dirceu", autor: "Tomás Antônio Gonzaga", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_4', obra: "Quincas Borba", autor: "Machado de Assis", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_5', obra: "Angústia", autor: "Graciliano Ramos", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_6', obra: "Campo Geral", autor: "João Guimarães Rosa", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_7', obra: "Romanceiro da Inconfidência", autor: "Cecília Meireles", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_8', obra: "Nós Matamos o Cão Tinhoso!", autor: "Luís Bernardo Honwana", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv26_9', obra: "Dois Irmãos", autor: "Milton Hatoum", vestibular: "Fuvest", ano: 2026 },
+    { id: 'fuv27_1', obra: "A Paixão Segundo G.H.", autor: "Clarice Lispector", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_2', obra: "Canções Escolhidas", autor: "Cartola", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_3', obra: "Marília de Dirceu", autor: "Tomás Antônio Gonzaga", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_4', obra: "Quincas Borba", autor: "Machado de Assis", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_5', obra: "Angústia", autor: "Graciliano Ramos", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_6', obra: "Primeiras Estórias", autor: "João Guimarães Rosa", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_7', obra: "Romanceiro da Inconfidência", autor: "Cecília Meireles", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_8', obra: "Nós Matamos o Cão Tinhoso!", autor: "Luís Bernardo Honwana", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv27_9', obra: "Opúsculo Humanitário", autor: "Nísia Floresta", vestibular: "Fuvest", ano: 2027 },
+    { id: 'fuv28_1', obra: "João Miguel", autor: "Rachel de Queiroz", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_2', obra: "Minha Vida de Menina", autor: "Helena Morley", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_3', obra: "Quincas Borba", autor: "Machado de Assis", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_4', obra: "Vidas Secas", autor: "Graciliano Ramos", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_5', obra: "O Cortiço", autor: "Aluísio Azevedo", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_6', obra: "A Relíquia", autor: "Eça de Queirós", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_7', obra: "Sagarana", autor: "João Guimarães Rosa", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv28_8', obra: "Opúsculo Humanitário", autor: "Nísia Floresta", vestibular: "Fuvest", ano: 2028 },
+    { id: 'fuv29_1', obra: "Memórias Póstumas de Brás Cubas", autor: "Machado de Assis", vestibular: "Fuvest", ano: 2029 },
+    { id: 'fuv29_2', obra: "Iracema", autor: "José de Alencar", vestibular: "Fuvest", ano: 2029 },
+    { id: 'fuv29_3', obra: "Macunaíma", autor: "Mário de Andrade", vestibular: "Fuvest", ano: 2029 },
+    { id: 'fuv29_4', obra: "Sentimento do Mundo", autor: "Carlos Drummond de Andrade", vestibular: "Fuvest", ano: 2029 },
+    { id: 'fuv29_5', obra: "Claro Enigma", autor: "Carlos Drummond de Andrade", vestibular: "Fuvest", ano: 2029 },
+
+    // --- UNICAMP ---
+    { id: 'uni26_1', obra: "Olhos d'Água", autor: "Conceição Evaristo", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_2', obra: "Casa de Pensão", autor: "Aluísio Azevedo", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_3', obra: "Carta de Achamento do Brasil", autor: "Pero Vaz de Caminha", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_4', obra: "As Três Marias", autor: "Rachel de Queiroz", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_5', obra: "Niketche: Uma História de Poligamia", autor: "Paulina Chiziane", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_6', obra: "Morangos Mofados", autor: "Caio Fernando Abreu", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_7', obra: "A Vida Não é Útil", autor: "Ailton Krenak", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni26_8', obra: "Alice no País das Maravilhas", autor: "Lewis Carroll", vestibular: "Unicamp", ano: 2026 },
+    { id: 'uni27_1', obra: "A Vida Não é Útil", autor: "Ailton Krenak", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni27_2', obra: "Olhos d'Água", autor: "Conceição Evaristo", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni27_3', obra: "Inocência", autor: "Visconde de Taunay", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni27_4', obra: "Seminário dos Ratos", autor: "Lygia Fagundes Telles", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni27_5', obra: "Canções Escolhidas", autor: "Cartola", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni27_6', obra: "Niketche: Uma História de Poligamia", autor: "Paulina Chiziane", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni27_7', obra: "Vida e Morte de M. J. Gonzaga de Sá", autor: "Lima Barreto", vestibular: "Unicamp", ano: 2027 },
+    { id: 'uni28_1', obra: "O Ateneu", autor: "Raul Pompeia", vestibular: "Unicamp", ano: 2028 },
+    { id: 'uni28_2', obra: "Cartas Chilenas", autor: "Tomás Antônio Gonzaga", vestibular: "Unicamp", ano: 2028 },
+    { id: 'uni28_3', obra: "Úrsula", autor: "Maria Firmina dos Reis", vestibular: "Unicamp", ano: 2028 },
+    { id: 'uni28_4', obra: "Negrinha", autor: "Monteiro Lobato", vestibular: "Unicamp", ano: 2028 },
+    { id: 'uni28_5', obra: "Sobrevivendo no Inferno", autor: "Racionais MC's", vestibular: "Unicamp", ano: 2028 },
+    { id: 'uni29_1', obra: "Quarto de Despejo", autor: "Carolina Maria de Jesus", vestibular: "Unicamp", ano: 2029 },
+    { id: 'uni29_2', obra: "Laços de Família", autor: "Clarice Lispector", vestibular: "Unicamp", ano: 2029 },
+    { id: 'uni29_3', obra: "Vidas Secas", autor: "Graciliano Ramos", vestibular: "Unicamp", ano: 2029 },
+
+    // --- UERJ ---
+    { id: 'uerj26_1', obra: "O Casamento", autor: "Nelson Rodrigues", vestibular: "UERJ", ano: 2026 },
+    { id: 'uerj26_2', obra: "As Mentiras que os Homens Contam", autor: "Luis Fernando Verissimo", vestibular: "UERJ", ano: 2026 },
+    { id: 'uerj26_3', obra: "O Seminarista", autor: "Bernardo Guimarães", vestibular: "UERJ", ano: 2026 },
+    { id: 'uerj27_1', obra: "Ainda Estou Aqui", autor: "Marcelo Rubens Paiva", vestibular: "UERJ", ano: 2027 },
+    { id: 'uerj27_2', obra: "O Alienista", autor: "Machado de Assis", vestibular: "UERJ", ano: 2027 },
+    { id: 'uerj27_3', obra: "Lucíola", autor: "José de Alencar", vestibular: "UERJ", ano: 2027 },
+    { id: 'uerj28_1', obra: "Baú de Ossos", autor: "Pedro Nava", vestibular: "UERJ", ano: 2028 },
+    { id: 'uerj28_2', obra: "O Bem-Amado", autor: "Dias Gomes", vestibular: "UERJ", ano: 2028 },
+    { id: 'uerj29_1', obra: "Morte e Vida Severina", autor: "João Cabral de Melo Neto", vestibular: "UERJ", ano: 2029 },
+    { id: 'uerj29_2', obra: "Bagagem", autor: "Adélia Prado", vestibular: "UERJ", ano: 2029 },
+
+    // --- ITA ---
+    { id: 'ita26_1', obra: "A Falência", autor: "Júlia Lopes de Almeida", vestibular: "ITA", ano: 2026 },
+    { id: 'ita26_2', obra: "A Relíquia", autor: "Eça de Queirós", vestibular: "ITA", ano: 2026 },
+    { id: 'ita26_3', obra: "Melhores Poemas", autor: "Cláudio Manuel da Costa", vestibular: "ITA", ano: 2026 },
+    { id: 'ita27_1', obra: "Os Ratos", autor: "Dyonélio Machado", vestibular: "ITA", ano: 2027 },
+    { id: 'ita27_2', obra: "O Seminarista", autor: "Bernardo Guimarães", vestibular: "ITA", ano: 2027 },
+    { id: 'ita27_3', obra: "Antologia Poética", autor: "Vinicius de Moraes", vestibular: "ITA", ano: 2027 },
+    { id: 'ita28_1', obra: "O Cortiço", autor: "Aluísio Azevedo", vestibular: "ITA", ano: 2028 },
+    { id: 'ita28_2', obra: "Poemas Escolhidos", autor: "Gregório de Matos", vestibular: "ITA", ano: 2028 },
+    { id: 'ita29_1', obra: "Dom Casmurro", autor: "Machado de Assis", vestibular: "ITA", ano: 2029 },
+    { id: 'ita29_2', obra: "O Triste Fim de Policarpo Quaresma", autor: "Lima Barreto", vestibular: "ITA", ano: 2029 },
+
+    // --- UNESP ---
+    { id: 'unesp26_1', obra: "O Ateneu", autor: "Raul Pompeia", vestibular: "Unesp", ano: 2026 },
+    { id: 'unesp27_1', obra: "Dom Casmurro", autor: "Machado de Assis", vestibular: "Unesp", ano: 2027 },
+    { id: 'unesp28_1', obra: "Mayombe", autor: "Pepetela", vestibular: "Unesp", ano: 2028 },
+    { id: 'unesp29_1', obra: "Capitães da Areia", autor: "Jorge Amado", vestibular: "Unesp", ano: 2029 },
+
+    // --- FGV ---
+    { id: 'fgv26_1', obra: "A Teus Pés", autor: "Ana Cristina Cesar", vestibular: "FGV", ano: 2026 },
+    { id: 'fgv27_1', obra: "Seminário dos Ratos", autor: "Lygia Fagundes Telles", vestibular: "FGV", ano: 2027 },
+
+    // --- MACKENZIE ---
+    { id: 'mack26_1', obra: "Memórias de um Sargento de Milícias", autor: "Manuel Antônio de Almeida", vestibular: "Mackenzie", ano: 2026 },
+    { id: 'mack27_1', obra: "A Hora da Estrela", autor: "Clarice Lispector", vestibular: "Mackenzie", ano: 2027 },
+    { id: 'mack28_1', obra: "Sagarana", autor: "João Guimarães Rosa", vestibular: "Mackenzie", ano: 2028 },
+    { id: 'mack29_1', obra: "Iracema", autor: "José de Alencar", vestibular: "Mackenzie", ano: 2029 }
   ]
 };
 
 export default function Biblioteca() {
-  const [activeTab, setActiveTab] = useState<'repertorio' | 'leituras'>('repertorio');
-  const [anoFiltro, setAnoFiltro] = useState(2027);
+  const [activeTab, setActiveTab] = useState<'repertorio' | 'leituras' | 'gabaritos'>('repertorio');
+  const [anoFiltro, setAnoFiltro] = useState<string>('Todos');
+  const [vestibularFiltro, setVestibularFiltro] = useState<string>('Todos');
   const [busca, setBusca] = useState('');
   const [filtroAtivo, setFiltroAtivo] = useState('Todos');
 
-  const anos = [2026, 2027, 2028, 2029];
+  const anos = ['Todos', '2026', '2027', '2028', '2029'];
   const eixos = ['Todos', 'Sociedade', 'Tecnologia', 'Educação', 'Saúde', 'Economia', 'Ética', 'Cultura'];
+  const vestibulares = ['Todos', 'Fuvest', 'Unicamp', 'UERJ', 'ITA', 'Unesp', 'FGV', 'Mackenzie'];
 
   const repertoriosFiltrados = Database.repertorios.filter(item => {
     const combinaFiltro = filtroAtivo === 'Todos' || item.tema === filtroAtivo;
@@ -78,6 +173,14 @@ export default function Biblioteca() {
                          item.autor.toLowerCase().includes(busca.toLowerCase()) ||
                          item.obra.toLowerCase().includes(busca.toLowerCase());
     return combinaFiltro && combinaBusca;
+  });
+
+  const leiturasFiltradas = Database.leituras.filter(item => {
+    const combinaVestibular = vestibularFiltro === 'Todos' || item.vestibular.toLowerCase() === vestibularFiltro.toLowerCase();
+    const combinaAno = anoFiltro === 'Todos' || item.ano.toString() === anoFiltro;
+    const combinaBusca = item.obra.toLowerCase().includes(busca.toLowerCase()) || 
+                         item.autor.toLowerCase().includes(busca.toLowerCase());
+    return combinaVestibular && combinaAno && combinaBusca;
   });
 
   return (
@@ -88,7 +191,7 @@ export default function Biblioteca() {
       </div>
       
       {/* Navegação entre Abas */}
-      <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-2xl border border-[var(--card-border)] max-w-sm mx-auto">
+      <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-2xl border border-[var(--card-border)] max-w-lg mx-auto">
         <button 
           onClick={() => setActiveTab('repertorio')} 
           className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'repertorio' ? 'bg-[var(--button-bg)] text-white shadow-lg' : 'text-[var(--text-primary)] hover:bg-[var(--card-border)]'}`}
@@ -100,6 +203,12 @@ export default function Biblioteca() {
           className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'leituras' ? 'bg-[var(--button-bg)] text-white shadow-lg' : 'text-[var(--text-primary)] hover:bg-[var(--card-border)]'}`}
         >
           Leituras
+        </button>
+        <button 
+          onClick={() => setActiveTab('gabaritos')} 
+          className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'gabaritos' ? 'bg-[var(--button-bg)] text-white shadow-lg' : 'text-[var(--text-primary)] hover:bg-[var(--card-border)]'}`}
+        >
+          Gabaritos
         </button>
       </div>
 
@@ -149,31 +258,90 @@ export default function Biblioteca() {
               ))}
             </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
-              {anos.map(ano => (
-                <button 
-                  key={ano}
-                  onClick={() => setAnoFiltro(ano)}
-                  className={`py-2 px-4 rounded-full font-black text-sm whitespace-nowrap transition-all ${
-                    anoFiltro === ano ? 'bg-[var(--text-accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--card-border)]'
-                  }`}
-                >
-                  {ano}
-                </button>
-              ))}
+        ) : activeTab === 'leituras' ? (
+          <div className="space-y-6">
+            {/* Campo de Busca de Leituras */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={20} />
+              <input 
+                type="text" 
+                placeholder="Busque por livro ou autor obligatorio..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] p-4 pl-12 rounded-2xl shadow-sm focus:ring-2 focus:ring-[var(--text-accent)] outline-none text-[var(--text-primary)]"
+              />
             </div>
-            {Database.leituras.filter(l => l.ano === anoFiltro).map(item => (
-              <div key={item.id} className="bg-[var(--card-bg)] border border-[var(--card-border)] p-6 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-black text-lg text-[var(--text-primary)]">{item.obra}</h3>
-                  <span className="text-[10px] font-black uppercase text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2 py-1 rounded">{item.vestibular}</span>
-                </div>
-                <p className="text-[var(--text-secondary)] text-sm">{item.autor}</p>
+
+            {/* Filtros de Vestibular */}
+            <div className="space-y-2">
+              <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider">Filtrar por Vestibular</p>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {vestibulares.map(v => (
+                  <button 
+                    key={v}
+                    onClick={() => setVestibularFiltro(v)}
+                    className={`py-2 px-4 rounded-full font-black text-sm whitespace-nowrap transition-all ${
+                      vestibularFiltro === v ? 'bg-[var(--text-accent)] text-white shadow-sm' : 'bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--card-border)] hover:bg-[var(--bg-secondary)]'
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Filtros de Ano */}
+            <div className="space-y-2">
+              <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider">Filtrar por Ano da Prova</p>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {anos.map(ano => (
+                  <button 
+                    key={ano}
+                    onClick={() => setAnoFiltro(ano)}
+                    className={`py-2 px-4 rounded-full font-black text-sm whitespace-nowrap transition-all ${
+                      anoFiltro === ano ? 'bg-[var(--text-accent)] text-white shadow-sm' : 'bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--card-border)] hover:bg-[var(--bg-secondary)]'
+                    }`}
+                  >
+                    {ano}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Listagem de Obras Filtradas */}
+            <div className="space-y-4 pt-2">
+              {leiturasFiltradas.length > 0 ? (
+                leiturasFiltradas.map(item => (
+                  <div key={item.id} className="bg-[var(--card-bg)] border border-[var(--card-border)] p-6 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                    <div className="bg-emerald-100 dark:bg-emerald-950/50 p-3 rounded-xl text-emerald-600 dark:text-emerald-400 shrink-0">
+                      <BookOpen size={24} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2 mb-1.5">
+                        <h3 className="font-black text-lg text-[var(--text-primary)] leading-tight">{item.obra}</h3>
+                        <div className="flex gap-1.5 shrink-0">
+                          <span className="text-[9px] font-black uppercase text-[var(--text-secondary)] bg-[var(--bg-secondary)] border border-[var(--card-border)] px-2 py-0.5 rounded">
+                            {item.vestibular}
+                          </span>
+                          <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 px-2 py-0.5 rounded">
+                            {item.ano}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[var(--text-secondary)] text-sm font-semibold">{item.autor}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl space-y-2">
+                  <p className="font-bold text-[var(--text-primary)]">Nenhuma leitura encontrada</p>
+                  <p className="text-xs text-[var(--text-secondary)]">Tente ajustar seus termos de busca ou filtros.</p>
+                </div>
+              )}
+            </div>
           </div>
+        ) : (
+          <ListaGabaritosExtra />
         )}
       </div>
     </div>

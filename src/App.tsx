@@ -23,6 +23,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import DesafioSemanalComponent from './components/DesafioSemanal';
 import CronogramaVestibulares from './components/CronogramaVestibulares';
 import SistemasConquistasMetas from './components/SistemasConquistasMetas';
+import GabaritosOficiais from './components/GabaritosOficiais';
 import { Question } from './services/geminiService';
 import { GraduationCap, LogIn, Sparkles, BookOpen, Target, Award, Trophy, Zap, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -96,55 +97,102 @@ export default function App() {
     switch (activeTab) {
       case 'home':
         return (
-          <div className="space-y-12 py-8">
-            <div className="text-center space-y-6 max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 bg-[var(--bg-secondary)] text-[var(--text-primary)] px-4 py-2 rounded-full text-sm font-black uppercase tracking-widest border border-[var(--card-border)]">
-                <Sparkles size={16} />
-                <span>Preparação Completa 2026</span>
-              </div>
-              <h1 className="text-5xl md:text-7xl font-black text-[var(--text-primary)] leading-tight">
-                Sua Aprovação Começa <span className="text-[var(--text-accent)]">Hoje</span>
-              </h1>
-              <p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-                A plataforma definitiva para os principais vestibulares do Brasil. Provas, simulados, redação e conteúdos que realmente caem.
-              </p>
-              <div className="flex flex-col md:flex-row justify-center gap-4 pt-4">
+          <div className="space-y-16 py-10">
+            {/* Hero Section */}
+            <div className="text-center space-y-6 max-w-4xl mx-auto px-4">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 bg-[var(--bg-secondary)] text-[var(--text-accent)] px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider border border-[var(--card-border)] shadow-sm"
+              >
+                <Sparkles size={14} className="animate-pulse" />
+                <span>Preparação Completa 2026 • Premium</span>
+              </motion.div>
+              
+              <motion.h1 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tight font-sans"
+              >
+                Sua Aprovação Começa <span className="bg-gradient-to-r from-[var(--text-accent)] to-[#8b5cf6] bg-clip-text text-transparent">Hoje</span>
+              </motion.h1>
+
+              <motion.p 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed"
+              >
+                A plataforma definitiva para os principais vestibulares do Brasil. Provas integradas, simulados customizados, correção de redação e auxílio IA de alta performance.
+              </motion.p>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex flex-col sm:flex-row justify-center gap-4 pt-6"
+              >
                 <button 
                   onClick={() => setActiveTab('vestibulares')}
-                  className="bg-[var(--button-bg)] text-white px-10 py-5 rounded-2xl font-black text-xl hover:bg-[var(--button-bg-hover)] hover:scale-105 transition-all shadow-xl shadow-[var(--button-bg)]/20 dark:shadow-none"
+                  className="bg-[var(--button-bg)] text-white px-8 py-4 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-[var(--button-bg-hover)] hover:-translate-y-0.5 transition-all shadow-lg shadow-[var(--button-bg)]/20 cursor-pointer active:scale-95"
                 >
                   Começar Agora
                 </button>
                 <button 
                   onClick={() => setActiveTab('dashboard')}
-                  className="bg-[var(--card-bg)] text-[var(--text-primary)] border-2 border-[var(--card-border)] px-10 py-5 rounded-2xl font-black text-xl hover:bg-[var(--bg-secondary)] transition-all"
+                  className="bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--card-border)] px-8 py-4 px-10 py-5 rounded-2xl font-semibold text-lg hover:bg-[var(--bg-secondary)] hover:-translate-y-0.5 transition-all shadow-sm cursor-pointer active:scale-95"
                 >
-                  Ver Dashboard
+                  Ver Painel de Estudos
                 </button>
-              </div>
+              </motion.div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Highlighting Key Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
               {[
-                { title: '48 Provas Oficiais', desc: 'As últimas 8 edições dos 6 principais vestibulares com gabarito.', icon: 'FileText' },
-                { title: 'IA de Redação', desc: 'Gerador de temas e correção automática baseada em competências.', icon: 'PenTool' },
-                { title: 'Conteúdo Focado', desc: 'Análise estatística do que mais cai em cada disciplina.', icon: 'Target' },
-              ].map((feature, i) => (
-                <div key={i} className="bg-[var(--card-bg)] p-8 rounded-3xl border border-[var(--card-border)] shadow-sm hover:shadow-md transition-all">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 border transition-all ${
-                    i === 0 ? 'bg-[#e7000b] border-[#e7000b] text-white' : 
-                    i === 1 ? 'bg-[#00a63e] border-[#00a63e] text-white' : 
-                    'bg-[#d08700] border-[#d08700] text-white'
-                  }`}>
-                    <GraduationCap size={32} />
-                  </div>
-                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">{feature.title}</h3>
-                  <p className="text-[var(--text-secondary)] leading-relaxed">{feature.desc}</p>
-                </div>
-              ))}
+                { 
+                  title: '+ de 200 Provas', 
+                  desc: 'O acervo completo dos últimos 16 anos dos principais vestibulares com gabarito.', 
+                  icon: GraduationCap, 
+                  gradient: 'from-blue-500/10 to-indigo-500/10 border-blue-500/10 text-blue-600 dark:text-blue-450' 
+                },
+                { 
+                  title: 'IA de Redação', 
+                  desc: 'Gerador de temas e correção automática baseada em competências.', 
+                  icon: Sparkles, 
+                  gradient: 'from-purple-500/10 to-pink-500/10 border-purple-500/10 text-purple-600 dark:text-purple-450' 
+                },
+                { 
+                  title: 'Conteúdo Focado', 
+                  desc: 'Análise estatística do que mais cai em cada disciplina.', 
+                  icon: Target, 
+                  gradient: 'from-emerald-500/10 to-teal-500/10 border-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                },
+              ].map((feature, i) => {
+                const Icon = feature.icon;
+                return (
+                  <motion.div 
+                    key={i} 
+                    initial={{ opacity: 0, y: 25 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.15 * i }}
+                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                    className="bg-[var(--card-bg)] p-8 rounded-[2rem] border border-[var(--card-border)] shadow-sm hover:shadow-xl hover:border-[var(--text-accent)]/15 transition-all group"
+                  >
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br ${feature.gradient} border group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon size={26} />
+                    </div>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--text-accent)] transition-colors">{feature.title}</h3>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{feature.desc}</p>
+                  </motion.div>
+                );
+              })}
             </div>
 
-            <div className="max-w-4xl mx-auto w-full">
+            {/* Daily Missions */}
+            <div className="max-w-4xl mx-auto w-full px-4 pt-4">
               <DailyMissions />
             </div>
           </div>
@@ -164,6 +212,8 @@ export default function App() {
         return <CronogramaVestibulares />;
       case 'conquistas':
         return <SistemasConquistasMetas />;
+      case 'gabaritos':
+        return <GabaritosOficiais />;
       case 'redacao':
         return <Redacao vestibular={selectedVestibular} setVestibular={setSelectedVestibular} />;
       case 'conteudos':
@@ -177,7 +227,7 @@ export default function App() {
       case 'sobre':
         return <Sobre />;
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard selectedVestibular={selectedVestibular} />;
       case 'quiz':
         return <Quiz questions={quizQuestions} isFullExam={isFullExam} onComplete={() => setActiveTab('home')} vestibular={selectedVestibular} timeLimit={quizTimeLimit} />;
       case 'login':
@@ -212,7 +262,7 @@ export default function App() {
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] transition-colors duration-300">
         <div className="flex flex-col items-center gap-4">
           <GraduationCap className="text-[var(--text-accent)] w-16 h-16 animate-bounce" />
-          <p className="text-[var(--text-primary)] font-bold animate-pulse">Carregando LevelUp Vestibulares...</p>
+          <p className="text-[var(--text-primary)] font-bold animate-pulse">Carregando Vestibular Pro...</p>
         </div>
       </div>
     );

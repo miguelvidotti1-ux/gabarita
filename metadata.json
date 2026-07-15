@@ -1,5 +1,5 @@
 {
-  "name": "LevelUp Vestibulares",
+  "name": "Vestibular Pro",
   "description": "Plataforma completa para preparação para vestibulares brasileiros (ENEM, Fuvest, Unicamp, Unesp, UERJ, ITA).",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

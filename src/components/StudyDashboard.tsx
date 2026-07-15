@@ -15,7 +15,20 @@ interface RoutineDay {
   }[];
 }
 
-export default function StudyDashboard() {
+const DEFAULT_SUBJECTS: Subject[] = [
+  { name: 'Matemática', difficulty: 8, contents: ['Álgebra', 'Geometria', 'Funções'] },
+  { name: 'Português', difficulty: 6, contents: ['Gramática', 'Leitura e Interpretação'] },
+  { name: 'Física', difficulty: 7, contents: ['Mecânica', 'Cinemática'] },
+  { name: 'Química', difficulty: 6, contents: ['Química Orgânica', 'Estequiometria'] },
+  { name: 'História', difficulty: 5, contents: ['História do Brasil', 'História Geral'] },
+  { name: 'Biologia', difficulty: 5, contents: ['Citologia', 'Genética'] },
+];
+
+interface StudyDashboardProps {
+  hideHeader?: boolean;
+}
+
+export default function StudyDashboard({ hideHeader = false }: StudyDashboardProps) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [routine, setRoutine] = useState<RoutineDay[] | null>(null);
   const [newSubjectName, setNewSubjectName] = useState('');
@@ -28,6 +41,8 @@ export default function StudyDashboard() {
     
     if (savedSubjects) {
       setSubjects(JSON.parse(savedSubjects).sort((a: Subject, b: Subject) => b.difficulty - a.difficulty));
+    } else {
+      setSubjects(DEFAULT_SUBJECTS.sort((a, b) => b.difficulty - a.difficulty));
     }
     if (savedRoutine) {
       setRoutine(JSON.parse(savedRoutine));
@@ -123,9 +138,9 @@ export default function StudyDashboard() {
     for (let d = 0; d < 7; d++) {
       const daySlots = [];
       for (let slot = 0; slot < 4; slot++) {
-        const subName = assignments[d * 4 + slot];
-        const sub = subjects.find(s => s.name === subName)!;
-        const content = sub.contents.length > 0 
+        const subName = assignments[d * 4 + slot] || (subjects[0] ? subjects[0].name : 'Estudo Geral');
+        const sub = subjects.find(s => s.name === subName);
+        const content = sub && sub.contents && sub.contents.length > 0 
           ? sub.contents[Math.floor(Math.random() * sub.contents.length)]
           : 'Estudo geral';
         daySlots.push({ subject: subName, content });
@@ -140,15 +155,17 @@ export default function StudyDashboard() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Configuration Header */}
       <div className="bg-[var(--card-bg)] p-8 rounded-3xl border border-[var(--card-border)] shadow-xl space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-[var(--bg-secondary)] p-3 rounded-2xl text-[var(--text-accent)]">
-            <Target size={28} />
+        {!hideHeader && (
+          <div className="flex items-center gap-3">
+            <div className="bg-[var(--bg-secondary)] p-3 rounded-2xl text-[var(--text-accent)]">
+              <Target size={28} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black">Planejamento de Rotina Semanal</h2>
+              <p className="text-[var(--text-secondary)]">Otimize seu tempo focando no que é mais difícil.</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-black">Dashboard de Dificuldades</h2>
-            <p className="text-[var(--text-secondary)]">Otimize seu tempo focando no que é mais difícil.</p>
-          </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input 

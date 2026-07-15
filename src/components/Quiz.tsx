@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, ArrowRight, Trophy, AlertCircle, RefreshCw } from
 import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { levelSystem } from '../services/levelService';
 import { missionEngine } from '../services/missionService';
+import { achievementService } from '../services/achievementService';
 import { doc, setDoc, serverTimestamp, runTransaction, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -115,6 +116,9 @@ export default function Quiz({ questions, onComplete, isFullExam = false, vestib
             missionEngine.updateProgress(m.id, stats.correct);
           }
         });
+
+        // Update user Metas/Achievements automatically
+        achievementService.trackActivity(auth.currentUser?.uid || 'guest', 'questoes', stats.total);
 
         const performanceRef = doc(db, 'users', auth.currentUser.uid, 'subject_performance', subject);
         const performancePath = `users/${auth.currentUser.uid}/subject_performance/${subject}`;

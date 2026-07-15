@@ -2,9 +2,11 @@ import { useState, useRef, useMemo } from 'react';
 import { Vestibular } from '../types';
 import { VESTIBULARES_DATA } from '../constants';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis } from 'recharts';
-import { BookOpen, CheckCircle, ArrowRight, Book, X, Loader2, Share2, Download, Plus, Minus, Search, Target, Zap, GraduationCap } from 'lucide-react';
+import { BookOpen, CheckCircle, ArrowRight, Book, X, Loader2, Share2, Download, Plus, Minus, Search, Target, Zap, GraduationCap, Sparkles } from 'lucide-react';
 import { generateStudyMaterial, StudyMaterial, generateQuestions, Question } from '../services/geminiService';
 import { missionEngine } from '../services/missionService';
+import { auth } from '../firebase';
+import { achievementService } from '../services/achievementService';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
@@ -36,10 +38,14 @@ const VestibularContents: {
 } = {
   data: {
     ENEM: {
-      Matematica: ['Álgebra', 'Geometria', 'Trigonometria', 'Probabilidade'],
-      Fisica: ['Mecânica', 'Termodinâmica', 'Ondas', 'Eletricidade'],
-      Quimica: ['Estequiometria', 'Orgânica', 'Físico-Química'],
-      Biologia: ['Genética', 'Ecologia', 'Fisiologia'],
+      Quimica: ['Ligações químicas', 'Funções orgânicas', 'Estequiometria', 'Soluções', 'pH e pOH', 'Reações químicas', 'Eletroquímica', 'Química ambiental', 'Petróleo e polímeros', 'Separação de misturas'],
+      Fisica: ['Cinemática', 'Leis de Newton', 'Trabalho e energia', 'Potência', 'Calorimetria', 'Ondulatória', 'Eletricidade básica', 'Circuitos elétricos', 'Pressão e hidrostática', 'Óptica'],
+      Biologia: ['Ecologia', 'Cadeia alimentar', 'Genética', 'DNA e RNA', 'Evolução', 'Citologia', 'Sistema imunológico', 'Fisiologia humana', 'Biotecnologia', 'Ciclos biogeoquímicos'],
+      Matematica: ['Funções (1º e 2º grau)', 'Porcentagem', 'Razão e proporção', 'Regra de três', 'Estatística', 'Probabilidade', 'Geometria plana', 'Geometria espacial', 'Escala', 'Análise de gráficos'],
+      Historia: ['Brasil Colônia', 'Escravidão', 'Independência do Brasil', 'Brasil República', 'Era Vargas', 'Ditadura militar', 'Revolução Industrial', 'Imperialismo', 'Guerras Mundiais', 'Guerra Fria'],
+      Geografia: ['Globalização', 'Geopolítica', 'Urbanização', 'Industrialização', 'Questões ambientais', 'Energia', 'Agricultura', 'Demografia', 'Cartografia', 'Clima'],
+      Sociologia: ['Cultura', 'Cidadania', 'Movimentos sociais', 'Desigualdade social', 'Poder e política', 'Trabalho e sociedade', 'Globalização', 'Ideologia', 'Indústria cultural', 'Controle social'],
+      Filosofia: ['Mito e filosofia', 'Sócrates, Platão e Aristóteles', 'Ética', 'Moral', 'Política', 'Contratualismo', 'Iluminismo', 'Existencialismo', 'Filosofia moderna', 'Filosofia contemporânea'],
       Artes: ['Barroco', 'Romantismo', 'Realismo', 'Modernismo', 'Arte Contemporânea']
     },
     FUVEST: {
@@ -120,12 +126,36 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
 
   const [loading, setLoading] = useState(false);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const [loadingRecommendation, setLoadingRecommendation] = useState(false);
   const [material, setMaterial] = useState<StudyMaterial[] | null>(null);
   const [loadingTopic, setLoadingTopic] = useState<string | null>(null);
   const [loadingQuizTopic, setLoadingQuizTopic] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [totalTimeLimit, setTotalTimeLimit] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleGenerateRecommendation = async () => {
+    setLoadingRecommendation(true);
+    try {
+      // In a real app, we would fetch performance data here. 
+      // For now, we simulate sending a request to our new backend route.
+      const response = await fetch("/api/gemini/recommendation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            vestibular,
+            performanceData: {} // Placeholder
+        }),
+      });
+      const data = await response.json();
+      alert(`Plano sugerido: ${data.plan}`);
+    } catch (error) {
+      console.error("Erro ao gerar recomendação:", error);
+      alert("Houve um erro ao gerar a recomendação. Tente novamente.");
+    } finally {
+      setLoadingRecommendation(false);
+    }
+  };
 
   const handleVerResumos = async (subject: string, topics: string[]) => {
     setSelectedSubject({ subject, topics });
@@ -150,6 +180,11 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
           missionEngine.updateProgress(m.id, 1);
         }
       });
+
+      // Update user Metas/Achievements automatically
+      if (auth.currentUser) {
+        achievementService.trackActivity(auth.currentUser.uid, 'leituras', 1);
+      }
     } catch (error) {
       console.error("Erro ao gerar material:", error);
       alert("Houve um erro ao gerar o material de estudo. Tente novamente.");
@@ -181,6 +216,11 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
           missionEngine.updateProgress(m.id, 1);
         }
       });
+
+      // Update user Metas/Achievements automatically
+      if (auth.currentUser) {
+        achievementService.trackActivity(auth.currentUser.uid, 'leituras', 1);
+      }
     } catch (error) {
       console.error("Erro ao gerar material:", error);
       alert("Houve um erro ao gerar o material de estudo. Tente novamente.");
@@ -255,9 +295,19 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-3xl rounded-full -mr-20 -mt-20"></div>
         <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest">
-              <Target size={16} />
-              <span>Análise Estatística 2026</span>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest">
+                <Target size={16} />
+                <span>Análise Estatística 2026</span>
+              </div>
+              <button 
+                onClick={handleGenerateRecommendation}
+                disabled={loadingRecommendation}
+                className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-500/20 transition-colors"
+              >
+                {loadingRecommendation ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                <span>Recomendação IA</span>
+              </button>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white leading-tight tracking-tight">
               O que você <span className="text-blue-600">realmente</span> precisa estudar

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Award, Trophy, Clock, Flame, Zap, CheckSquare, Sparkles, Plus, Trash2, 
   PlusCircle, Filter, Calendar, Lock, Unlock, Timer, Compass, RefreshCw, 
-  HelpCircle, ChevronRight, CheckCircle2, AlertCircle, Info, BookOpen, GraduationCap
+  HelpCircle, ChevronRight, CheckCircle2, AlertCircle, Info, BookOpen, GraduationCap, Minus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as Icons from 'lucide-react';
@@ -17,6 +17,162 @@ import {
 const renderIcon = (name: string, className: string = "w-6 h-6") => {
   const IconComp = (Icons as any)[name] || Award;
   return <IconComp className={className} />;
+};
+
+// Canvas-based performant confetti overlay
+const ConfettiCanvas: React.FC<{ active: boolean }> = ({ active }) => {
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  React.useEffect(() => {
+    if (!active) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animFrameId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (canvas) {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    const colors = [
+      '#FFC107', '#FF5722', '#E91E63', '#9C27B0', '#3F51B5',
+      '#00BCD4', '#4CAF50', '#00E676', '#FFEB3B', '#FF3D00',
+      '#EC407A', '#AB47BC', '#26A69A', '#D4AF37', '#FFDF00'
+    ];
+
+    interface Particle {
+      x: number;
+      y: number;
+      size: number;
+      color: string;
+      speedX: number;
+      speedY: number;
+      rotation: number;
+      rotationSpeed: number;
+      type: 'circle' | 'square' | 'triangle' | 'stripe';
+      opacity: number;
+      wobble: number;
+      wobbleSpeed: number;
+    }
+
+    const particles: Particle[] = [];
+
+    const createParticle = (x: number, y: number, angleRange: number, baseSpeed: number): Particle => {
+      return {
+        x,
+        y,
+        size: Math.random() * 8 + 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        speedX: Math.cos(angleRange) * (Math.random() * baseSpeed + 4),
+        speedY: Math.sin(angleRange) * (Math.random() * baseSpeed + 4) - 5,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 8,
+        type: ['circle', 'square', 'triangle', 'stripe'][Math.floor(Math.random() * 4)] as any,
+        opacity: 1,
+        wobble: Math.random() * 10,
+        wobbleSpeed: Math.random() * 0.1
+      };
+    };
+
+    // Burst from bottom-left corner shooting up-right
+    for (let i = 0; i < 70; i++) {
+      const angle = -Math.PI / 4 + (Math.random() - 0.5) * (Math.PI / 5);
+      particles.push(createParticle(50, height - 50, angle, 14));
+    }
+
+    // Burst from bottom-right corner shooting up-left
+    for (let i = 0; i < 70; i++) {
+      const angle = -Math.PI * 3 / 4 + (Math.random() - 0.5) * (Math.PI / 5);
+      particles.push(createParticle(width - 50, height - 50, angle, 14));
+    }
+
+    // Burst from middle center (upwards/sideways)
+    for (let i = 0; i < 60; i++) {
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI / 2.5);
+      particles.push(createParticle(width / 2, height / 2 - 100, angle, 9));
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+
+        // Apply physics
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.speedY += 0.22; // gravity
+        p.speedX *= 0.98; // horizontal air drag
+        p.speedY *= 0.98; // vertical air drag
+        p.rotation += p.rotationSpeed;
+        p.wobble += p.wobbleSpeed;
+
+        // Custom sway based on wobble speed
+        p.x += Math.sin(p.wobble) * 0.5;
+
+        // Draw particle
+        ctx.save();
+        ctx.globalAlpha = p.opacity;
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+
+        ctx.beginPath();
+        if (p.type === 'circle') {
+          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        } else if (p.type === 'square') {
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        } else if (p.type === 'triangle') {
+          ctx.moveTo(0, -p.size / 2);
+          ctx.lineTo(p.size / 2, p.size / 2);
+          ctx.lineTo(-p.size / 2, p.size / 2);
+          ctx.closePath();
+        } else {
+          // Stripe
+          ctx.fillRect(-p.size / 2, -p.size / 4, p.size * 1.5, p.size / 2);
+        }
+        ctx.fill();
+        ctx.restore();
+
+        // Fade out slightly when falling down
+        if (p.speedY > 2) {
+          p.opacity = Math.max(0, p.opacity - 0.006);
+        }
+
+        // Check if out of bounds or fully faded
+        if (p.y > height + 20 || p.x < -50 || p.x > width + 50 || p.opacity <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (particles.length > 0) {
+        animFrameId = requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [active]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full pointer-events-none z-[100]"
+    />
+  );
 };
 
 export default function SistemasConquistasMetas() {
@@ -49,12 +205,38 @@ export default function SistemasConquistasMetas() {
   const [userId, setUserId] = useState('guest');
 
   useEffect(() => {
+    let currentUserId = 'guest';
     const unsub = auth.onAuthStateChanged(user => {
       const uId = user ? user.uid : 'guest';
+      currentUserId = uId;
       setUserId(uId);
       loadUserData(uId);
     });
-    return () => unsub();
+
+    const handleTrackEvent = () => {
+      if (currentUserId && currentUserId !== 'guest') {
+        loadUserData(currentUserId);
+      }
+    };
+
+    const handleAchievementEvent = (e: Event) => {
+      const conquista = (e as CustomEvent).detail;
+      setUnlockedCongrats(prev => {
+        // Prevent duplicate notices
+        if (prev.some(p => p.id === conquista.id)) return prev;
+        return [...prev, conquista];
+      });
+      setShowCongrats(true);
+    };
+
+    window.addEventListener('user-activity-tracked', handleTrackEvent);
+    window.addEventListener('achievement-unlocked', handleAchievementEvent);
+
+    return () => {
+      unsub();
+      window.removeEventListener('user-activity-tracked', handleTrackEvent);
+      window.removeEventListener('achievement-unlocked', handleAchievementEvent);
+    };
   }, []);
 
   const loadUserData = async (uId: string) => {
@@ -320,8 +502,71 @@ export default function SistemasConquistasMetas() {
             exit={{ opacity: 0, y: -10 }}
             className="grid grid-cols-1 lg:grid-cols-3 gap-8"
           >
-            {/* Left section: Goals Creation panel removed (AUTOMATIC) */}
-            <div className="hidden"></div>
+            {/* Left section: Goals Creation panel */}
+            <div className="bg-[var(--card-bg)] border border-[var(--card-border)] p-8 rounded-[2rem] shadow-sm space-y-6 h-fit sticky top-6">
+              <div className="flex items-center gap-3 border-b border-[var(--card-border)] pb-4">
+                <div className="bg-violet-100 dark:bg-violet-900/40 p-2.5 rounded-xl text-violet-600">
+                  <PlusCircle size={22} />
+                </div>
+                <h3 className="text-xl font-black text-[var(--text-primary)]">Nova Meta</h3>
+              </div>
+
+              <form onSubmit={handleCreateMeta} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-black text-[var(--text-secondary)] tracking-widest ml-1">Descrição do Objetivo</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Resolver 50 questões de Bio"
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--card-border)] p-4 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-black text-[var(--text-secondary)] tracking-widest ml-1">Categoria</label>
+                    <select 
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                      className="w-full bg-[var(--bg-secondary)] border border-[var(--card-border)] p-4 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-violet-500/20 outline-none appearance-none"
+                    >
+                      <option value="questoes">Questões</option>
+                      <option value="horas">Horas</option>
+                      <option value="aulas">Aulas</option>
+                      <option value="redacoes">Redações</option>
+                      <option value="leituras">Leituras</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-black text-[var(--text-secondary)] tracking-widest ml-1">Alvo (Valor)</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={target}
+                      onChange={(e) => setTarget(Number(e.target.value))}
+                      className="w-full bg-[var(--bg-secondary)] border border-[var(--card-border)] p-4 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-violet-500/20 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-600/20 active:scale-95"
+                >
+                  {submitting ? <RefreshCw className="animate-spin" size={16} /> : <Zap size={16} />}
+                  Criar Plano de Meta
+                </button>
+              </form>
+
+              <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl flex items-start gap-3">
+                <HelpCircle className="text-amber-500 shrink-0 mt-0.5" size={16} />
+                <p className="text-[11px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed">
+                  Ao concluir suas metas, você ganha XP e libera badges exclusivas no seu histórico.
+                </p>
+              </div>
+            </div>
 
             {/* Right section: List of User Metas */}
             <div className="lg:col-span-2 space-y-4">
@@ -379,8 +624,32 @@ export default function SistemasConquistasMetas() {
                           </div>
                         </div>
 
-                        {/* Interactive adjustment controls removed (AUTOMATIC) */}
-                        <div className="hidden"></div>
+                        {/* Interactive adjustment controls */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex bg-[var(--bg-secondary)] rounded-xl border border-[var(--card-border)] p-1 overflow-hidden">
+                            <button 
+                              onClick={() => handleUpdateMetaProgress(m.id, -1)}
+                              disabled={m.progresso <= 0}
+                              className="p-2 hover:bg-[var(--card-border)] text-[var(--text-secondary)] transition-colors rounded-lg disabled:opacity-30"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateMetaProgress(m.id, 1)}
+                              disabled={m.concluida}
+                              className="p-2 hover:bg-[var(--card-border)] text-violet-600 transition-colors rounded-lg disabled:opacity-30"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+
+                          <button 
+                            onClick={() => handleDeleteMeta(m.id)}
+                            className="p-3 text-red-400 hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     );
                   })
@@ -544,61 +813,133 @@ export default function SistemasConquistasMetas() {
       {/* Pop up congrats celebrate Modal */}
       <AnimatePresence>
         {showCongrats && unlockedCongrats.length > 0 && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          >
+            {/* High fidelity confetti shower overlay */}
+            <ConfettiCanvas active={showCongrats} />
+
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="bg-gradient-to-b from-slate-900 to-indigo-950 text-white rounded-[2.5rem] p-8 md:p-12 max-w-lg w-full text-center border border-violet-500/30 shadow-2xl relative overflow-hidden"
+              initial={{ opacity: 0, scale: 0.7, y: 80, rotate: -3 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 40, rotate: 1 }}
+              transition={{ type: "spring", damping: 18, stiffness: 120 }}
+              className="bg-gradient-to-b from-slate-900 to-indigo-950 text-white rounded-[2.5rem] p-8 md:p-12 max-w-lg w-full text-center border-2 border-emerald-500/40 shadow-[0_0_50px_rgba(16,185,129,0.3)] relative overflow-hidden"
             >
               {/* Animated star backgrounds */}
               <div className="absolute top-0 inset-x-0 h-40 bg-violet-600/15 blur-3xl pointer-events-none" />
 
               <div className="space-y-6 relative z-10">
-                <div className="inline-flex p-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <Trophy size={48} className="animate-bounce" />
+                
+                {/* Immersive orbiting trophy visualization */}
+                <div className="relative flex justify-center items-center py-4">
+                  {/* Rotating dashed light rings */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute w-36 h-36 border-2 border-dashed border-emerald-500/20 rounded-full pointer-events-none"
+                  />
+                  <motion.div
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                    className="absolute w-44 h-44 border border-violet-500/20 rounded-full pointer-events-none"
+                  />
+
+                  {/* Radial neon glow pulse */}
+                  <div className="absolute w-24 h-24 bg-emerald-500/20 rounded-full blur-xl animate-pulse pointer-events-none" />
+
+                  {/* Sparklets rising */}
+                  <motion.div
+                    animate={{ y: [-15, -45], opacity: [0, 1, 0], scale: [0.6, 1.2, 0.6] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-0 left-[35%] text-amber-300 pointer-events-none"
+                  >
+                    <Sparkles size={16} />
+                  </motion.div>
+                  <motion.div
+                    animate={{ y: [-10, -35], opacity: [0, 1, 0], scale: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2.5, delay: 0.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute bottom-2 right-[30%] text-emerald-300 pointer-events-none"
+                  >
+                    <Sparkles size={14} />
+                  </motion.div>
+
+                  <motion.div 
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: [0, 1.3, 1], rotate: [0, 10, 0] }}
+                    transition={{ delay: 0.25, type: "spring", stiffness: 220, damping: 11 }}
+                    className="relative z-10 p-6 rounded-full bg-slate-900 border-2 border-emerald-500/60 shadow-lg text-emerald-400"
+                  >
+                    <Trophy size={54} className="drop-shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse" />
+                  </motion.div>
                 </div>
 
-                <div className="space-y-2">
-                  <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-300 tracking-tight leading-none">
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="space-y-2"
+                >
+                  <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-300 tracking-tight leading-none drop-shadow-sm">
                     NOVO SELO DESBLOQUEADO!
                   </h2>
                   <p className="text-sm font-semibold text-slate-300">
                     Seu esforço e regularidade nos estudos renderam conquistas históricas!
                   </p>
-                </div>
+                </motion.div>
 
-                <div className="bg-white/5 border border-white/10 p-6 rounded-3xl space-y-4">
-                  {unlockedCongrats.map(item => (
-                    <div key={item.id} className="flex items-center gap-4 text-left">
-                      <div className="p-3 bg-gradient-to-tr from-emerald-500 to-green-400 text-white rounded-xl shadow-md">
+                {/* Staggered list of badges unlocked */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.55 }}
+                  className="bg-white/5 border border-white/10 p-6 rounded-3xl space-y-4 shadow-inner"
+                >
+                  {unlockedCongrats.map((item, index) => (
+                    <motion.div 
+                      key={item.id} 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + index * 0.15, type: "spring", stiffness: 120 }}
+                      className="flex items-center gap-4 text-left p-2.5 rounded-2xl hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className="p-3 bg-gradient-to-tr from-emerald-500 to-green-400 text-white rounded-xl shadow-md border border-emerald-400/20">
                         {renderIcon(item.icone, "w-8 h-8")}
                       </div>
-                      <div>
-                        <h4 className="font-extrabold text-white text-base">{item.nome}</h4>
+                      <div className="flex-1">
+                        <h4 className="font-extrabold text-white text-base flex items-center gap-2">
+                          {item.nome}
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        </h4>
                         <p className="text-xs text-slate-300 font-medium leading-relaxed">{item.descricao}</p>
                         {item.recompensa && (
-                          <p className="text-[10px] text-emerald-400 font-black mt-1 uppercase tracking-wide">
+                          <div className="inline-flex items-center gap-1.5 text-[10px] text-emerald-400 font-black mt-1 uppercase tracking-wide bg-emerald-500/10 px-2.5 py-0.5 rounded-md border border-emerald-500/20">
                             🎁 Recompensa: {item.recompensa}
-                          </p>
+                          </div>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
 
-                <button 
+                <motion.button 
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
                   onClick={() => {
                     setShowCongrats(false);
                     setUnlockedCongrats([]);
                   }}
-                  className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 font-black text-sm rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-95 text-slate-900"
+                  className="w-full py-4 bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 font-black text-sm rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.03] active:scale-95 text-slate-950 font-sans tracking-wide cursor-pointer uppercase"
                 >
                   Continuar Aprendizado!
-                </button>
+                </motion.button>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

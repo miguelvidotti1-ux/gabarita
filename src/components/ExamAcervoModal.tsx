@@ -24,10 +24,10 @@ const getExamLink = (vest: string, year: string, day?: string, color?: string) =
       return PROVAS_LINKS[key];
     }
     // Predictable fallback Inep format when possible, else fallback to search
-    const cdMapDay1: Record<string, string> = { 'Azul': 'CD1', 'Amarelo': 'CD2', 'Branco': 'CD3', 'Verde': 'CD4' };
-    const cdMapDay2: Record<string, string> = { 'Amarelo': 'CD5', 'Cinza': 'CD6', 'Azul': 'CD7', 'Verde': 'CD8' };
+    const cdMapDay1: Record<string, string> = { 'Azul': 'CD1', 'Amarelo': 'CD2', 'Branco': 'CD3', 'Verde': 'CD4', 'Rosa': 'CD4' };
+    const cdMapDay2: Record<string, string> = { 'Amarelo': 'CD5', 'Cinza': 'CD6', 'Azul': 'CD7', 'Verde': 'CD8', 'Rosa': 'CD8' };
     
-    if (year === '2025' || year === '2024') {
+    if (year === '2025' || year === '2024' || year === '2023') {
       const cd = day === '1' ? cdMapDay1[color] : cdMapDay2[color];
       if (cd) {
         return `https://download.inep.gov.br/enem/provas_e_gabaritos/${year}_PV_impresso_D${day}_${cd}.pdf`;
@@ -176,14 +176,22 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                       </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                      {[
-                                        { color: 'Azul', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-blue-500' },
-                                        { color: 'Branco', bg: 'hover:bg-slate-55 dark:hover:bg-slate-900/30 hover:border-slate-400 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-slate-100 border border-slate-400' },
-                                        parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023
-                                          ? { color: 'Rosa', bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-pink-500' }
-                                          : { color: 'Verde', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-emerald-500' },
-                                        { color: 'Amarelo', bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-yellow-400' }
-                                      ].map((btn) => (
+                                      {(() => {
+                                        const buttons = [
+                                          { color: 'Azul', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-blue-500' },
+                                          { color: 'Branco', bg: 'hover:bg-slate-50 dark:hover:bg-slate-900/30 hover:border-slate-400 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-slate-100 border border-slate-400' },
+                                          parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023
+                                            ? { color: 'Rosa', bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-pink-500' }
+                                            : { color: 'Verde', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-emerald-500' },
+                                          { color: 'Amarelo', bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-yellow-400' }
+                                        ];
+                                        if (PROVAS_LINKS[`ENEM_${item.year}_1_Laranja`]) {
+                                          buttons.push({ color: 'Laranja', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-orange-500' });
+                                        } else if (PROVAS_LINKS[`ENEM_${item.year}_1_Laranja (Braile)`]) {
+                                          buttons.push({ color: 'Laranja (Braile)', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-orange-500' });
+                                        }
+                                        return buttons;
+                                      })().map((btn) => (
                                         <a
                                           key={`d1-${btn.color}`}
                                           href={getExamLink(vest, item.year, "1", btn.color)}
@@ -210,14 +218,20 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                       </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                      {[
-                                        { color: 'Amarelo', bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-yellow-400' },
-                                        { color: 'Cinza', bg: 'hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:border-gray-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-gray-400' },
-                                        { color: 'Azul', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-blue-500' },
-                                        parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023
-                                          ? { color: 'Rosa', bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-pink-500' }
-                                          : { color: 'Verde', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-emerald-500' }
-                                      ].map((btn) => (
+                                      {(() => {
+                                        const buttons = [
+                                          { color: 'Amarelo', bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-yellow-400' },
+                                          { color: 'Cinza', bg: 'hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:border-gray-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-gray-400' },
+                                          { color: 'Azul', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-blue-500' },
+                                          parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023
+                                            ? { color: 'Rosa', bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-pink-500' }
+                                            : { color: 'Verde', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-emerald-500' }
+                                        ];
+                                        if (PROVAS_LINKS[`ENEM_${item.year}_2_Laranja`]) {
+                                          buttons.push({ color: 'Laranja', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-orange-500' });
+                                        }
+                                        return buttons;
+                                      })().map((btn) => (
                                         <a
                                           key={`d2-${btn.color}`}
                                           href={getExamLink(vest, item.year, "2", btn.color)}

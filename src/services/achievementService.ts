@@ -373,5 +373,78 @@ export const achievementService = {
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, `user_achievements/${usuarioId}`);
     }
+  },
+
+  /**
+   * Tracks user study activities, automatically updating progress on matching Metas
+   * and incrementing statistics for Achievements.
+   */
+  async trackActivity(
+    usuarioId: string, 
+    tipo: 'questoes' | 'horas' | 'aulas' | 'redacoes' | 'leituras', 
+    quantidade: number
+  ): Promise<void> {
+    try {
+      // 1. Load active goals (Metas)
+      const metas = await this.getMetas(usuarioId);
+      const updatedMetas = metas.map(m => {
+        if (m.tipo === tipo && !m.concluida) {
+          const after = registrarProgresso(m, quantidade);
+          this.saveMeta(after); // async save
+          return after;
+        }
+        return m;
+      });
+
+      // 2. Load achievements profile
+      const profile = await this.getUsuarioConquistas(usuarioId);
+      
+      // Update statistics
+      profile.tarefasConcluidas += quantidade;
+      if (tipo === 'horas') {
+        profile.totalHorasEstudo += quantidade;
+      } else if (tipo === 'aulas') {
+        // approximate: 1 class = 0.5 hours study
+        profile.totalHorasEstudo += Math.round(quantidade * 0.5 * 10) / 10;
+      } else if (tipo === 'leituras') {
+        // approximate: 1 study material = 0.3 hours study
+        profile.totalHorasEstudo += Math.round(quantidade * 0.3 * 10) / 10;
+      } else if (tipo === 'questoes') {
+        // approximate: 5 questions answered = 0.2 hours study (0.04 hours per question)
+        profile.totalHorasEstudo += Math.round(quantidade * 0.04 * 10) / 10;
+      } else if (tipo === 'redacoes') {
+        // approximate: 1 essay = 1.5 hours study
+        profile.totalHorasEstudo += quantidade * 1.5;
+      }
+
+      // Check current completed count
+      profile.metasCompletas = updatedMetas.filter(m => m.concluida).length;
+
+      // 3. Verify new achievements and unlock
+      const newlyweds = verificarConquistas(profile, DEFAULT_CONQUISTAS, updatedMetas);
+      if (newlyweds.length > 0) {
+        newlyweds.forEach(conq => {
+          if (!profile.conquistasLiberadas.some(cl => cl.conquistaId === conq.id)) {
+            profile.conquistasLiberadas.push({
+              conquistaId: conq.id,
+              dataLiberacao: new Date()
+            });
+            // Dispatch dynamic window event so listening page can show congrats popup!
+            window.dispatchEvent(new CustomEvent('achievement-unlocked', { detail: conq }));
+          }
+        });
+      }
+
+      // 4. Save profile
+      await this.saveUsuarioConquistas(usuarioId, profile);
+
+      // Force a custom event for updated goals, so active screens can re-sync immediately
+      window.dispatchEvent(new CustomEvent('user-activity-tracked', { 
+        detail: { tipo, quantidade, metas: updatedMetas, profile } 
+      }));
+
+    } catch (error) {
+      console.error("Error tracking user activity automatically: ", error);
+    }
   }
 };

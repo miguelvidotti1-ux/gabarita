@@ -956,7 +956,7 @@ export default function DesafioSemanalComponent({ vestibular, onStartQuiz }: Pro
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cronômetro Automatico</p>
-                            <p className="text-xs font-bold text-slate-550 dark:text-blue-100 mt-0.5">Determinado inteligentemente pela série selecionada.</p>
+                            <p className="text-xs font-bold text-slate-500 dark:text-blue-100 mt-0.5">Determinado inteligentemente pela série selecionada.</p>
                           </div>
                         </div>
                         <span className="text-sm font-black text-blue-600 dark:text-blue-400 bg-white dark:bg-blue-900 px-3.5 py-2 rounded-xl border dark:border-blue-800 shadow-sm leading-none">

@@ -5,6 +5,7 @@ import { ESSAY_THEMES } from '../constants';
 import { generateEssayTheme, analyzeEssay, analyzeEssayFromImage, EssayAnalysis, Competency } from '../services/geminiService';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { missionEngine } from '../services/missionService';
+import { achievementService } from '../services/achievementService';
 import { collection, addDoc, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import GalleryPicker from './GalleryPicker';
 import NativeCameraLauncher from './NativeCameraLauncher';
@@ -150,6 +151,11 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
           missionEngine.updateProgress(m.id, 1);
         }
       });
+
+      // Update user Metas/Achievements automatically
+      if (auth.currentUser) {
+        achievementService.trackActivity(auth.currentUser.uid, 'redacoes', 1);
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'essays');
     } finally {
