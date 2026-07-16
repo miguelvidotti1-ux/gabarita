@@ -142,6 +142,19 @@
         "targetHours": { "type": "number" }
       },
       "required": ["userId", "subject", "targetAccuracy", "targetHours"]
+    },
+    "CardInteraction": {
+      "title": "CardInteraction",
+      "description": "User interaction with a single flashcard",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "cardId": { "type": "string" },
+        "trailId": { "type": "string" },
+        "status": { "type": "string", "enum": ["seen", "review"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "cardId", "trailId", "status", "updatedAt"]
     }
   },
   "firestore": {
@@ -180,6 +193,10 @@
     "/users/{userId}/goals/{subject}": {
       "schema": "Goal",
       "description": "User goals per subject"
+    },
+    "/users/{userId}/card_interactions/{cardId}": {
+      "schema": "CardInteraction",
+      "description": "User card interactions tracking seen/unseen cards"
     }
   }
 }

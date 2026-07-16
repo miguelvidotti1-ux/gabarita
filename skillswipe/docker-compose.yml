@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: skillswipe
+      POSTGRES_USER: sw_user
+      POSTGRES_PASSWORD: sw_pass
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01.sql
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    volumes: ['./:/app']
+    command: sh -c "npm install && node server.js"
+    environment:
+      DB_HOST: db
+      DB_USER: sw_user
+      DB_PASS: sw_pass
+      DB_NAME: skillswipe
+      JWT_SECRET: sw_secret
+    ports: ["3000:3000"]
+    depends_on: [db]
+volumes:
+  pgdata:

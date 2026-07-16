@@ -159,6 +159,15 @@ service cloud.firestore {
              data.targetHours is number && data.targetHours >= 0;
     }
 
+    function isValidCardInteraction(data) {
+      return data.keys().hasAll(['userId', 'cardId', 'trailId', 'status', 'updatedAt']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.cardId is string && data.cardId.size() < 128 &&
+             data.trailId is string && data.trailId.size() < 128 &&
+             data.status is string && data.status in ['seen', 'review'] &&
+             data.updatedAt is string;
+    }
+
     function isValidQuizResult(data) {
       return data.keys().hasAll(['userId', 'score', 'totalQuestions', 'percentage', 'questions', 'timestamp']) &&
              data.userId is string && data.userId == request.auth.uid &&
@@ -217,6 +226,11 @@ service cloud.firestore {
     match /users/{userId}/goals/{goalId} {
       allow read, delete: if isOwner(userId) || isAdmin();
       allow write: if isOwner(userId);
+    }
+
+    match /users/{userId}/card_interactions/{cardId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isValidCardInteraction(request.resource.data);
     }
 
     match /user_achievements/{userId} {

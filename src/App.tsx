@@ -24,6 +24,7 @@ import DesafioSemanalComponent from './components/DesafioSemanal';
 import CronogramaVestibulares from './components/CronogramaVestibulares';
 import SistemasConquistasMetas from './components/SistemasConquistasMetas';
 import GabaritosOficiais from './components/GabaritosOficiais';
+import SkillSwipe from './components/SkillSwipe';
 import { Question } from './services/geminiService';
 import { GraduationCap, LogIn, Sparkles, BookOpen, Target, Award, Trophy, Zap, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -212,6 +213,8 @@ export default function App() {
         return <CronogramaVestibulares />;
       case 'conquistas':
         return <SistemasConquistasMetas />;
+      case 'skillswipe':
+        return <SkillSwipe />;
       case 'gabaritos':
         return <GabaritosOficiais />;
       case 'redacao':

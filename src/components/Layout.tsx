@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { motion } from 'motion/react';
-import { Book, BookOpen, GraduationCap, LayoutDashboard, FileText, Video, User, LogOut, Menu, X, Moon, Sun, Sparkles, Users, Zap, Trophy, Calendar, Award, FileSpreadsheet } from 'lucide-react';
+import { Book, BookOpen, GraduationCap, LayoutDashboard, FileText, Video, User, LogOut, Menu, X, Moon, Sun, Sparkles, Users, Zap, Trophy, Calendar, Award, FileSpreadsheet, Layers } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import ThemeToggle from './ThemeToggle';
@@ -49,6 +49,7 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
       items: [
         { id: 'desafio', label: 'Desafio Semanal', icon: Trophy },
         { id: 'conquistas', label: 'Metas e Conquistas', icon: Award },
+        { id: 'skillswipe', label: 'Flashcards', icon: Layers },
         { id: 'redacao', label: 'Laboratório de Redação', icon: FileText },
       ]
     },
