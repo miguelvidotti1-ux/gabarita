@@ -125,6 +125,262 @@ const SAMPLE_GABARITOS: GabaritoOficial[] = [
     questoes: generateRichQuestions(Vestibular.ENEM, 2)
   },
   {
+    id: 'enem-2014-d1-azul',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 1,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2014-d1-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 1,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2014-d1-branco',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 1,
+    caderno: 'Branco',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2014-d1-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 1,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2014-d2-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 2,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2014-d2-cinza',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 2,
+    caderno: 'Cinza',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2014-d2-azul',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 2,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2014-d2-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2014,
+    dia: 2,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2013-d1-azul',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 1,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2013-d1-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 1,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2013-d1-branco',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 1,
+    caderno: 'Branco',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2013-d1-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 1,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2013-d2-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 2,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2013-d2-cinza',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 2,
+    caderno: 'Cinza',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2013-d2-azul',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 2,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2013-d2-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2013,
+    dia: 2,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2012-d1-azul',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 1,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2012-d1-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 1,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2012-d1-branco',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 1,
+    caderno: 'Branco',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2012-d1-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 1,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2012-d2-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 2,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2012-d2-cinza',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 2,
+    caderno: 'Cinza',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2012-d2-azul',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 2,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2012-d2-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2012,
+    dia: 2,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2011-d1-azul',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 1,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2011-d1-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 1,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2011-d1-branco',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 1,
+    caderno: 'Branco',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2011-d1-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 1,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 1)
+  },
+  {
+    id: 'enem-2011-d2-amarelo',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 2,
+    caderno: 'Amarelo',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2011-d2-cinza',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 2,
+    caderno: 'Cinza',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2011-d2-azul',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 2,
+    caderno: 'Azul',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
+    id: 'enem-2011-d2-rosa',
+    exame: Vestibular.ENEM,
+    ano: 2011,
+    dia: 2,
+    caderno: 'Rosa',
+    questoes: generateRichQuestions(Vestibular.ENEM, 2)
+  },
+  {
     id: 'fuvest-2024',
     exame: Vestibular.FUVEST,
     ano: 2024,

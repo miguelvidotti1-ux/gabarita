@@ -27,49 +27,19 @@ const VESTIBULARES = [
 export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: Vestibular) => void, onStartQuiz: (questions: Question[], isFull: boolean, timeLimit?: number) => void }) {
   const [selectedVestibular, setSelectedVestibular] = useState<Vestibular | null>(null);
   const [selectedAcervoVestibular, setSelectedAcervoVestibular] = useState<string | null>(null);
-  const [firstChoiceMade, setFirstChoiceMade] = useState<boolean>(localStorage.getItem('vestibular_firstChoiceMade') === 'true');
-  const [currentVestibular, setCurrentVestibular] = useState<string | null>(localStorage.getItem('vestibular_active'));
-  const [unlocked, setUnlocked] = useState<string[]>(JSON.parse(localStorage.getItem('vestibular_unlocked') || '[]'));
+  const [currentVestibular, setCurrentVestibular] = useState<string | null>(localStorage.getItem('vestibular_active') || Vestibular.ENEM);
   const [userXP, setUserXP] = useState(levelSystem.getStatus().global.xp);
 
   useEffect(() => {
-    localStorage.setItem('vestibular_firstChoiceMade', firstChoiceMade.toString());
     localStorage.setItem('vestibular_active', currentVestibular || '');
-    localStorage.setItem('vestibular_unlocked', JSON.stringify(unlocked));
-    
-    // Update local XP state whenever unlocked changes or on mount
     setUserXP(levelSystem.getStatus().global.xp);
-  }, [unlocked, firstChoiceMade, currentVestibular]);
+  }, [currentVestibular]);
 
   const handleSelect = (v: Vestibular) => {
-    if (!firstChoiceMade) {
-      setFirstChoiceMade(true);
-      const newUnlocked = [v];
-      setUnlocked(newUnlocked);
-      setCurrentVestibular(v);
-    } else if (unlocked.includes(v)) {
-      setCurrentVestibular(v);
-    }
-    // We don't call onSelect(v) immediately if we want to stay in the menu, 
-    // but the snippet says "this.render()" which means it updates the UI.
-    // However, the app usually transitions to a specific view when onSelect is called.
-    // Let's call it to keep existing app behavior if that's what was intended.
+    setCurrentVestibular(v);
     onSelect(v);
   };
 
-  const handleUnlock = (vestId: string, vestName: string) => {
-    if (levelSystem.spendXP(XP_COST)) {
-       setUnlocked(prev => [...new Set([...prev, vestId])]);
-       setCurrentVestibular(vestId);
-       setUserXP(levelSystem.getStatus().global.xp);
-       alert(`${vestName} desbloqueado com sucesso!`);
-    } else {
-       alert(`XP insuficiente! Você precisa de ${XP_COST} XP.`);
-    }
-  };
-
-  const isUnlocked = (vestId: string) => unlocked.includes(vestId);
-  
   if (selectedVestibular) {
     return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -87,23 +57,23 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
 
   return (
     <div className="space-y-12 pb-20">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="max-w-3xl space-y-4">
           <div className="inline-flex items-center gap-2 bg-[var(--bg-secondary)] text-[var(--text-accent)] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-[var(--card-border)]">
             <BookOpen size={14} />
-            <span>{firstChoiceMade ? 'Seletor de Foco' : 'Início de Jornada'}</span>
+            <span>Seletor de Vestibulares</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-[var(--text-primary)] leading-tight">
-            {!firstChoiceMade 
-              ? 'Escolha seu primeiro ' 
-              : 'Selecione seu '
-            }
+            Selecione seu{' '}
             <span className="text-[var(--text-accent)] underline decoration-wavy decoration-2">
-              {!firstChoiceMade ? 'Vestibular Grátis' : 'Vestibular Ativo'}
+              Vestibular Gratuito
             </span>
           </h1>
+          <p className="text-[var(--text-secondary)] text-sm md:text-base font-medium">
+            Todos os vestibulares estão 100% liberados e gratuitos para seus estudos!
+          </p>
         </div>
-        <div className="bg-[var(--card-bg)] p-6 rounded-3xl border border-[var(--card-border)] shadow-lg text-center">
+        <div className="bg-[var(--card-bg)] p-6 rounded-3xl border border-[var(--card-border)] shadow-lg text-center shrink-0">
           <p className="text-xs font-black text-[var(--text-secondary)] uppercase">Seu XP</p>
           <p className="text-3xl font-black text-[var(--text-accent)]">⭐ {userXP.toLocaleString()}</p>
         </div>
@@ -111,16 +81,12 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {VESTIBULARES.map((v) => {
-          const isUnlocked = unlocked.includes(v.id);
-          const locked = firstChoiceMade && !isUnlocked;
           const isActive = currentVestibular === v.id;
-          const isFreeOption = !firstChoiceMade;
 
           return (
             <div 
               key={v.id} 
-              className={`group relative bg-[var(--card-bg)] rounded-[2.5rem] border transition-all duration-500 overflow-hidden flex flex-col
-                ${locked ? 'opacity-80 grayscale-[0.5]' : 'hover:shadow-2xl hover:shadow-[var(--text-accent)]/10 hover:-translate-y-2'}
+              className={`group relative bg-[var(--card-bg)] rounded-[2.5rem] border transition-all duration-500 overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-[var(--text-accent)]/10 hover:-translate-y-2
                 ${isActive ? 'border-[var(--text-accent)] shadow-lg ring-2 ring-[var(--text-accent)]/20' : 'border-[var(--card-border)]'}
               `}
             >
@@ -134,8 +100,8 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
                   </div>
                   <div className="text-right">
                     <div className="flex flex-col items-end">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">
-                        {isActive ? '✓ Ativo' : isUnlocked ? 'Desbloqueado' : isFreeOption ? 'Grátis' : 'Bloqueado'}
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-1">
+                        {isActive ? '✓ Ativo' : 'Grátis'}
                       </p>
                       <h2 className="text-3xl font-black">{v.name}</h2>
                     </div>
@@ -148,59 +114,50 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
                   <p className="text-[var(--text-secondary)] text-sm leading-relaxed line-clamp-3">
                     {v.description}
                   </p>
-                  {isFreeOption && <span className="inline-block px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold rounded-md uppercase tracking-wider animate-pulse">Escolha Inicial Grátis</span>}
-                  {isActive && <span className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded-md uppercase tracking-wider">Foco Principal</span>}
+                  <span className="inline-block px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black rounded-md uppercase tracking-wider">
+                    Acesso Gratuito
+                  </span>
+                  {isActive && (
+                    <span className="inline-block ml-2 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black rounded-md uppercase tracking-wider">
+                      Foco Principal
+                    </span>
+                  )}
                 </div>
                 
                 <div className="flex flex-col gap-3 pt-4 mt-auto">
-                {locked ? (
+                  <button 
+                    onClick={() => handleSelect(v.id as Vestibular)}
+                    className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all border
+                      ${isActive 
+                        ? 'bg-[var(--text-accent)] text-white border-[var(--text-accent)] shadow-lg' 
+                        : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] border-[var(--card-border)] hover:bg-[var(--text-accent)] hover:text-white hover:border-[var(--text-accent)]'
+                      }
+                    `}
+                  >
+                    {isActive ? <CheckCircle2 size={18} /> : <BookOpen size={18} />}
+                    <span>{isActive ? 'Ativo no Momento' : 'Ativar Estudo'}</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => setSelectedVestibular(v.id as Vestibular)}
+                    className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-[var(--button-bg)] text-white hover:bg-[var(--button-bg-hover)] shadow-lg shadow-[var(--button-bg)]/20"
+                  >
+                    <Sparkles size={18} />
+                    <span>Fazer Simulado</span>
+                  </button>
+                  
+                  {['ENEM', 'Fuvest', 'Unicamp', 'Unesp', 'USP'].includes(v.name) && (
                     <button 
-                      onClick={() => handleUnlock(v.id, v.name)}
-                      disabled={userXP < XP_COST}
-                      className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--card-border)] hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed group/btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedAcervoVestibular(v.name);
+                      }}
+                      className="w-full py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all bg-[var(--bg-secondary)] text-[var(--text-accent)] border border-[var(--text-accent)] hover:bg-[var(--text-accent)] hover:text-white"
                     >
-                      <Lock size={18} className="group-hover/btn:animate-bounce" />
-                      <span>Desbloquear ({XP_COST} XP)</span>
+                      <Library size={16} />
+                      <span>📚 Ver Provas ({v.name === 'Fuvest' ? '17' : '16'} anos)</span>
                     </button>
-                ) : (
-                  <>
-                    <button 
-                      onClick={() => handleSelect(v.id as Vestibular)}
-                      className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all border
-                        ${isActive 
-                          ? 'bg-[var(--text-accent)] text-white border-[var(--text-accent)] shadow-lg' 
-                          : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] border-[var(--card-border)] hover:bg-[var(--text-accent)] hover:text-white hover:border-[var(--text-accent)]'
-                        }
-                      `}
-                    >
-                      {isActive ? <CheckCircle2 size={18} /> : <BookOpen size={18} />}
-                      <span>{isActive ? 'Ativo no Momento' : isFreeOption ? 'Começar Grátis' : 'Ativar Estudo'}</span>
-                    </button>
-                    {isUnlocked && (
-                      <>
-                        <button 
-                          onClick={() => setSelectedVestibular(v.id)}
-                          className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-[var(--button-bg)] text-white hover:bg-[var(--button-bg-hover)] shadow-lg shadow-[var(--button-bg)]/20"
-                        >
-                          <Sparkles size={18} />
-                          <span>Fazer Simulado</span>
-                        </button>
-                        {['ENEM', 'Fuvest', 'Unicamp', 'Unesp', 'USP'].includes(v.name) && (
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedAcervoVestibular(v.name);
-                            }}
-                            className="w-full py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all bg-[var(--bg-secondary)] text-[var(--text-accent)] border border-[var(--text-accent)] hover:bg-[var(--text-accent)] hover:text-white"
-                          >
-                            <Library size={16} />
-                            <span>📚 Ver Provas ({v.name === 'Fuvest' ? '17' : '16'} anos)</span>
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
+                  )}
                 </div>
               </div>
             </div>

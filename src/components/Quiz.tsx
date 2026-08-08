@@ -7,6 +7,7 @@ import { missionEngine } from '../services/missionService';
 import { achievementService } from '../services/achievementService';
 import { doc, setDoc, serverTimestamp, runTransaction, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
+import QuizSummary from './QuizSummary';
 
 interface QuizProps {
   questions: Question[];
@@ -212,6 +213,8 @@ export default function Quiz({ questions, onComplete, isFullExam = false, vestib
               <p className="text-4xl font-black text-blue-600 dark:text-blue-400">{percentage}%</p>
             </div>
           </div>
+          
+          <QuizSummary questions={questions} userAnswers={userAnswers} />
         </motion.div>
 
         <div className="space-y-6">
