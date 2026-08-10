@@ -25,26 +25,26 @@
     --card-border: #e2e8f0;
     --border-color: #e2e8f0;
     --button-bg: #4f46e5;
-    --button-bg-hover: #3730a3;
+    --button-bg-hover: #4338ca;
     --success: #10b981;
-    --shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+    --shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
   }
 
   .dark {
-    --bg-color: #030712;
+    --bg-color: #0b0f19;
     --text-color: #f8fafc;
-    --bg-primary: #030712;
-    --bg-secondary: #0b0f19;
+    --bg-primary: #0b0f19;
+    --bg-secondary: #131c2e;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    --text-accent: #6366f1;
-    --card-bg: #090e1a;
-    --card-border: #1e293b;
-    --border-color: #1e293b;
+    --text-accent: #818cf8;
+    --card-bg: #111827;
+    --card-border: #1f293d;
+    --border-color: #1f293d;
     --button-bg: #6366f1;
     --button-bg-hover: #4f46e5;
     --success: #10b981;
-    --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   }
 
   body {
@@ -59,7 +59,7 @@
   .card {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 1.5rem;
+    border-radius: 1rem;
     box-shadow: var(--shadow);
   }
 

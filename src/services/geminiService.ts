@@ -543,3 +543,86 @@ export async function analyzeEssay(
     throw error;
   }
 }
+
+export interface DailyStudyTip {
+  title: string;
+  category: string;
+  content: string;
+  actionableSteps: string[];
+  recommendedSubjects: string[];
+  quote?: string;
+}
+
+export async function getDailyStudyTip(vestibular: string = 'ENEM'): Promise<DailyStudyTip> {
+  try {
+    const res = await fetch('/api/gemini/study-tip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vestibular }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data as DailyStudyTip;
+  } catch (error) {
+    console.warn("Fallback de dica de estudo acionado:", error);
+    return getFallbackStudyTip(vestibular);
+  }
+}
+
+function getFallbackStudyTip(vestibular: string): DailyStudyTip {
+  const tipsByVestibular: Record<string, DailyStudyTip> = {
+    'ENEM': {
+      title: 'Dominando a Matriz de Referência e TRI no ENEM',
+      category: 'Estratégia de Prova',
+      content: `No ENEM, a Teoria de Resposta ao Item (TRI) penaliza inconsistências pedagógicas. Resolver questões fáceis e médias com total atenção garante uma nota coerente e alta, evitando que o algoritmo considere seus acertos difíceis como mero "chute".`,
+      actionableSteps: [
+        'Comece pelas questões curtas e diretas de Linguagens e Ciências Humanas.',
+        'Ao ler os textos motivadores, grife imediatamente a comanda final da questão.',
+        'Mantenha o foco absoluto no projeto de texto na Redação (Competência 3).'
+      ],
+      recommendedSubjects: ['Matemática', 'Redação', 'Ciências da Natureza'],
+      quote: 'A consistência na TRI garante sua aprovação com nota máxima.'
+    },
+    'FUVEST': {
+      title: 'Rigor Conceitual e Domínio de Obras Literárias na FUVEST',
+      category: 'Técnica de Estudo',
+      content: `A FUVEST exige alto aprofundamento conceitual e capacidade de análise crítica. As questões de primeira e segunda fase costumam relacionar obras literárias obrigatórias com o contexto histórico e social da época.`,
+      actionableSteps: [
+        'Revise as análises das obras literárias obrigatórias com foco em personagens e temas sociais.',
+        'Resolva exercícios discursivos escrevendo respostas diretas e fundamentadas.',
+        'Monitore o tempo: reserve ao menos 3 minutos por questão na 1ª fase.'
+      ],
+      recommendedSubjects: ['Literatura', 'História', 'Física'],
+      quote: 'A profundidade conceitual transforma esforço em resultado.'
+    },
+    'UNICAMP': {
+      title: 'Interpretação Textual e Leitura Crítica na UNICAMP',
+      category: 'Estratégia de Prova',
+      content: `A UNICAMP valoriza a capacidade do candidato em articular conceitos do cotidiano com raciocínio acadêmico. Na redação, atente-se rigorosamente às especificidades do gênero textual solicitado.`,
+      actionableSteps: [
+        'Leia atentamente o enunciado e identifique exatamente a hipótese testada.',
+        'Na redação, adeque a linguagem ao interlocutor definido na proposta.',
+        'Treine a resolução de gráficos e dados estatísticos contemporâneos.'
+      ],
+      recommendedSubjects: ['Biologia', 'Redação', 'Geografia'],
+      quote: 'Ler com criticidade é o caminho para gabaritar a UNICAMP.'
+    }
+  };
+
+  return tipsByVestibular[vestibular] || {
+    title: `Estratégia Eficiente para o Vestibular ${vestibular}`,
+    category: 'Estratégia de Prova',
+    content: `Para obter o melhor rendimento no ${vestibular}, faça simulados cronometrados periodicamente. Identifique os tópicos de maior incidência na banca e priorize seu estudo ativo via resolução de questões.`,
+    actionableSteps: [
+      'Faça pelo menos 15 questões inéditas da banca hoje.',
+      'Anote as dúvidas recorrentes no seu Caderno de Erros.',
+      'Revise os conceitos fundamentais antes de avançar para tópicos avançados.'
+    ],
+    recommendedSubjects: ['Matemática', 'Linguagens'],
+    quote: 'Pequenos progressos diários resultam em grandes aprovações.'
+  };
+}

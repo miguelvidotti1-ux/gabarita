@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import LigacoesQuimicasMindMap from './LigacoesQuimicasMindMap';
 
 const SUBJECT_COLORS: Record<string, { bg: string, text: string, border: string, btn: string }> = {
   'Matemática': { bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-200', btn: 'bg-blue-600' },
@@ -581,7 +582,9 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
                           <span>Mapa Mental Explicativo</span>
                         </h4>
                         
-                        {item.staticMindMapUrl ? (
+                        {(item.staticMindMapUrl === 'custom_ligacoes_quimicas' || item.topicName.toLowerCase().includes('ligações') || item.topicName.toLowerCase().includes('ligacoes')) ? (
+                          <LigacoesQuimicasMindMap />
+                        ) : item.staticMindMapUrl ? (
                           <div className="bg-slate-50 dark:bg-slate-950/50 rounded-3xl p-4 border dark:border-slate-800 overflow-hidden">
                             <img 
                               src={item.staticMindMapUrl} 

@@ -5,7 +5,7 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
     {
       subject: 'Química',
       topics: [
-        { name: 'Ligações químicas', percentage: 10, summary: 'Estudo das uniões entre átomos.' },
+        { name: 'Ligações químicas', percentage: 10, summary: 'Estudo das uniões entre átomos: Iônica, Covalente e Metálica (Regra do Octeto e Mar de Elétrons).', mindMapUrl: 'custom_ligacoes_quimicas' },
         { name: 'Funções orgânicas', percentage: 10, summary: 'Estudo dos grupos funcionais orgânicos.' },
         { name: 'Estequiometria', percentage: 10, summary: 'Cálculos químicos.' },
         { name: 'Soluções', percentage: 10, summary: 'Misturas homogêneas.' },

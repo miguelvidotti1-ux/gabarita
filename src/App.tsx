@@ -31,6 +31,7 @@ import { GraduationCap, LogIn, Sparkles, BookOpen, Target, Award, Trophy, Zap, C
 import { motion } from 'motion/react';
 
 import LoginScreen from './components/LoginScreen';
+import PlanSelection from './components/PlanSelection';
 
 export default function App() {
   const [user, setUser] = React.useState<User | any | null>(null);
@@ -141,6 +142,8 @@ export default function App() {
         return <Sobre />;
       case 'dashboard':
         return <Dashboard selectedVestibular={selectedVestibular} />;
+      case 'planos':
+        return <PlanSelection onComplete={() => setActiveTab('home')} userEmail={user?.email} userName={user?.displayName} />;
       case 'quiz':
         return <Quiz questions={quizQuestions} isFullExam={isFullExam} onComplete={() => setActiveTab('home')} vestibular={selectedVestibular} timeLimit={quizTimeLimit} />;
       case 'login':

@@ -1,13 +1,18 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
-import { Trophy, Target, Clock, BookOpen, Loader2, FileText, Zap, CheckCircle, Plus, X, Award } from 'lucide-react';
+import { Trophy, Target, Clock, BookOpen, Loader2, FileText, Zap, CheckCircle, Lightbulb, Sparkles, RefreshCw, CheckSquare, Square, BookmarkCheck, X, Award } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { generateStudyPlan, StudyPlan } from '../services/geminiService';
+import { generateStudyPlan, StudyPlan, getDailyStudyTip, DailyStudyTip } from '../services/geminiService';
 import { levelSystem, LevelSystemStatus } from '../services/levelService';
 import { missionEngine, MissionStatus } from '../services/missionService';
 import DailyMissions from './DailyMissions';
+import PomodoroTimer from './PomodoroTimer';
+import StudyMethodsSection from './StudyMethodsSection';
 import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { motion, AnimatePresence } from 'motion/react';
+
+// ... (Rest of component logic remains exactly the same, only styling changes below)
+// I will apply the new styling to the main return structure.
 
 interface SubjectPerformance {
   id: string;
@@ -84,6 +89,51 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
     simulatedCount: 0
   });
   const [vestibularStats, setVestibularStats] = useState<{ name: string, acertos: number, total: number }[]>([]);
+
+  // State for Dica de Estudo do Dia (Gemini API)
+  const [dailyTip, setDailyTip] = useState<DailyStudyTip | null>(null);
+  const [loadingTip, setLoadingTip] = useState<boolean>(true);
+  const [completedTipSteps, setCompletedTipSteps] = useState<Record<number, boolean>>({});
+  const [tipVestibular, setTipVestibular] = useState<string>(selectedVestibular || 'ENEM');
+  const [tipSaved, setTipSaved] = useState<boolean>(false);
+
+  const fetchDailyTip = async (vestib: string, forceRefresh: boolean = false) => {
+    setLoadingTip(true);
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const cacheKey = `vesthub_daily_tip_${vestib}_${todayStr}`;
+      
+      if (!forceRefresh) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            setDailyTip(parsed);
+            setLoadingTip(false);
+            return;
+          } catch (e) {
+            console.error("Cache de dica inválido:", e);
+          }
+        }
+      }
+
+      const tip = await getDailyStudyTip(vestib);
+      setDailyTip(tip);
+      setCompletedTipSteps({});
+      setTipSaved(false);
+      localStorage.setItem(cacheKey, JSON.stringify(tip));
+    } catch (err) {
+      console.error("Erro ao carregar dica de estudo do dia:", err);
+    } finally {
+      setLoadingTip(false);
+    }
+  };
+
+  useEffect(() => {
+    const currentVestib = selectedVestibular || 'ENEM';
+    setTipVestibular(currentVestib);
+    fetchDailyTip(currentVestib);
+  }, [selectedVestibular]);
 
   useEffect(() => {
     if (selectedVestibular) {
@@ -260,40 +310,40 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Seu Progresso</h1>
-          <p className="text-slate-500 dark:text-blue-300">Acompanhe seu desempenho e pontos fracos.</p>
+          <h1 className="text-3xl font-display font-black text-slate-900 dark:text-white">Seu Painel</h1>
+          <p className="text-slate-500 dark:text-slate-400">Acompanhe seu desempenho acadêmico.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 flex-wrap">
           {levelStatus && (
             <>
-              <div className="bg-white dark:bg-blue-900 p-3 rounded-xl border dark:border-blue-800 shadow-sm flex items-center gap-3">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg text-purple-600 dark:text-purple-400">
-                  <Zap size={20} />
+              <div className="bg-white dark:bg-slate-900 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="bg-indigo-100 dark:bg-indigo-950 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
+                  <Zap size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-blue-300 uppercase font-bold tracking-wider">XP Total</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-white">{levelStatus.global.xp.toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-extrabold tracking-wider">XP Total</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{levelStatus.global.xp.toLocaleString()}</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-blue-900 p-3 rounded-xl border dark:border-blue-800 shadow-sm flex items-center gap-3">
-                <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg text-yellow-600 dark:text-yellow-400">
-                  <Trophy size={20} />
+              <div className="bg-white dark:bg-slate-900 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="bg-amber-100 dark:bg-amber-950 p-2 rounded-xl text-amber-600 dark:text-amber-400">
+                  <Trophy size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-blue-300 uppercase font-bold tracking-wider">Nível</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-white">{levelStatus.global.level}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-extrabold tracking-wider">Nível</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{levelStatus.global.level}</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-blue-900 p-3 rounded-xl border dark:border-blue-800 shadow-sm flex items-center gap-3">
-                <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-red-600 dark:text-red-400">
-                  <Clock size={20} />
+              <div className="bg-white dark:bg-slate-900 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="bg-rose-100 dark:bg-rose-950 p-2 rounded-xl text-rose-600 dark:text-rose-400">
+                  <Clock size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-blue-300 uppercase font-bold tracking-wider">Ofensiva</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-white">{levelStatus.global.streak} dias</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-extrabold tracking-wider">Ofensiva</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{levelStatus.global.streak} dias</p>
                 </div>
               </div>
             </>
@@ -303,14 +353,167 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-blue-900/50 p-6 rounded-2xl border dark:border-blue-800 shadow-sm hover:shadow-md transition-shadow">
-            <div className={`${stat.iconBg} w-12 h-12 rounded-xl flex items-center justify-center ${stat.iconColor} mb-4`}>
-              <stat.icon size={24} />
+          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <div className={`${stat.iconBg} w-10 h-10 rounded-xl flex items-center justify-center ${stat.iconColor} mb-4`}>
+              <stat.icon size={20} />
             </div>
-            <p className="text-slate-500 dark:text-blue-300 text-sm font-medium">{stat.label}</p>
-            <p className="text-2xl font-bold text-slate-800 dark:text-white mb-4">{stat.value}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Pomodoro & Study Methods */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <PomodoroTimer />
+        </div>
+        <div className="lg:col-span-2">
+          <StudyMethodsSection />
+        </div>
+      </div>
+
+      {/* Dica de Estudo do Dia */}
+      <div id="dica-de-estudo-do-dia" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden transition-all shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-100 dark:bg-amber-950 p-3 rounded-xl text-amber-600 dark:text-amber-400">
+              <Lightbulb size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-display font-black text-slate-900 dark:text-white">Dica de Estudo</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-xs">Estratégia diária recomendada</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 bg-white/80 dark:bg-blue-950/80 p-1 rounded-xl border border-amber-200/60 dark:border-amber-500/30 text-xs font-semibold">
+              {['ENEM', 'FUVEST', 'UNICAMP', 'UNESP', 'UERJ', 'ITA'].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    setTipVestibular(v);
+                    fetchDailyTip(v, false);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                    tipVestibular === v
+                      ? 'bg-amber-500 text-white shadow-sm font-bold'
+                      : 'text-slate-600 dark:text-blue-200 hover:bg-slate-100 dark:hover:bg-blue-900'
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => fetchDailyTip(tipVestibular, true)}
+              disabled={loadingTip}
+              className="bg-amber-500 hover:bg-amber-600 active:scale-95 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Gerar uma nova dica com a API Gemini"
+            >
+              <RefreshCw size={14} className={loadingTip ? 'animate-spin' : ''} />
+              <span>Nova Dica</span>
+            </button>
+          </div>
+        </div>
+
+        {loadingTip ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+            <Loader2 size={36} className="text-amber-500 animate-spin" />
+            <p className="text-sm font-medium text-slate-600 dark:text-blue-200 animate-pulse">
+              Consultando o Gemini para gerar uma dica estratégica para o {tipVestibular}...
+            </p>
+          </div>
+        ) : dailyTip ? (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="bg-amber-500/15 dark:bg-amber-400/20 text-amber-800 dark:text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-300/60 dark:border-amber-500/40">
+                {dailyTip.category}
+              </span>
+              <span className="bg-slate-100 dark:bg-blue-950 text-slate-700 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full border border-slate-200 dark:border-blue-800">
+                Foco: {tipVestibular}
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white mb-2 leading-snug">
+                {dailyTip.title}
+              </h3>
+              <p className="text-slate-600 dark:text-blue-100 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                {dailyTip.content}
+              </p>
+            </div>
+
+            {dailyTip.actionableSteps && dailyTip.actionableSteps.length > 0 && (
+              <div className="bg-white/80 dark:bg-blue-950/60 p-4 md:p-5 rounded-2xl border border-amber-200/50 dark:border-blue-800 space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                  <Zap size={14} /> Como aplicar essa dica hoje:
+                </h4>
+                <div className="space-y-2">
+                  {dailyTip.actionableSteps.map((step, idx) => {
+                    const isDone = !!completedTipSteps[idx];
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setCompletedTipSteps(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                        className="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-amber-50/50 dark:hover:bg-blue-900/50 transition-colors group cursor-pointer"
+                      >
+                        <div className="mt-0.5 text-amber-600 dark:text-amber-400 shrink-0">
+                          {isDone ? (
+                            <CheckSquare size={18} className="text-green-600 dark:text-green-400" />
+                          ) : (
+                            <Square size={18} className="group-hover:scale-110 transition-transform" />
+                          )}
+                        </div>
+                        <span className={`text-xs md:text-sm transition-all ${
+                          isDone
+                            ? 'line-through text-slate-400 dark:text-blue-300/60'
+                            : 'text-slate-700 dark:text-blue-100 font-medium'
+                        }`}>
+                          {step}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs text-slate-400 dark:text-blue-300 font-semibold mr-1">Disciplinas sugeridas:</span>
+                {dailyTip.recommendedSubjects.map((sub, i) => (
+                  <span key={i} className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-amber-100/80 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700/40">
+                    #{sub}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTipSaved(!tipSaved)}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    tipSaved
+                      ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700'
+                      : 'bg-white dark:bg-blue-900 text-slate-700 dark:text-blue-200 border border-slate-200 dark:border-blue-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <BookmarkCheck size={14} />
+                  <span>{tipSaved ? 'Dica Salva!' : 'Salvar Dica'}</span>
+                </button>
+              </div>
+            </div>
+
+            {dailyTip.quote && (
+              <div className="border-t border-amber-200/50 dark:border-amber-500/20 pt-4">
+                <p className="italic text-xs md:text-sm text-slate-500 dark:text-amber-200/90 font-serif text-center">
+                  "{dailyTip.quote}"
+                </p>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
 
       <DailyMissions />
