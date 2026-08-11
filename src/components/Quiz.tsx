@@ -8,6 +8,8 @@ import { achievementService } from '../services/achievementService';
 import { doc, setDoc, serverTimestamp, runTransaction, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import QuizSummary from './QuizSummary';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { saveToCache } from '../services/offlineCache';
 
 interface QuizProps {
   questions: Question[];
@@ -18,6 +20,13 @@ interface QuizProps {
 }
 
 export default function Quiz({ questions, onComplete, isFullExam = false, vestibular, timeLimit }: QuizProps) {
+  const isOnline = useOnlineStatus();
+
+  React.useEffect(() => {
+    if (questions && questions.length > 0) {
+      saveToCache(vestibular || 'general', questions);
+    }
+  }, [questions, vestibular]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
   const [selectedAnswer, setSelectedAnswer] = React.useState<number | null>(null);
   const [userAnswers, setUserAnswers] = React.useState<number[]>(new Array(questions.length).fill(-1));
@@ -263,6 +272,12 @@ export default function Quiz({ questions, onComplete, isFullExam = false, vestib
 
   return (
     <div className="max-w-3xl mx-auto py-8 space-y-8">
+      {!isOnline && (
+        <div className="bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 p-4 rounded-2xl flex items-center gap-3 font-semibold text-sm">
+          <AlertCircle className="text-amber-600 dark:text-amber-400 shrink-0" size={20} />
+          <span>⚠️ Você está offline. Mostrando questões salvas anteriormente no seu dispositivo.</span>
+        </div>
+      )}
       {(isFullExam || timeLimit) && (
         <div className="fixed top-4 right-4 bg-white dark:bg-blue-900 p-4 rounded-2xl border dark:border-blue-800 shadow-lg z-50">
           <p className={`text-2xl font-black ${isTimeUp ? 'text-red-600' : 'text-slate-800 dark:text-white'}`}>

@@ -26,6 +26,7 @@ import SistemasConquistasMetas from './components/SistemasConquistasMetas';
 import GabaritosOficiais from './components/GabaritosOficiais';
 import SkillSwipe from './components/SkillSwipe';
 import HomeView from './components/HomeView';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { Question } from './services/geminiService';
 import { GraduationCap, LogIn, Sparkles, BookOpen, Target, Award, Trophy, Zap, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -34,6 +35,7 @@ import LoginScreen from './components/LoginScreen';
 import PlanSelection from './components/PlanSelection';
 
 export default function App() {
+  const isOnline = useOnlineStatus();
   const [user, setUser] = React.useState<User | any | null>(null);
   const [activeTab, setActiveTab] = React.useState('home');
   const [selectedVestibular, setSelectedVestibular] = React.useState<Vestibular>(Vestibular.ENEM);
@@ -175,10 +177,17 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user}>
-        {renderContent()}
-      </Layout>
-    </ErrorBoundary>
+    <>
+      {!isOnline && (
+        <div className="fixed top-0 inset-x-0 bg-amber-500 text-white text-center py-2 z-[100] text-sm font-semibold shadow-md flex items-center justify-center gap-2">
+          <span>📶 Você está offline — usando dados salvos no dispositivo</span>
+        </div>
+      )}
+      <ErrorBoundary>
+        <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user}>
+          {renderContent()}
+        </Layout>
+      </ErrorBoundary>
+    </>
   );
 }

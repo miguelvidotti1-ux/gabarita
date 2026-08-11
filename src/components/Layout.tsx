@@ -32,7 +32,7 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
         { id: 'home', label: 'Início', icon: BookOpen },
         { id: 'dashboard', label: 'Meu Painel', icon: LayoutDashboard },
         { id: 'agenda', label: 'Cronograma', icon: Calendar },
-        { id: 'planos', label: 'Planos & Assinatura', icon: Crown, isNew: true },
+        { id: 'planos', label: 'Planos & Assinatura', icon: Crown },
       ]
     },
     {

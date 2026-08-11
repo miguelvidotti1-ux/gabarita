@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { BookOpen, Book, Users, Target, Search, FileText } from 'lucide-react';
-import ListaGabaritosExtra from './ListaGabaritosExtra';
 
 const Database = {
   repertorios: [
@@ -157,7 +156,7 @@ const Database = {
 };
 
 export default function Biblioteca() {
-  const [activeTab, setActiveTab] = useState<'repertorio' | 'leituras' | 'gabaritos'>('repertorio');
+  const [activeTab, setActiveTab] = useState<'repertorio' | 'leituras'>('repertorio');
   const [anoFiltro, setAnoFiltro] = useState<string>('Todos');
   const [vestibularFiltro, setVestibularFiltro] = useState<string>('Todos');
   const [busca, setBusca] = useState('');
@@ -191,7 +190,7 @@ export default function Biblioteca() {
       </div>
       
       {/* Navegação entre Abas */}
-      <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-2xl border border-[var(--card-border)] max-w-lg mx-auto">
+      <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-2xl border border-[var(--card-border)] max-w-md mx-auto">
         <button 
           onClick={() => setActiveTab('repertorio')} 
           className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'repertorio' ? 'bg-[var(--button-bg)] text-white shadow-lg' : 'text-[var(--text-primary)] hover:bg-[var(--card-border)]'}`}
@@ -203,12 +202,6 @@ export default function Biblioteca() {
           className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'leituras' ? 'bg-[var(--button-bg)] text-white shadow-lg' : 'text-[var(--text-primary)] hover:bg-[var(--card-border)]'}`}
         >
           Leituras
-        </button>
-        <button 
-          onClick={() => setActiveTab('gabaritos')} 
-          className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'gabaritos' ? 'bg-[var(--button-bg)] text-white shadow-lg' : 'text-[var(--text-primary)] hover:bg-[var(--card-border)]'}`}
-        >
-          Gabaritos
         </button>
       </div>
 
@@ -258,7 +251,7 @@ export default function Biblioteca() {
               ))}
             </div>
           </div>
-        ) : activeTab === 'leituras' ? (
+        ) : (
           <div className="space-y-6">
             {/* Campo de Busca de Leituras */}
             <div className="relative">
@@ -340,8 +333,6 @@ export default function Biblioteca() {
               )}
             </div>
           </div>
-        ) : (
-          <ListaGabaritosExtra />
         )}
       </div>
     </div>
