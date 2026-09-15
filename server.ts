@@ -198,7 +198,6 @@ FORMATO DE RESPOSTA:
       const candidateModels = [
         'gemini-flash-latest',
         'gemini-3.8-flash',
-        'gemini-3.6-flash',
         'gemini-3.1-flash-lite',
       ];
 
@@ -643,7 +642,7 @@ Retorne exclusivamente um JSON com este formato:
 }`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
+        model: "gemini-3.8-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",

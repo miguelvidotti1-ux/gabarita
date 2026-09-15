@@ -41,10 +41,29 @@ import AudioTranscriberView from './components/AudioTranscriberView';
 export default function App() {
   const isOnline = useOnlineStatus();
   const [showSplash, setShowSplash] = React.useState(true);
-  const [user, setUser] = React.useState<User | any | null>(null);
+  const [user, setUser] = React.useState<User | any | null>(() => {
+    try {
+      const saved = localStorage.getItem('vestibularpro_session_user');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Error restoring session:", e);
+    }
+    const defaultStudent = {
+      uid: 'estudante_vestpro',
+      email: 'estudante@vestibularpro.com.br',
+      displayName: 'Estudante VESTIBULARPRO',
+      isAnonymous: true,
+    };
+    try {
+      localStorage.setItem('vestibularpro_session_user', JSON.stringify(defaultStudent));
+    } catch (e) {}
+    return defaultStudent;
+  });
   const [activeTab, setActiveTab] = React.useState('home');
   const [selectedVestibular, setSelectedVestibular] = React.useState<Vestibular>(Vestibular.ENEM);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const [quizQuestions, setQuizQuestions] = React.useState<Question[]>([]);
   const [isFullExam, setIsFullExam] = React.useState(false);
   const [quizTimeLimit, setQuizTimeLimit] = React.useState<number | undefined>(undefined);
@@ -62,29 +81,38 @@ export default function App() {
     testConnection();
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userRef = doc(db, 'users', currentUser.uid);
-        try {
-          const userSnap = await getDoc(userRef);
-          
-          if (!userSnap.exists()) {
-            await setDoc(userRef, {
+      try {
+        if (currentUser) {
+          const userRef = doc(db, 'users', currentUser.uid);
+          try {
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+              await setDoc(userRef, {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName,
+                role: 'user',
+                createdAt: new Date().toISOString()
+              });
+            }
+          } catch (error) {
+            console.warn("User doc sync note:", error);
+          }
+          setUser(currentUser);
+          try {
+            localStorage.setItem('vestibularpro_session_user', JSON.stringify({
               uid: currentUser.uid,
               email: currentUser.email,
-              displayName: currentUser.displayName,
-              role: 'user',
-              createdAt: new Date().toISOString()
-            });
-          }
-        } catch (error) {
-          handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
+              displayName: currentUser.displayName || 'Estudante',
+              isAnonymous: currentUser.isAnonymous
+            }));
+          } catch (e) {}
         }
-        setUser(currentUser);
-      } else {
-        // Retain local session user if set
-        setUser((prev) => (prev && 'uid' in prev && !('getIdToken' in prev) ? prev : null));
+      } catch (err) {
+        console.error("Auth listener error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -96,6 +124,9 @@ export default function App() {
     } catch (error) {
       console.error('Logout error:', error);
     }
+    try {
+      localStorage.removeItem('vestibularpro_session_user');
+    } catch (e) {}
     setUser(null);
     setActiveTab('home');
   };
@@ -230,7 +261,17 @@ export default function App() {
       case 'quiz':
         return <Quiz questions={quizQuestions} isFullExam={isFullExam} onComplete={() => setActiveTab('home')} vestibular={selectedVestibular} timeLimit={quizTimeLimit} />;
       case 'login':
-        return <LoginScreen onLoginSuccess={(u) => { setUser(u); setActiveTab('home'); }} />;
+        return (
+          <LoginScreen
+            onLoginSuccess={(u) => {
+              setUser(u);
+              try {
+                localStorage.setItem('vestibularpro_session_user', JSON.stringify(u));
+              } catch (e) {}
+              setActiveTab('home');
+            }}
+          />
+        );
       default:
         return <div>Página não encontrada</div>;
     }
@@ -257,6 +298,9 @@ export default function App() {
         <LoginScreen
           onLoginSuccess={(userObj) => {
             setUser(userObj);
+            try {
+              localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
+            } catch (e) {}
           }}
         />
       ) : (

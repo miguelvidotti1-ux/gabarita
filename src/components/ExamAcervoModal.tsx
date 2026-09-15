@@ -24,11 +24,17 @@ export const getItaExamLink = (
   materia?: string
 ): string => {
   const y = parseInt(year, 10);
+  if (materia) {
+    const key2 = `ITA_${year}_2_${materia}`;
+    if (PROVAS_LINKS[key2]) return PROVAS_LINKS[key2];
+    const keyUnica = `ITA_${year}_unica_${materia}`;
+    if (PROVAS_LINKS[keyUnica]) return PROVAS_LINKS[keyUnica];
+    const keyDirect = `ITA_${year}_${materia}`;
+    if (PROVAS_LINKS[keyDirect]) return PROVAS_LINKS[keyDirect];
+  }
   if (y >= 2019) {
     if (fase === '2') {
       if (materia) {
-        const key = `ITA_${year}_2_${materia}`;
-        if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
         const matSlug = materia.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         return `https://www.vestibular.ita.br/provas/${year}_fase2_${matSlug}.pdf`;
       }
@@ -40,6 +46,13 @@ export const getItaExamLink = (
     if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
     return `https://www.vestibular.ita.br/provas/${year}_fase1.pdf`;
   } else {
+    if (materia) {
+      const keyUnica = `ITA_${year}_unica_${materia}`;
+      if (PROVAS_LINKS[keyUnica]) return PROVAS_LINKS[keyUnica];
+      const keyDirect = `ITA_${year}_${materia}`;
+      if (PROVAS_LINKS[keyDirect]) return PROVAS_LINKS[keyDirect];
+      return `https://www.vestibular.ita.br/provas/matematica_${year}.pdf`;
+    }
     const key = `ITA_${year}_unica_Prova`;
     if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
     return `https://www.vestibular.ita.br/provas/${year}_prova.pdf`;
@@ -399,7 +412,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                           PROVA ÚNICA — Formato Clássico
                                         </span>
                                       </div>
-                                      <div className="grid grid-cols-1 gap-2">
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <a
                                           href={getItaExamLink(item.year, 'unica')}
                                           target="_blank"
@@ -412,6 +425,20 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                           </div>
                                           <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity" />
                                         </a>
+                                        {(item.year === '2018' || item.year === '2017') && (
+                                          <a
+                                            href={getItaExamLink(item.year, 'unica', 'Matemática')}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
+                                          >
+                                            <div className="flex items-center gap-2 truncate">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-400" />
+                                              <span className="truncate">Caderno Matemática (PDF)</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity shrink-0 ml-1" />
+                                          </a>
+                                        )}
                                       </div>
                                     </div>
                                   )}

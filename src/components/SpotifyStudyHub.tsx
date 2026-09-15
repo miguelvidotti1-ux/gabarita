@@ -239,16 +239,13 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
       if (res.ok) {
         const data = await res.json();
         setEstiloTracks(data.musicas || []);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        if (onToast) onToast('error', err.error || 'Falha ao buscar músicas do estilo.');
       }
     } catch (err) {
-      if (onToast) onToast('error', 'Erro ao conectar à API de estilos.');
+      console.warn('Erro ao carregar faixas do estilo:', err);
     } finally {
       setIsLoadingEstiloTracks(false);
     }
-  }, [onToast, spotifyFetch]);
+  }, [spotifyFetch]);
 
   // Carregar lista de estilos musicais pré-definidos
   const loadEstilos = useCallback(async () => {

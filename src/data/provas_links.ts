@@ -119,7 +119,8 @@ export const PROVAS_LINKS: Record<string, string> = {
   // Formato 2 Fases (2019 a 2026)
   // 2026: 2ª Fase com Matemática, Física, Química e Português
   "ITA_2026_1_Prova": "https://www.vestibular.ita.br/provas/2026_fase1.pdf",
-  "ITA_2026_2_Matemática": "https://www.vestibular.ita.br/provas/2026_fase2_matematica.pdf",
+  "ITA_2026_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2026_2f.pdf",
+  "ITA_2026_Matemática": "https://www.vestibular.ita.br/provas/matematica_2026_2f.pdf",
   "ITA_2026_2_Física": "https://www.vestibular.ita.br/provas/2026_fase2_fisica.pdf",
   "ITA_2026_2_Química": "https://www.vestibular.ita.br/provas/2026_fase2_quimica.pdf",
   "ITA_2026_2_Português": "https://www.vestibular.ita.br/provas/2026_fase2_portugues.pdf",
@@ -127,7 +128,8 @@ export const PROVAS_LINKS: Record<string, string> = {
 
   // 2025: 2ª Fase com Matemática, Física, Química e Português
   "ITA_2025_1_Prova": "https://www.vestibular.ita.br/provas/2025_fase1.pdf",
-  "ITA_2025_2_Matemática": "https://www.vestibular.ita.br/provas/2025_fase2_matematica.pdf",
+  "ITA_2025_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2025_2f.pdf",
+  "ITA_2025_Matemática": "https://www.vestibular.ita.br/provas/matematica_2025_2f.pdf",
   "ITA_2025_2_Física": "https://www.vestibular.ita.br/provas/2025_fase2_fisica.pdf",
   "ITA_2025_2_Química": "https://www.vestibular.ita.br/provas/2025_fase2_quimica.pdf",
   "ITA_2025_2_Português": "https://www.vestibular.ita.br/provas/2025_fase2_portugues.pdf",
@@ -135,48 +137,59 @@ export const PROVAS_LINKS: Record<string, string> = {
 
   // 2024: 2ª Fase com Matemática, Física e Química
   "ITA_2024_1_Prova": "https://www.vestibular.ita.br/provas/2024_fase1.pdf",
-  "ITA_2024_2_Matemática": "https://www.vestibular.ita.br/provas/2024_fase2_matematica.pdf",
+  "ITA_2024_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2024_2f.pdf",
+  "ITA_2024_Matemática": "https://www.vestibular.ita.br/provas/matematica_2024_2f.pdf",
   "ITA_2024_2_Física": "https://www.vestibular.ita.br/provas/2024_fase2_fisica.pdf",
   "ITA_2024_2_Química": "https://www.vestibular.ita.br/provas/2024_fase2_quimica.pdf",
   "ITA_2024_2_Prova": "https://www.vestibular.ita.br/provas/2024_fase2.pdf",
 
   // 2023: 2ª Fase com Matemática, Física e Química
   "ITA_2023_1_Prova": "https://www.vestibular.ita.br/provas/2023_fase1.pdf",
-  "ITA_2023_2_Matemática": "https://www.vestibular.ita.br/provas/2023_fase2_matematica.pdf",
+  "ITA_2023_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2023_2f.pdf",
+  "ITA_2023_Matemática": "https://www.vestibular.ita.br/provas/matematica_2023_2f.pdf",
   "ITA_2023_2_Física": "https://www.vestibular.ita.br/provas/2023_fase2_fisica.pdf",
   "ITA_2023_2_Química": "https://www.vestibular.ita.br/provas/2023_fase2_quimica.pdf",
   "ITA_2023_2_Prova": "https://www.vestibular.ita.br/provas/2023_fase2.pdf",
 
   // 2022: 2ª Fase com Matemática, Física e Química
   "ITA_2022_1_Prova": "https://www.vestibular.ita.br/provas/2022_fase1.pdf",
-  "ITA_2022_2_Matemática": "https://www.vestibular.ita.br/provas/2022_fase2_matematica.pdf",
+  "ITA_2022_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2022_2f.pdf",
+  "ITA_2022_Matemática": "https://www.vestibular.ita.br/provas/matematica_2022_2f.pdf",
   "ITA_2022_2_Física": "https://www.vestibular.ita.br/provas/2022_fase2_fisica.pdf",
   "ITA_2022_2_Química": "https://www.vestibular.ita.br/provas/2022_fase2_quimica.pdf",
   "ITA_2022_2_Prova": "https://www.vestibular.ita.br/provas/2022_fase2.pdf",
 
   // 2021: 2ª Fase com Matemática, Física e Química
   "ITA_2021_1_Prova": "https://www.vestibular.ita.br/provas/2021_fase1.pdf",
-  "ITA_2021_2_Matemática": "https://www.vestibular.ita.br/provas/2021_fase2_matematica.pdf",
+  "ITA_2021_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2021_2f.pdf",
+  "ITA_2021_Matemática": "https://www.vestibular.ita.br/provas/matematica_2021_2f.pdf",
   "ITA_2021_2_Física": "https://www.vestibular.ita.br/provas/2021_fase2_fisica.pdf",
   "ITA_2021_2_Química": "https://www.vestibular.ita.br/provas/2021_fase2_quimica.pdf",
   "ITA_2021_2_Prova": "https://www.vestibular.ita.br/provas/2021_fase2.pdf",
 
   // 2020: 2ª Fase com Matemática, Física e Química
   "ITA_2020_1_Prova": "https://www.vestibular.ita.br/provas/2020_fase1.pdf",
-  "ITA_2020_2_Matemática": "https://www.vestibular.ita.br/provas/2020_fase2_matematica.pdf",
+  "ITA_2020_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2020_2f.pdf",
+  "ITA_2020_Matemática": "https://www.vestibular.ita.br/provas/matematica_2020_2f.pdf",
   "ITA_2020_2_Física": "https://www.vestibular.ita.br/provas/2020_fase2_fisica.pdf",
   "ITA_2020_2_Química": "https://www.vestibular.ita.br/provas/2020_fase2_quimica.pdf",
   "ITA_2020_2_Prova": "https://www.vestibular.ita.br/provas/2020_fase2.pdf",
 
   // 2019: 2ª Fase com Matemática, Física e Química
   "ITA_2019_1_Prova": "https://www.vestibular.ita.br/provas/2019_fase1.pdf",
-  "ITA_2019_2_Matemática": "https://www.vestibular.ita.br/provas/2019_fase2_matematica.pdf",
+  "ITA_2019_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2019_2f.pdf",
+  "ITA_2019_Matemática": "https://www.vestibular.ita.br/provas/matematica_2019_2f.pdf",
   "ITA_2019_2_Física": "https://www.vestibular.ita.br/provas/2019_fase2_fisica.pdf",
   "ITA_2019_2_Química": "https://www.vestibular.ita.br/provas/2019_fase2_quimica.pdf",
   "ITA_2019_2_Prova": "https://www.vestibular.ita.br/provas/2019_fase2.pdf",
 
   // Formato Prova Única (2009 a 2018)
+  "ITA_2018_Matemática": "https://www.vestibular.ita.br/provas/matematica_2018.pdf",
+  "ITA_2018_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2018.pdf",
   "ITA_2018_unica_Prova": "https://www.vestibular.ita.br/provas/2018_prova.pdf",
+
+  "ITA_2017_Matemática": "https://www.vestibular.ita.br/provas/matematica_2017.pdf",
+  "ITA_2017_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2017.pdf",
   "ITA_2017_unica_Prova": "https://www.vestibular.ita.br/provas/2017_prova.pdf",
   "ITA_2016_unica_Prova": "https://www.vestibular.ita.br/provas/2016_prova.pdf",
   "ITA_2015_unica_Prova": "https://www.vestibular.ita.br/provas/2015_prova.pdf",
