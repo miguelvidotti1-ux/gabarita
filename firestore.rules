@@ -101,12 +101,22 @@ service cloud.firestore {
     }
 
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'email']) &&
-             data.uid is string && data.uid.size() < 128 &&
-             data.email is string && data.email.size() < 256 &&
+      return (!('uid' in data) || (data.uid is string && data.uid.size() < 128)) &&
+             (!('email' in data) || (data.email is string && data.email.size() < 256)) &&
              (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 128)) &&
              (!('role' in data) || (data.role in ['admin', 'user'])) &&
-             (!('createdAt' in data) || (data.createdAt is string));
+             (!('createdAt' in data) || (data.createdAt is string)) &&
+             (!('bio' in data) || (data.bio is string && data.bio.size() < 2000)) &&
+             (!('dailyGoalMinutes' in data) || (data.dailyGoalMinutes is number && data.dailyGoalMinutes >= 0 && data.dailyGoalMinutes <= 1440)) &&
+             (!('photoUrl' in data) || data.photoUrl == null || (data.photoUrl is string && data.photoUrl.size() < 10000000)) &&
+             (!('avatarColor' in data) || (data.avatarColor is string && data.avatarColor.size() < 64)) &&
+             (!('vestibulares' in data) || (data.vestibulares is list && data.vestibulares.size() <= 30)) &&
+             (!('focusAreas' in data) || (data.focusAreas is list && data.focusAreas.size() <= 30)) &&
+             (!('notifications' in data) || (data.notifications is map)) &&
+             (!('frame' in data) || (data.frame is string && data.frame.size() < 64)) &&
+             (!('badge' in data) || (data.badge is string && data.badge.size() < 64)) &&
+             (!('themeColor' in data) || (data.themeColor is string && data.themeColor.size() < 64)) &&
+             (!('updatedAt' in data) || (data.updatedAt is string));
     }
 
     function isValidExam(data) {
@@ -191,10 +201,14 @@ service cloud.firestore {
     }
 
     // Rules
+    match /test/{testId} {
+      allow read, write: if true;
+    }
+
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
-      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (!('role' in request.resource.data) || request.resource.data.role == 'user');
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && (!('role' in request.resource.data) || !('role' in resource.data) || request.resource.data.role == resource.data.role)) || isAdmin();
     }
 
     match /exams/{examId} {
@@ -210,6 +224,21 @@ service cloud.firestore {
     match /essayThemes/{themeId} {
       allow read: if true;
       allow write: if isAdmin() && isValidEssayTheme(request.resource.data);
+    }
+
+    match /vestibular_events/{eventId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /weekly_challenges/{challengeId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /weekly_participations/{participationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
 
     match /users/{userId}/progress/{progressId} {
@@ -240,13 +269,13 @@ service cloud.firestore {
 
     match /quiz_results/{resultId} {
       allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidQuizResult(request.resource.data) && isRecent(request.resource.data.timestamp);
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidQuizResult(request.resource.data);
     }
 
     match /essays/{essayId} {
       allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidEssay(request.resource.data) && isRecent(request.resource.data.timestamp);
-      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && isValidEssay(request.resource.data) && isRecent(request.resource.data.timestamp);
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidEssay(request.resource.data);
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && isValidEssay(request.resource.data);
     }
   }
 }

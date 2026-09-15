@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Vestibular } from '../types';
-import { GraduationCap, BookOpen, FileText, Video, ArrowRight, Sparkles, Lock, CheckCircle2, Library } from 'lucide-react';
+import { GraduationCap, BookOpen, FileText, Video, ArrowRight, Sparkles, Lock, CheckCircle2, Library, Trophy, Zap, Star } from 'lucide-react';
 import SimuladoPersonalizado from './SimuladoPersonalizado';
 import ExamAcervoModal from './ExamAcervoModal';
 import { Question } from '../services/geminiService';
 import { levelSystem } from '../services/levelService';
-
-const XP_COST = 150;
+import { motion } from 'motion/react';
 
 const VESTIBULARES = [
-  { id: Vestibular.ENEM, name: 'ENEM', color: 'from-blue-600 to-blue-800', description: 'Exame Nacional do Ensino Médio. Porta de entrada para universidades federais e ProUni.' },
-  { id: Vestibular.FUVEST, name: 'Fuvest', color: 'from-red-600 to-red-800', description: 'Vestibular da USP. Um dos mais concorridos e tradicionais do país.' },
-  { id: Vestibular.UNICAMP, name: 'Unicamp', color: 'from-green-600 to-green-800', description: 'Vestibular da Universidade Estadual de Campinas. Conhecido por questões interdisciplinares.' },
-  { id: Vestibular.UNESP, name: 'Unesp', color: 'from-yellow-600 to-yellow-800', description: 'Vestibular da Universidade Estadual Paulista. Abrange diversas cidades do interior de SP.' },
-  { id: Vestibular.UERJ, name: 'UERJ', color: 'from-purple-600 to-purple-800', description: 'Vestibular da Universidade do Estado do Rio de Janeiro. Foco em cidadania e atualidades.' },
-  { id: Vestibular.ITA, name: 'ITA', color: 'from-slate-600 to-slate-800', description: 'Instituto Tecnológico de Aeronáutica. O vestibular de engenharia mais difícil do Brasil.' },
-  { id: Vestibular.FGV, name: 'FGV', color: 'from-orange-600 to-orange-800', description: 'Fundação Getulio Vargas. Excelência em administração, economia e direito.' },
-  { id: Vestibular.MACKENZIE, name: 'Mackenzie', color: 'from-rose-600 to-rose-800', description: 'Universidade Presbiteriana Mackenzie. Referência em diversas áreas do conhecimento.' },
-  { id: Vestibular.PUC_SP, name: 'PUC-SP', color: 'from-sky-600 to-sky-800', description: 'Pontifícia Universidade Católica de SP. Tradição e qualidade acadêmica.' },
-  { id: Vestibular.UNIFESP, name: 'UNIFESP', color: 'from-emerald-600 to-emerald-800', description: 'Universidade Federal de São Paulo. Destaque nas áreas da saúde e medicina.' },
-  { id: Vestibular.ANHEMBI_MORUMBI, name: 'Anhembi Morumbi', color: 'from-indigo-600 to-indigo-800', description: 'Universidade Anhembi Morumbi. Inovação e conexão com o mercado de trabalho.' },
-  { id: Vestibular.ESTACIO, name: 'Estácio de Sá', color: 'from-cyan-600 to-cyan-800', description: 'Universidade Estácio de Sá. Ampla capilaridade e foco na carreira.' },
-  { id: Vestibular.UNISINOS, name: 'Unisinos', color: 'from-teal-600 to-teal-800', description: 'Universidade do Vale do Rio dos Sinos. Referência em pesquisa e tecnologia.' },
+  { id: Vestibular.ENEM, name: 'ENEM', color: 'from-blue-600/20 via-blue-900/40 to-slate-950', badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30', description: 'Exame Nacional do Ensino Médio. Porta de entrada para universidades federais (SiSU), ProUni e FIES.' },
+  { id: Vestibular.FUVEST, name: 'Fuvest', color: 'from-rose-600/20 via-red-950 to-slate-950', badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/30', description: 'Vestibular oficial da Universidade de São Paulo (USP). Um dos mais concorridos e tradicionais do país.' },
+  { id: Vestibular.UNICAMP, name: 'Unicamp', color: 'from-emerald-600/20 via-emerald-950 to-slate-950', badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', description: 'Vestibular da Universidade Estadual de Campinas. Renomado por questões críticas e interdisciplinares.' },
+  { id: Vestibular.UNESP, name: 'Unesp', color: 'from-amber-600/20 via-amber-950 to-slate-950', badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30', description: 'Vestibular da Universidade Estadual Paulista. Ampla cobertura nos campi do interior de SP.' },
+  { id: Vestibular.UERJ, name: 'UERJ', color: 'from-purple-600/20 via-purple-950 to-slate-950', badgeColor: 'bg-purple-500/10 text-purple-400 border-purple-500/30', description: 'Universidade do Estado do Rio de Janeiro. Exame de qualificação com forte foco em cidadania e atualidades.' },
+  { id: Vestibular.ITA, name: 'ITA', color: 'from-blue-600/20 via-blue-900/40 to-slate-950', badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30', description: 'Instituto Tecnológico de Aeronáutica. Referência máxima em ciências exatas e engenharia aeroespacial.' },
+  { id: Vestibular.FGV, name: 'FGV', color: 'from-orange-600/20 via-orange-950 to-slate-950', badgeColor: 'bg-orange-500/10 text-orange-400 border-orange-500/30', description: 'Fundação Getulio Vargas. Excelência em economia, administração pública e direito.' },
+  { id: Vestibular.MACKENZIE, name: 'Mackenzie', color: 'from-red-600/20 via-rose-950 to-slate-950', badgeColor: 'bg-red-500/10 text-red-400 border-red-500/30', description: 'Universidade Presbiteriana Mackenzie. Tradição histórica em arquitetura, direito e tecnologia.' },
+  { id: Vestibular.PUC_SP, name: 'PUC-SP', color: 'from-indigo-600/20 via-indigo-950 to-slate-950', badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30', description: 'Pontifícia Universidade Católica de SP. Destaque em ciências humanas, sociais e biomédicas.' },
+  { id: Vestibular.UNIFESP, name: 'UNIFESP', color: 'from-teal-600/20 via-teal-950 to-slate-950', badgeColor: 'bg-teal-500/10 text-teal-400 border-teal-500/30', description: 'Universidade Federal de São Paulo. Destaque nacional e internacional na área médica e de saúde.' },
+  { id: Vestibular.ANHEMBI_MORUMBI, name: 'Anhembi Morumbi', color: 'from-cyan-600/20 via-cyan-950 to-slate-950', badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30', description: 'Universidade Anhembi Morumbi. Inovação, metodologia ativa e conexão com o mercado global.' },
+  { id: Vestibular.ESTACIO, name: 'Estácio de Sá', color: 'from-blue-600/20 via-blue-950 to-slate-950', badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30', description: 'Universidade Estácio de Sá. Ampla capilaridade e cursos focados na prática profissional.' },
+  { id: Vestibular.UNISINOS, name: 'Unisinos', color: 'from-emerald-600/20 via-teal-950 to-slate-950', badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', description: 'Universidade do Vale do Rio dos Sinos. Destaque em tecnologia, pesquisa e inovação no Sul.' },
 ];
 
 export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: Vestibular) => void, onStartQuiz: (questions: Question[], isFull: boolean, timeLimit?: number) => void }) {
@@ -42,13 +41,13 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
 
   if (selectedVestibular) {
     return (
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
         <button 
           onClick={() => setSelectedVestibular(null)} 
-          className="group flex items-center gap-2 text-[var(--text-accent)] font-black hover:translate-x-[-4px] transition-transform"
+          className="group flex items-center gap-2 text-[var(--primary)] font-bold hover:translate-x-[-4px] transition-transform cursor-pointer px-4 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[var(--primary)] w-fit"
         >
-          <ArrowRight size={20} className="rotate-180" />
-          <span>Voltar para Lista</span>
+          <ArrowRight size={18} className="rotate-180" />
+          <span>Voltar para Lista de Vestibulares</span>
         </button>
         <SimuladoPersonalizado vestibular={selectedVestibular} onStartQuiz={onStartQuiz} />
       </div>
@@ -56,114 +55,122 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
   }
 
   return (
-    <div className="space-y-12 pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 bg-[var(--bg-secondary)] text-[var(--text-accent)] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-[var(--card-border)]">
+    <div className="space-y-8 pb-16 font-sans">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-7 sm:p-9 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)]">
+        <div className="max-w-3xl space-y-3">
+          <div className="inline-flex items-center gap-2 bg-[var(--bg-badge)] text-[var(--primary)] px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider border border-[var(--primary-border)]">
             <BookOpen size={14} />
-            <span>Seletor de Vestibulares</span>
+            <span>Catálogo Completo de Provas</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-[var(--text-primary)] leading-tight">
-            Selecione seu{' '}
-            <span className="text-[var(--text-accent)] underline decoration-wavy decoration-2">
-              Vestibular Gratuito
-            </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-main)] tracking-tight">
+            Escolha seu Vestibular de Foco
           </h1>
-          <p className="text-[var(--text-secondary)] text-sm md:text-base font-medium">
-            Todos os vestibulares estão 100% liberados e gratuitos para seus estudos!
+          <p className="text-[var(--text-muted)] text-sm sm:text-base leading-relaxed">
+            Todas as bancas examinadoras estão liberadas com acesso ilimitado a simulados adaptativos, cadernos de questões reais e provas oficiais completas.
           </p>
         </div>
-        <div className="bg-[var(--card-bg)] p-6 rounded-3xl border border-[var(--card-border)] shadow-lg text-center shrink-0">
-          <p className="text-xs font-black text-[var(--text-secondary)] uppercase">Seu XP</p>
-          <p className="text-3xl font-black text-[var(--text-accent)]">⭐ {userXP.toLocaleString()}</p>
+        
+        <div className="bg-[var(--bg-hover)] p-5 px-6 rounded-2xl border border-[var(--border-light)] text-center shrink-0 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+            <Star size={24} />
+          </div>
+          <div className="text-left">
+            <p className="text-[11px] font-bold text-[var(--text-label)] uppercase tracking-wider">Seu XP Total</p>
+            <p className="text-2xl font-extrabold text-amber-400">{userXP.toLocaleString()} XP</p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {VESTIBULARES.map((v) => {
+      {/* Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {VESTIBULARES.map((v, i) => {
           const isActive = currentVestibular === v.id;
 
           return (
-            <div 
+            <motion.div 
               key={v.id} 
-              className={`group relative bg-[var(--card-bg)] rounded-[2.5rem] border transition-all duration-500 overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-[var(--text-accent)]/10 hover:-translate-y-2
-                ${isActive ? 'border-[var(--text-accent)] shadow-lg ring-2 ring-[var(--text-accent)]/20' : 'border-[var(--card-border)]'}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: i * 0.03 }}
+              className={`group relative bg-[var(--bg-card)] rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col hover:shadow-2xl hover:border-[var(--primary)] hover:-translate-y-1
+                ${isActive ? 'border-[var(--primary)] ring-2 ring-[var(--primary)]/20 shadow-lg shadow-[var(--shadow-primary)]' : 'border-[var(--border-light)]'}
               `}
             >
-              <div className={`bg-gradient-to-br ${v.color} p-8 text-white relative overflow-hidden`}>
-                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                <div className="absolute -right-8 -top-8 w-32 h-32 bg-black/5 rounded-full blur-xl" />
-                
+              {/* Header Visual with Subtle Gradient */}
+              <div className={`bg-gradient-to-br ${v.color} p-6 border-b border-[var(--border-light)] relative overflow-hidden`}>
                 <div className="relative z-10 flex justify-between items-start">
-                  <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
-                    <GraduationCap size={32} />
+                  <div className="w-12 h-12 rounded-xl bg-[var(--bg-card)]/70 backdrop-blur-md border border-white/10 flex items-center justify-center text-[var(--text-main)] shadow-sm">
+                    <GraduationCap size={26} />
                   </div>
-                  <div className="text-right">
-                    <div className="flex flex-col items-end">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-1">
-                        {isActive ? '✓ Ativo' : 'Grátis'}
-                      </p>
-                      <h2 className="text-3xl font-black">{v.name}</h2>
-                    </div>
+                  <div className="text-right flex flex-col items-end gap-1.5">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${v.badgeColor}`}>
+                      {isActive ? '✓ Foco Ativo' : 'Liberado'}
+                    </span>
+                    <h2 className="text-2xl font-extrabold text-[var(--text-main)]">{v.name}</h2>
                   </div>
                 </div>
               </div>
               
-              <div className="p-8 flex-1 flex flex-col space-y-6">
-                <div className="space-y-2">
-                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed line-clamp-3">
+              {/* Body */}
+              <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                <div className="space-y-3">
+                  <p className="text-[var(--text-muted)] text-sm leading-relaxed line-clamp-3">
                     {v.description}
                   </p>
-                  <span className="inline-block px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black rounded-md uppercase tracking-wider">
-                    Acesso Gratuito
-                  </span>
-                  {isActive && (
-                    <span className="inline-block ml-2 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black rounded-md uppercase tracking-wider">
-                      Foco Principal
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold rounded-lg">
+                      100% Gratuito
                     </span>
-                  )}
+                    {isActive && (
+                      <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-semibold rounded-lg">
+                        Exame Principal
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="flex flex-col gap-3 pt-4 mt-auto">
+                <div className="flex flex-col gap-2.5 pt-2">
                   <button 
                     onClick={() => handleSelect(v.id as Vestibular)}
-                    className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all border
+                    className={`w-full py-3 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer border
                       ${isActive 
-                        ? 'bg-[var(--text-accent)] text-white border-[var(--text-accent)] shadow-lg' 
-                        : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] border-[var(--card-border)] hover:bg-[var(--text-accent)] hover:text-white hover:border-[var(--text-accent)]'
+                        ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md shadow-[var(--shadow-primary)]' 
+                        : 'bg-[var(--bg-hover)] text-[var(--text-muted)] border-[var(--border-light)] hover:bg-[var(--border-color)] hover:text-[var(--text-main)]'
                       }
                     `}
                   >
-                    {isActive ? <CheckCircle2 size={18} /> : <BookOpen size={18} />}
-                    <span>{isActive ? 'Ativo no Momento' : 'Ativar Estudo'}</span>
+                    {isActive ? <CheckCircle2 size={16} /> : <BookOpen size={16} />}
+                    <span>{isActive ? 'Vestibular Ativo' : 'Definir como Foco'}</span>
                   </button>
                   
                   <button 
                     onClick={() => setSelectedVestibular(v.id as Vestibular)}
-                    className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-[var(--button-bg)] text-white hover:bg-[var(--button-bg-hover)] shadow-lg shadow-[var(--button-bg)]/20"
+                    className="w-full py-3 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-md shadow-[var(--shadow-primary)] cursor-pointer hover:-translate-y-0.5"
                   >
-                    <Sparkles size={18} />
-                    <span>Fazer Simulado</span>
+                    <Sparkles size={16} />
+                    <span>Gerar Simulado</span>
                   </button>
                   
-                  {['ENEM', 'Fuvest', 'Unicamp', 'Unesp', 'USP'].includes(v.name) && (
+                  {['ENEM', 'Fuvest', 'Unicamp', 'Unesp', 'ITA'].includes(v.name) && (
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedAcervoVestibular(v.name);
                       }}
-                      className="w-full py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all bg-[var(--bg-secondary)] text-[var(--text-accent)] border border-[var(--text-accent)] hover:bg-[var(--text-accent)] hover:text-white"
+                      className="w-full py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-light)] hover:border-[var(--primary-border)] hover:text-[var(--primary)] cursor-pointer"
                     >
-                      <Library size={16} />
-                      <span>📚 Ver Provas ({v.name === 'Fuvest' ? '17' : '16'} anos)</span>
+                      <Library size={15} />
+                      <span>Provas Anteriores (18 anos)</span>
                     </button>
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
+
       <ExamAcervoModal 
         isOpen={selectedAcervoVestibular !== null} 
         onClose={() => setSelectedAcervoVestibular(null)} 

@@ -32,13 +32,13 @@ export default function PomodoroTimer() {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-4 h-full">
-      <div className="flex items-center gap-2 text-slate-800 dark:text-slate-100 font-bold">
-        {mode === 'focus' ? <Brain size={20} className="text-indigo-600 dark:text-indigo-400" /> : <Coffee size={20} className="text-amber-500" />}
+    <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-light)] shadow-sm flex flex-col items-center justify-center gap-4 h-full">
+      <div className="flex items-center gap-2 text-[var(--text-main)] font-bold">
+        {mode === 'focus' ? <Brain size={20} className="text-[var(--primary)]" /> : <Coffee size={20} className="text-amber-500" />}
         <h3 className="text-base font-display font-extrabold">{mode === 'focus' ? 'Foco Total (25 min)' : 'Hora da Pausa (5 min)'}</h3>
       </div>
       
-      <div className="text-5xl font-black font-mono text-slate-900 dark:text-white tracking-wider my-2">
+      <div className="text-5xl font-black font-mono text-[var(--text-main)] tracking-wider my-2">
         {formatTime(timeLeft)}
       </div>
 
@@ -47,8 +47,8 @@ export default function PomodoroTimer() {
           onClick={() => setIsRunning(!isRunning)}
           className={`p-3.5 rounded-2xl cursor-pointer transition-all ${
             isRunning 
-              ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 hover:bg-amber-200' 
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20'
+              ? 'bg-amber-100 dark:bg-zinc-800 text-amber-700 dark:text-amber-300 hover:bg-amber-200' 
+              : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-md shadow-[var(--shadow-primary)]'
           }`}
           title={isRunning ? 'Pausar Cronômetro' : 'Iniciar Foco'}
         >
@@ -59,7 +59,7 @@ export default function PomodoroTimer() {
             setIsRunning(false);
             setTimeLeft(mode === 'focus' ? 25 * 60 : 5 * 60);
           }}
-          className="p-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-colors cursor-pointer"
+          className="p-3.5 bg-[var(--bg-hover)] dark:bg-zinc-800 text-[var(--text-muted)] hover:bg-[var(--border-light)] rounded-2xl transition-colors cursor-pointer border border-[var(--border-light)]"
           title="Reiniciar"
         >
           <RefreshCw size={22} />

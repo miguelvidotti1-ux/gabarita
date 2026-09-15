@@ -1,6 +1,6 @@
 {
-  "name": "Vestibular Pro",
+  "name": "VESTIBULARPRO",
   "description": "Plataforma completa para preparação para vestibulares brasileiros (ENEM, Fuvest, Unicamp, Unesp, UERJ, ITA).",
-  "requestFramePermissions": ["camera"],
+  "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

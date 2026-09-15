@@ -20,7 +20,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useTheme } from '../hooks/useTheme';
-import ThemeToggle from './ThemeToggle';
+import VestibularProLogo from './VestibularProLogo';
 
 interface OnboardingFunnelProps {
   onComplete?: (userObj: any) => void;
@@ -315,10 +315,6 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary,#F0F1F4)] dark:bg-[#0F0F11] flex items-center justify-center p-4 font-sans text-[#1A1A1A] dark:text-[#F0F1F4] transition-colors relative">
-      
-      {/* TOGGLE DARK MODE */}
-      <ThemeToggle className="fixed left-4 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-50" />
-
       {/* CONTAINER PRINCIPAL */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.97, y: 12 }}
@@ -330,11 +326,9 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
         {/* HEADER COM STEP BAR */}
         <div className="p-8 sm:p-10 border-b border-gray-100 dark:border-[#2D2D33]">
           <div className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 bg-[#1A1A1A] dark:bg-[#F0F1F4] rounded-lg flex items-center justify-center text-white dark:text-[#1A1A1A] font-bold text-lg">
-              V
-            </div>
+            <VestibularProLogo className="w-9 h-9" bgVariant="black" />
             <span className="text-lg font-semibold tracking-tight text-[#1A1A1A] dark:text-[#F0F1F4]">
-              VestHub
+              VESTIBULAR<span className="text-blue-600 dark:text-blue-400">PRO</span>
             </span>
           </div>
 
@@ -854,7 +848,7 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
                 Conta criada e plano ativo!
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tudo pronto. Você já pode começar a estudar no VestHub.
+                Tudo pronto. Você já pode começar a estudar no VESTIBULARPRO.
               </p>
             </div>
 

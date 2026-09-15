@@ -8,8 +8,26 @@
         "uid": { "type": "string" },
         "email": { "type": "string" },
         "displayName": { "type": "string" },
+        "bio": { "type": "string" },
+        "dailyGoalMinutes": { "type": "number" },
+        "photoUrl": { "type": "string" },
+        "avatarColor": { "type": "string" },
+        "vestibulares": { "type": "array", "items": { "type": "string" } },
+        "focusAreas": { "type": "array", "items": { "type": "string" } },
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "lembretes": { "type": "boolean" },
+            "novosGabaritos": { "type": "boolean" },
+            "resumoSemanal": { "type": "boolean" }
+          }
+        },
+        "frame": { "type": "string" },
+        "badge": { "type": "string" },
+        "themeColor": { "type": "string" },
         "role": { "type": "string", "enum": ["admin", "user"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email"]
     },

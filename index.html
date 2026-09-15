@@ -1,12 +1,1130 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>VESTIBULARPRO — Preparação para Vestibulares</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // ========== SPOTIFY AUTH — FRONTEND ==========
+
+      let spotifyAuthWindow = null;
+      let spotifyAuthInterval = null;
+
+      function mostrarToast(type, message) {
+        if (window.vestHubToast) {
+          window.vestHubToast(type, message);
+        } else {
+          console.log('[Spotify ' + type + ']: ' + message);
+        }
+      }
+
+      function conectarSpotify() {
+        // Abrir popup de autenticação
+        var authUrl = '/api/spotify/login';
+        spotifyAuthWindow = window.open(authUrl, 'spotifyAuth', 'width=500,height=700,scrollbars=yes');
+
+        // Monitorar fechamento do popup (Problema 5)
+        spotifyAuthInterval = setInterval(function() {
+          if (spotifyAuthWindow && spotifyAuthWindow.closed) {
+            clearInterval(spotifyAuthInterval);
+            // Verificar se o token chegou via localStorage (fallback)
+            var token = localStorage.getItem('spotify_access_token');
+            if (token) {
+              onSpotifyConnected(token);
+            } else {
+              // Se não chegou, verificar se o usuário fechou manualmente
+              console.log('Popup fechado sem token');
+            }
+            spotifyAuthWindow = null;
+          }
+        }, 500);
+
+        // Escutar postMessage do popup
+        window.addEventListener('message', handleSpotifyMessage, false);
+      }
+
+      function handleSpotifyMessage(event) {
+        var data = event.data;
+        if (!data) return;
+
+        if (data.type === 'spotify_auth_success' || data.type === 'SPOTIFY_AUTH_SUCCESS') {
+          // Token recebido via postMessage
+          var token = data.access_token || data.token;
+          var refresh = data.refresh_token;
+          var expiresIn = data.expires_in || 3600;
+
+          localStorage.setItem('spotify_access_token', token);
+          if (refresh) localStorage.setItem('spotify_refresh_token', refresh);
+          localStorage.setItem('spotify_expires_at', Date.now() + (expiresIn * 1000));
+
+          onSpotifyConnected(token);
+          window.removeEventListener('message', handleSpotifyMessage);
+
+          // Fechar popup se ainda aberto
+          if (spotifyAuthWindow && !spotifyAuthWindow.closed) {
+            spotifyAuthWindow.close();
+          }
+        } else if (data.type === 'spotify_auth_error' || data.type === 'SPOTIFY_AUTH_ERROR') {
+          mostrarToast('error', 'Erro: ' + (data.message || data.error));
+          window.removeEventListener('message', handleSpotifyMessage);
+          if (spotifyAuthWindow && !spotifyAuthWindow.closed) {
+            spotifyAuthWindow.close();
+          }
+        }
+      }
+
+      function onSpotifyConnected(accessToken) {
+        // Atualizar UI
+        var statusEl = document.getElementById('spotify-status');
+        if (statusEl) {
+          statusEl.innerHTML = '<div class="pulse" style="width:8px;height:8px;border-radius:50%;background:#1DB954;display:inline-block;margin-right:6px;"></div><span>Conectado</span>';
+          statusEl.style.background = 'rgba(29, 185, 84, 0.15)';
+          statusEl.style.color = '#1DB954';
+        }
+
+        // Carregar playlists do usuário
+        carregarPlaylistsUsuario(accessToken);
+
+        mostrarToast('success', 'Spotify conectado com sucesso!');
+
+        // Notificar componentes React caso estejam ativos
+        window.dispatchEvent(new CustomEvent('spotify:connected', { detail: { token: accessToken } }));
+      }
+
+      // ========== CARREGAR PLAYLISTS DO USUÁRIO (CORRIGIDO) ==========
+      function carregarPlaylistsUsuario(accessToken) {
+        fetch('/api/spotify/minhas-playlists', {
+          headers: { 'Authorization': 'Bearer ' + accessToken }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            mostrarToast('error', data.error);
+            return;
+          }
+
+          var grid = document.getElementById('spotify-categories');
+          if (!grid) return;
+
+          // Limpar categorias existentes (opcional — comente se quiser manter as pré-definidas)
+          // grid.innerHTML = '';
+
+          // Adicionar separador "Minhas Playlists"
+          var separador = document.createElement('div');
+          separador.style.cssText = 'width:100%; font-size:11px; font-weight:600; color:#737373; text-transform:uppercase; letter-spacing:0.08em; padding:8px 0 4px; margin-top:8px;';
+          separador.textContent = 'Minhas Playlists (' + data.total + ')';
+          grid.appendChild(separador);
+
+          // Adicionar cada playlist do usuário
+          data.playlists.forEach(function(playlist) {
+            var div = document.createElement('div');
+            div.className = 'spotify-category';
+            div.style.cssText = 'position:relative; padding-left:44px; cursor:pointer;';
+
+            // Ícone de playlist
+            var icon = document.createElement('div');
+            icon.style.cssText = 'position:absolute; left:8px; top:50%; transform:translateY(-50%); width:28px; height:28px; border-radius:6px; overflow:hidden; background:#262626; display:flex; align-items:center; justify-content:center;';
+
+            if (playlist.image) {
+              var img = document.createElement('img');
+              img.src = playlist.image;
+              img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+              icon.appendChild(img);
+            } else {
+              icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="color:#737373;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+            }
+            div.appendChild(icon);
+
+            // Nome da playlist + contador de faixas
+            var label = document.createElement('span');
+            label.textContent = playlist.name + ' (' + playlist.tracks_total + ')';
+            div.appendChild(label);
+
+            // Click — carregar músicas da playlist no player
+            div.onclick = function() {
+              // Trocar o embed para tocar a playlist
+              var embed = document.getElementById('spotify-embed');
+              if (embed) {
+                embed.src = 'https://open.spotify.com/embed/playlist/' + playlist.id + '?utm_source=generator&theme=0';
+              }
+
+              // Atualizar now playing
+              var npTrack = document.getElementById('np-track');
+              if (npTrack) npTrack.textContent = playlist.name;
+
+              var npDesc = document.getElementById('np-desc');
+              if (npDesc) npDesc.textContent = playlist.description || (playlist.tracks_total + ' músicas • ' + playlist.owner);
+
+              var badge = document.getElementById('np-badge');
+              if (badge) {
+                badge.textContent = 'Carregando...';
+                setTimeout(function() { badge.textContent = 'Tocando'; }, 800);
+              }
+
+              // Marcar como ativa
+              var todas = document.querySelectorAll('.spotify-category');
+              for (var i = 0; i < todas.length; i++) { todas[i].classList.remove('active'); }
+              div.classList.add('active');
+
+              mostrarToast('success', 'Tocando: ' + playlist.name);
+            };
+
+            grid.appendChild(div);
+          });
+        })
+        .catch(function(err) {
+          console.error('Erro ao carregar playlists:', err);
+          mostrarToast('error', 'Erro ao carregar suas playlists');
+        });
+      }
+
+      // ========== CARREGAR MÚSICAS DE UMA PLAYLIST ESPECÍFICA ==========
+      function carregarMusicasPlaylist(playlistId, playlistName) {
+        var token = localStorage.getItem('spotify_access_token');
+
+        fetch('/api/spotify/playlist-tracks?playlist_id=' + encodeURIComponent(playlistId), {
+          headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            mostrarToast('error', data.error);
+            return;
+          }
+
+          // Abrir modal com a lista de músicas
+          abrirModalMusicas(playlistName, data.musicas);
+        })
+        .catch(function(err) {
+          console.error('Erro ao carregar faixas:', err);
+          mostrarToast('error', 'Erro ao carregar músicas da playlist');
+        });
+      }
+
+      // ========== MODAL DE MÚSICAS ==========
+      function abrirModalMusicas(nomePlaylist, musicas) {
+        // Criar modal se não existir
+        var modalExistente = document.getElementById('modal-musicas');
+        if (modalExistente) modalExistente.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'modal-musicas';
+        modal.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:1500; padding:24px; backdrop-filter:blur(4px); animation:fadeIn 0.2s ease;';
+
+        var card = document.createElement('div');
+        card.style.cssText = 'background:#1A1A1A; border:1px solid #262626; border-radius:20px; width:560px; max-width:100%; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.5);';
+
+        // Header
+        var header = document.createElement('div');
+        header.style.cssText = 'padding:20px 24px; border-bottom:1px solid #262626; display:flex; align-items:center; justify-content:space-between;';
+        header.innerHTML = '<h3 style="font-size:18px; font-weight:700; color:#FAFAFA;">' + nomePlaylist + ' (' + musicas.length + ')</h3>';
+
+        var closeBtn = document.createElement('button');
+        closeBtn.style.cssText = 'width:36px; height:36px; border-radius:50%; border:none; background:#262626; color:#A3A3A3; cursor:pointer; display:flex; align-items:center; justify-content:center;';
+        closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+        closeBtn.onclick = function() { modal.remove(); };
+        header.appendChild(closeBtn);
+        card.appendChild(header);
+
+        // Lista de músicas
+        var lista = document.createElement('div');
+        lista.style.cssText = 'padding:16px 24px; overflow-y:auto; flex:1;';
+
+        musicas.forEach(function(musica, index) {
+          var item = document.createElement('div');
+          item.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; cursor:pointer; transition:all 0.15s; margin-bottom:4px;';
+
+          item.onmouseenter = function() { item.style.background = '#262626'; };
+          item.onmouseleave = function() { item.style.background = 'transparent'; };
+
+          // Número
+          var num = document.createElement('span');
+          num.style.cssText = 'font-size:13px; color:#737373; width:24px; text-align:right; flex-shrink:0;';
+          num.textContent = (index + 1);
+          item.appendChild(num);
+
+          // Capa do álbum
+          var art = document.createElement('div');
+          art.style.cssText = 'width:40px; height:40px; border-radius:6px; overflow:hidden; background:#262626; flex-shrink:0;';
+          if (musica.image) {
+            art.innerHTML = '<img src="' + musica.image + '" style="width:100%; height:100%; object-fit:cover;">';
+          } else {
+            art.style.display = 'flex';
+            art.style.alignItems = 'center';
+            art.style.justifyContent = 'center';
+            art.style.color = '#737373';
+            art.innerHTML = '♪';
+          }
+          item.appendChild(art);
+
+          // Info
+          var info = document.createElement('div');
+          info.style.cssText = 'flex:1; min-width:0;';
+
+          var nome = document.createElement('div');
+          nome.style.cssText = 'font-size:14px; font-weight:500; color:#FAFAFA; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+          nome.textContent = musica.name;
+          info.appendChild(nome);
+
+          var artista = document.createElement('div');
+          artista.style.cssText = 'font-size:12px; color:#A3A3A3; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+          artista.textContent = musica.artist + (musica.album ? ' — ' + musica.album : '');
+          info.appendChild(artista);
+          item.appendChild(info);
+
+          // Duração
+          var durMin = Math.floor(musica.duration_ms / 60000);
+          var durSeg = Math.floor((musica.duration_ms % 60000) / 1000);
+          var duracao = document.createElement('span');
+          duracao.style.cssText = 'font-size:12px; color:#737373; flex-shrink:0;';
+          duracao.textContent = durMin + ':' + (durSeg < 10 ? '0' : '') + durSeg;
+          item.appendChild(duracao);
+
+          // Click — tocar a música
+          item.onclick = function() {
+            // Trocar embed para a faixa específica
+            var embed = document.getElementById('spotify-embed');
+            if (embed) {
+              embed.src = 'https://open.spotify.com/embed/track/' + musica.id + '?utm_source=generator&theme=0';
+            }
+
+            var npTrack = document.getElementById('np-track');
+            if (npTrack) npTrack.textContent = musica.name;
+
+            var npDesc = document.getElementById('np-desc');
+            if (npDesc) npDesc.textContent = musica.artist + ' — ' + musica.album;
+
+            var badge = document.getElementById('np-badge');
+            if (badge) {
+              badge.textContent = 'Carregando...';
+              setTimeout(function() { badge.textContent = 'Tocando'; }, 800);
+            }
+
+            modal.remove();
+            mostrarToast('success', 'Tocando: ' + musica.name);
+          };
+
+          lista.appendChild(item);
+        });
+
+        card.appendChild(lista);
+        modal.appendChild(card);
+
+        // Fechar ao clicar fora
+        modal.onclick = function(e) {
+          if (e.target === modal) modal.remove();
+        };
+
+        document.body.appendChild(modal);
+      }
+
+      function trocarPlaylistComId(playlistId, trackName, trackDesc) {
+        var embed = document.getElementById('spotify-embed');
+        if (embed) {
+          embed.src = 'https://open.spotify.com/embed/playlist/' + playlistId + '?utm_source=generator&theme=0';
+        }
+
+        var trackEl = document.getElementById('np-track');
+        if (trackEl) trackEl.textContent = trackName;
+
+        var descEl = document.getElementById('np-desc');
+        if (descEl) descEl.textContent = trackDesc;
+
+        var badge = document.getElementById('np-badge');
+        if (badge) {
+          badge.textContent = 'Carregando...';
+          setTimeout(function() { badge.textContent = 'Tocando'; }, 800);
+        }
+
+        mostrarToast('success', 'Playlist trocada: ' + trackName);
+      }
+
+      // Verificar token expirado e renovar automaticamente
+      function verificarTokenSpotify() {
+        var expiresAt = localStorage.getItem('spotify_expires_at');
+        if (!expiresAt) return;
+
+        // Se expira em menos de 5 minutos, renovar
+        if (Date.now() > parseInt(expiresAt) - 300000) {
+          var refreshToken = localStorage.getItem('spotify_refresh_token');
+          if (refreshToken) {
+            fetch('/api/spotify/refresh?refresh_token=' + encodeURIComponent(refreshToken))
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                if (data.access_token) {
+                  localStorage.setItem('spotify_access_token', data.access_token);
+                  localStorage.setItem('spotify_expires_at', Date.now() + (data.expires_in * 1000));
+                }
+              })
+              .catch(function(err) { console.error('Erro ao renovar token:', err); });
+          }
+        }
+      }
+
+      // Verificar ao carregar a página
+      verificarTokenSpotify();
+      setInterval(verificarTokenSpotify, 60000); // a cada 1 minuto
+
+      // Funções para estilos musicais e criação de playlist
+      function listarEstilos() {
+        return fetch('/api/spotify/estilos')
+          .then(function(r) { return r.json(); });
+      }
+
+      function buscarPorEstilo(estiloId) {
+        var token = localStorage.getItem('spotify_access_token');
+        return fetch('/api/spotify/buscar-por-estilo?estilo=' + encodeURIComponent(estiloId), {
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        }).then(function(r) { return r.json(); });
+      }
+
+      function criarPlaylist(nome, descricao, trackUris) {
+        var token = localStorage.getItem('spotify_access_token');
+        return fetch('/api/spotify/criar-playlist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+          },
+          body: JSON.stringify({
+            nome: nome,
+            descricao: descricao,
+            track_uris: trackUris,
+            access_token: token
+          })
+        }).then(function(r) { return r.json(); });
+      }
+
+      // Exportar para escopo global
+      window.conectarSpotify = conectarSpotify;
+      window.trocarPlaylistComId = trocarPlaylistComId;
+      window.carregarPlaylistsUsuario = carregarPlaylistsUsuario;
+      window.carregarMusicasPlaylist = carregarMusicasPlaylist;
+      window.abrirModalMusicas = abrirModalMusicas;
+      window.verificarTokenSpotify = verificarTokenSpotify;
+      window.listarEstilos = listarEstilos;
+      window.buscarPorEstilo = buscarPorEstilo;
+      window.criarPlaylist = criarPlaylist;
+    </script>
+
+    <!-- ========== SEÇÃO CRIAR PLAYLIST ========== -->
+    <div class="playlist-creator-section" id="playlist-creator" style="display:none;">
+        <div class="playlist-creator-card">
+            <div class="pc-header">
+                <div class="pc-title-wrapper">
+                    <div class="pc-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                            <path d="M9 18V5l12-2v13"/>
+                            <circle cx="6" cy="18" r="3"/>
+                            <circle cx="18" cy="16" r="3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="pc-title">Criar Playlist Personalizada</div>
+                        <div class="pc-subtitle">Selecione um estilo e monte sua playlist de estudo</div>
+                    </div>
+                </div>
+                <button class="pc-close" onclick="fecharCriadorPlaylist()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- PASSO 1: SELECIONAR ESTILO -->
+            <div class="pc-step" id="pc-step-1">
+                <div class="pc-step-label">
+                    <span class="pc-step-number">1</span>
+                    <span>Escolha o estilo musical</span>
+                </div>
+                <div class="pc-estilos-grid" id="pc-estilos-grid">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+
+            <!-- PASSO 2: REVISAR MÚSICAS -->
+            <div class="pc-step" id="pc-step-2" style="display:none;">
+                <div class="pc-step-label">
+                    <span class="pc-step-number">2</span>
+                    <span>Revise as músicas encontradas</span>
+                </div>
+                <div class="pc-loading" id="pc-loading" style="display:none;">
+                    <div class="pc-spinner"></div>
+                    <span>Buscando músicas...</span>
+                </div>
+                <div class="pc-musicas-list" id="pc-musicas-list"></div>
+                <div class="pc-step-actions">
+                    <button class="btn-secondary" onclick="voltarPasso1()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        Voltar
+                    </button>
+                    <button class="btn-primary" onclick="irPasso3()" id="btn-ir-passo3">
+                        Continuar
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASSO 3: NOMEAR E CRIAR -->
+            <div class="pc-step" id="pc-step-3" style="display:none;">
+                <div class="pc-step-label">
+                    <span class="pc-step-number">3</span>
+                    <span>Dê um nome e crie sua playlist</span>
+                </div>
+                <div class="pc-form">
+                    <div class="pc-input-group">
+                        <label class="pc-label">Nome da playlist</label>
+                        <input type="text" class="pc-input" id="pc-nome" placeholder="Ex: Foco Total - Matemática">
+                    </div>
+                    <div class="pc-input-group">
+                        <label class="pc-label">Descrição (opcional)</label>
+                        <textarea class="pc-input pc-textarea" id="pc-descricao" placeholder="Playlist criada no VestHub para estudo focado"></textarea>
+                    </div>
+                    <div class="pc-resumo" id="pc-resumo"></div>
+                </div>
+                <div class="pc-step-actions">
+                    <button class="btn-secondary" onclick="voltarPasso2()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        Voltar
+                    </button>
+                    <button class="btn-primary" onclick="criarPlaylistFinal()" id="btn-criar-playlist">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 13l4 4L19 7"/></svg>
+                        Criar Playlist
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASSO 4: SUCESSO -->
+            <div class="pc-step" id="pc-step-4" style="display:none;">
+                <div class="pc-success">
+                    <div class="pc-success-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40" height="40"><path d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3>Playlist criada!</h3>
+                    <p id="pc-success-text"></p>
+                    <a id="pc-success-link" href="#" target="_blank" class="btn-primary" style="text-decoration:none; margin-top:16px; display:inline-flex; align-items:center; gap:8px;">
+                        Abrir no Spotify
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                    <button class="btn-secondary" onclick="fecharCriadorPlaylist()" style="margin-top:8px;">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* ========== CRIADOR DE PLAYLIST ========== */
+    .playlist-creator-section {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1500;
+        padding: 24px;
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.2s ease;
+    }
+
+    .playlist-creator-card {
+        background: #1A1A1A;
+        border: 1px solid #262626;
+        border-radius: 20px;
+        width: 640px;
+        max-width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .pc-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid #262626;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .pc-title-wrapper { display: flex; align-items: center; gap: 12px; }
+
+    .pc-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        background: rgba(29, 185, 84, 0.12);
+        color: #1DB954;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .pc-title { font-size: 18px; font-weight: 700; color: #FAFAFA; }
+    .pc-subtitle { font-size: 13px; color: #A3A3A3; margin-top: 2px; }
+
+    .pc-close {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: #262626;
+        color: #A3A3A3;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .pc-close:hover { background: #404040; color: #FAFAFA; }
+
+    .pc-step { padding: 28px; }
+
+    .pc-step-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #FAFAFA;
+        margin-bottom: 20px;
+    }
+
+    .pc-step-number {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: #1E3A8A;
+        color: #FFF;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .pc-estilos-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .pc-estilo-card {
+        padding: 16px;
+        border: 2px solid #262626;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #1A1A1A;
+    }
+
+    .pc-estilo-card:hover {
+        border-color: #404040;
+        transform: translateY(-2px);
+    }
+
+    .pc-estilo-card.selected {
+        border-color: #1DB954;
+        background: rgba(29, 185, 84, 0.08);
+        box-shadow: 0 4px 12px rgba(29, 185, 84, 0.15);
+    }
+
+    .pc-estilo-emoji {
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .pc-estilo-info { flex: 1; }
+    .pc-estilo-nome { font-size: 14px; font-weight: 600; color: #FAFAFA; }
+    .pc-estilo-desc { font-size: 12px; color: #A3A3A3; margin-top: 2px; }
+
+    .pc-estilo-check {
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        border: 2px solid #404040;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .pc-estilo-card.selected .pc-estilo-check {
+        display: flex;
+        background: #1DB954;
+        border-color: #1DB954;
+    }
+
+    .pc-estilo-check svg { width: 12px; height: 12px; color: #000; }
+
+    /* ========== LISTA DE MÚSICAS ========== */
+    .pc-musicas-list {
+        max-height: 350px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+    }
+
+    .pc-musica-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-bottom: 4px;
+    }
+
+    .pc-musica-item:hover { background: #262626; }
+    .pc-musica-item.selected { background: rgba(29, 185, 84, 0.08); }
+
+    .pc-musica-check {
+        width: 20px; height: 20px;
+        border-radius: 4px;
+        border: 2px solid #404040;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+
+    .pc-musica-item.selected .pc-musica-check {
+        background: #1DB954;
+        border-color: #1DB954;
+    }
+
+    .pc-musica-check svg { width: 12px; height: 12px; color: #000; display: none; }
+    .pc-musica-item.selected .pc-musica-check svg { display: block; }
+
+    .pc-musica-art {
+        width: 40px; height: 40px;
+        border-radius: 6px;
+        background: #262626;
+        flex-shrink: 0;
+        object-fit: cover;
+    }
+
+    .pc-musica-info { flex: 1; min-width: 0; }
+    .pc-musica-nome { font-size: 14px; font-weight: 500; color: #FAFAFA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pc-musica-artista { font-size: 12px; color: #A3A3A3; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .pc-musica-duracao { font-size: 12px; color: #737373; flex-shrink: 0; }
+
+    /* ========== LOADING ========== */
+    .pc-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 40px;
+        color: #A3A3A3;
+        font-size: 14px;
+    }
+
+    .pc-spinner {
+        width: 24px; height: 24px;
+        border: 3px solid rgba(29, 185, 84, 0.2);
+        border-top-color: #1DB954;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ========== FORM ========== */
+    .pc-form { margin-bottom: 16px; }
+
+    .pc-input-group { margin-bottom: 16px; }
+
+    .pc-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #FAFAFA;
+        margin-bottom: 6px;
+    }
+
+    .pc-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #404040;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #FAFAFA;
+        background: #1A1A1A;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .pc-input:focus { border-color: #1DB954; box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.12); }
+    .pc-input::placeholder { color: #737373; }
+
+    .pc-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+
+    .pc-resumo {
+        padding: 14px;
+        border-radius: 10px;
+        background: #262626;
+        font-size: 13px;
+        color: #A3A3A3;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pc-resumo strong { color: #FAFAFA; }
+
+    /* ========== BUTTONS GENERIC ========== */
+    .playlist-creator-section .btn-primary {
+        background: #1DB954;
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .playlist-creator-section .btn-primary:hover {
+        background: #1ed760;
+    }
+    .playlist-creator-section .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .playlist-creator-section .btn-secondary {
+        background: #262626;
+        color: #FAFAFA;
+        border: 1px solid #404040;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .playlist-creator-section .btn-secondary:hover {
+        background: #333333;
+    }
+
+    /* ========== ACTIONS ========== */
+    .pc-step-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    /* ========== SUCESSO ========== */
+    .pc-success {
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    .pc-success-icon {
+        width: 72px; height: 72px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: rgba(29, 185, 84, 0.15);
+        color: #1DB954;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pc-success h3 { font-size: 22px; font-weight: 700; color: #FAFAFA; margin-bottom: 8px; }
+    .pc-success p { font-size: 14px; color: #A3A3A3; }
+
+    /* ========== RESPONSIVO ========== */
+    @media (max-width: 768px) {
+        .pc-estilos-grid { grid-template-columns: 1fr; }
+        .playlist-creator-card { width: 100%; }
+        .pc-step { padding: 20px; }
+    }
+    </style>
+
+    <script>
+    // ========== CRIADOR DE PLAYLIST — ESTADO GLOBAL ==========
+    var pcEstado = {
+        estiloSelecionado: null,
+        musicasEncontradas: [],
+        musicasSelecionadas: {},
+        userId: null
+    };
+
+    // ========== ABRIR / FECHAR MODAL ==========
+    function abrirCriadorPlaylist() {
+        var token = localStorage.getItem('spotify_access_token');
+        if (!token) {
+            mostrarToast('error', 'Conecte o Spotify primeiro!');
+            return;
+        }
+        document.getElementById('playlist-creator').style.display = 'flex';
+        carregarEstilos();
+        obterUserId();
+    }
+
+    function fecharCriadorPlaylist() {
+        document.getElementById('playlist-creator').style.display = 'none';
+        resetarCriador();
+    }
+
+    function resetarCriador() {
+        pcEstado = { estiloSelecionado: null, musicasEncontradas: [], musicasSelecionadas: {}, userId: null };
+        document.getElementById('pc-step-1').style.display = 'block';
+        document.getElementById('pc-step-2').style.display = 'none';
+        document.getElementById('pc-step-3').style.display = 'none';
+        document.getElementById('pc-step-4').style.display = 'none';
+    }
+
+    // ========== OBTER USER ID DO SPOTIFY ==========
+    function obterUserId() {
+        var token = localStorage.getItem('spotify_access_token');
+        fetch('/api/spotify/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.id) {
+                pcEstado.userId = data.id;
+            }
+        })
+        .catch(function(err) { console.error('Erro ao obter perfil:', err); });
+    }
+
+    // ========== PASSO 1: CARREGAR ESTILOS ==========
+    function carregarEstilos() {
+        var grid = document.getElementById('pc-estilos-grid');
+        var estilos = [
+            { id: 'lofi', nome: 'Lo-Fi Beats', descricao: 'Batidas relaxantes para foco', icon: '🎧' },
+            { id: 'classica', nome: 'Música Clássica', descricao: 'Concentração profunda', icon: '🎻' },
+            { id: 'piano', nome: 'Piano Relaxante', descricao: 'Leitura e redação', icon: '🎹' },
+            { id: 'jazz', nome: 'Jazz Suave', descricao: 'Manter o ritmo', icon: '🎷' },
+            { id: 'eletronica', nome: 'Eletrônica Focus', descricao: 'Alta produtividade', icon: '⚡' },
+            { id: 'ambient', nome: 'Ambient', descricao: 'Imersão total', icon: '🌌' },
+            { id: 'rock', nome: 'Rock Instrumental', descricao: 'Manter energia', icon: '🎸' },
+            { id: 'indie', nome: 'Indie Folk', descricao: 'Estudos tranquilos', icon: '🪕' },
+            { id: 'hiphop', nome: 'Hip-Hop Beats', descricao: 'Manter o flow', icon: '🎤' },
+            { id: 'bossa', nome: 'Bossa Nova', descricao: 'Relaxar estudando', icon: '🌴' }
+        ];
+
+        grid.innerHTML = '';
+        estilos.forEach(function(estilo) {
+            var div = document.createElement('div');
+            div.className = 'pc-estilo-card';
+            div.onclick = function() { selecionarEstilo(div, estilo); };
+            div.innerHTML =
+                '<span class="pc-estilo-emoji">' + estilo.icon + '</span>' +
+                '<div class="pc-estilo-info">' +
+                    '<div class="pc-estilo-nome">' + estilo.nome + '</div>' +
+                    '<div class="pc-estilo-desc">' + estilo.descricao + '</div>' +
+                '</div>' +
+                '<div class="pc-estilo-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>';
+            grid.appendChild(div);
+        });
+    }
+
+    // ========== SELECIONAR ESTILO ==========
+    function selecionarEstilo(cardEl, estilo) {
+        var todos = document.querySelectorAll('.pc-estilo-card');
+        for (var i = 0; i < todos.length; i++) {
+            todos[i].classList.remove('selected');
+        }
+        cardEl.classList.add('selected');
+        pcEstado.estiloSelecionado = estilo;
+
+        // Auto-avançar para passo 2
+        setTimeout(function() { irPasso2(); }, 300);
+    }
+
+    // ========== PASSO 2: BUSCAR MÚSICAS ==========
+    function irPasso2() {
+        document.getElementById('pc-step-1').style.display = 'none';
+        document.getElementById('pc-step-2').style.display = 'block';
+        document.getElementById('pc-loading').style.display = 'flex';
+        document.getElementById('pc-musicas-list').innerHTML = '';
+
+        var token = localStorage.getItem('spotify_access_token');
+        var estiloId = pcEstado.estiloSelecionado.id;
+
+        fetch('/api/spotify/buscar-por-estilo?estilo=' + estiloId, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('pc-loading').style.display = 'none';
+            if (data.error) {
+                mostrarToast('error', data.error);
+                voltarPasso1();
+                return;
+            }
+            pcEstado.musicasEncontradas = data.musicas;
+            renderizarMusicas(data.musicas);
+        })
+        .catch(function(err) {
+            document.getElementById('pc-loading').style.display = 'none';
+            mostrarToast('error', 'Erro ao buscar músicas');
+            voltarPasso1();
+        });
+    }
+
+    function renderizarMusicas(musicas) {
+        var lista = document.getElementById('pc-musicas-list');
+        lista.innerHTML = '';
+
+        musicas.forEach(function(musica) {
+            pcEstado.musicasSelecionadas[musica.id] = true; // pré-selecionar todas
+
+            var duracaoMin = Math.floor(musica.duration_ms / 60000);
+            var duracaoSeg = Math.floor((musica.duration_ms % 60000) / 1000);
+            var duracaoStr = duracaoMin + ':' + (duracaoSeg < 10 ? '0' : '') + duracaoSeg;
+
+            var div = document.createElement('div');
+            div.className = 'pc-musica-item selected';
+            div.onclick = function() { toggleMusica(div, musica); };
+
+            var imgHtml = musica.image
+                ? '<img class="pc-musica-art" src="' + musica.image + '" alt="">'
+                : '<div class="pc-musica-art" style="display:flex;align-items:center;justify-content:center;color:#737373;font-size:18px;">♪</div>';
+
+            div.innerHTML =
+                '<div class="pc-musica-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>' +
+                imgHtml +
+                '<div class="pc-musica-info">' +
+                    '<div class="pc-musica-nome">' + musica.name + '</div>' +
+                    '<div class="pc-musica-artista">' + musica.artist + '</div>' +
+                '</div>' +
+                '<div class="pc-musica-duracao">' + duracaoStr + '</div>';
+            lista.appendChild(div);
+        });
+    }
+
+    function toggleMusica(el, musica) {
+        el.classList.toggle('selected');
+        pcEstado.musicasSelecionadas[musica.id] = el.classList.contains('selected');
+    }
+
+    // ========== NAVEGAÇÃO ENTRE PASSOS ==========
+    function voltarPasso1() {
+        document.getElementById('pc-step-2').style.display = 'none';
+        document.getElementById('pc-step-1').style.display = 'block';
+    }
+
+    function irPasso3() {
+        var selecionadas = pcEstado.musicasEncontradas.filter(function(m) {
+            return pcEstado.musicasSelecionadas[m.id];
+        });
+
+        if (selecionadas.length === 0) {
+            mostrarToast('error', 'Selecione pelo menos uma música');
+            return;
+        }
+
+        document.getElementById('pc-step-2').style.display = 'none';
+        document.getElementById('pc-step-3').style.display = 'block';
+
+        // Pré-preencher nome
+        var nomePadrao = 'VestHub — ' + pcEstado.estiloSelecionado.nome;
+        document.getElementById('pc-nome').value = nomePadrao;
+        document.getElementById('pc-descricao').value = 'Playlist de estudo criada no VestHub • ' + pcEstado.estiloSelecionado.nome;
+
+        // Resumo
+        document.getElementById('pc-resumo').innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' +
+            '<strong>' + selecionadas.length + '</strong> músicas selecionadas • Estilo: <strong>' + pcEstado.estiloSelecionado.nome + '</strong>';
+    }
+
+    function voltarPasso2() {
+        document.getElementById('pc-step-3').style.display = 'none';
+        document.getElementById('pc-step-2').style.display = 'block';
+    }
+
+    // ========== PASSO 4: CRIAR PLAYLIST FINAL ==========
+    function criarPlaylistFinal() {
+        var btn = document.getElementById('btn-criar-playlist');
+        var nome = document.getElementById('pc-nome').value.trim();
+        var descricao = document.getElementById('pc-descricao').value.trim();
+        var token = localStorage.getItem('spotify_access_token');
+
+        if (!nome) {
+            mostrarToast('error', 'Digite um nome para a playlist');
+            return;
+        }
+
+        if (!pcEstado.userId) {
+            mostrarToast('error', 'Não foi possível obter seu ID do Spotify');
+            return;
+        }
+
+        var trackUris = pcEstado.musicasEncontradas
+            .filter(function(m) { return pcEstado.musicasSelecionadas[m.id]; })
+            .map(function(m) { return m.uri; });
+
+        if (trackUris.length === 0) {
+            mostrarToast('error', 'Nenhuma música selecionada');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<div class="pc-spinner" style="width:16px;height:16px;border-width:2px;"></div> Criando...';
+
+        fetch('/api/spotify/criar-playlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                access_token: token,
+                user_id: pcEstado.userId,
+                nome: nome,
+                descricao: descricao,
+                track_uris: trackUris
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 13l4 4L19 7"/></svg> Criar Playlist';
+
+            if (data.error) {
+                mostrarToast('error', data.error);
+                return;
+            }
+
+            // Sucesso
+            document.getElementById('pc-step-3').style.display = 'none';
+            document.getElementById('pc-step-4').style.display = 'block';
+            document.getElementById('pc-success-text').textContent =
+                data.total_musicas + ' músicas adicionadas à playlist "' + data.nome + '"';
+            document.getElementById('pc-success-link').href = data.playlist_url;
+
+            mostrarToast('success', 'Playlist criada com sucesso!');
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 13l4 4L19 7"/></svg> Criar Playlist';
+            mostrarToast('error', 'Erro ao criar playlist');
+        });
+    }
+
+    // Exportar funções para escopo global
+    window.abrirCriadorPlaylist = abrirCriadorPlaylist;
+    window.fecharCriadorPlaylist = fecharCriadorPlaylist;
+    window.selecionarEstilo = selecionarEstilo;
+    window.irPasso2 = irPasso2;
+    window.irPasso3 = irPasso3;
+    window.voltarPasso1 = voltarPasso1;
+    window.voltarPasso2 = voltarPasso2;
+    window.criarPlaylistFinal = criarPlaylistFinal;
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -611,15 +611,15 @@ export default function GabaritosOficiais() {
         </div>
 
         {/* Interior Navigation Tabs */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border dark:border-slate-800 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--bg-card)] p-3 rounded-2xl border border-[var(--border-light)] shadow-sm">
           <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('view')}
               className={cn(
-                "flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                "flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                 activeTab === 'view'
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
-                  : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--shadow-primary)]"
+                  : "hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
               )}
             >
               <BookOpen size={14} />
@@ -628,10 +628,10 @@ export default function GabaritosOficiais() {
             <button
               onClick={() => setActiveTab('simulate')}
               className={cn(
-                "flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                "flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                 activeTab === 'simulate'
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
-                  : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--shadow-primary)]"
+                  : "hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
               )}
             >
               <Trophy size={14} />
@@ -640,10 +640,10 @@ export default function GabaritosOficiais() {
             <button
               onClick={() => setActiveTab('stats')}
               className={cn(
-                "flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                "flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                 activeTab === 'stats'
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
-                  : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--shadow-primary)]"
+                  : "hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
               )}
             >
               <BarChart2 size={14} />
@@ -656,41 +656,41 @@ export default function GabaritosOficiais() {
             <select
               value={subjectFilterInside}
               onChange={(e) => setSubjectFilterInside(e.target.value)}
-              className="w-full sm:w-56 appearance-none bg-slate-50 dark:bg-slate-950 border dark:border-slate-800 px-4 py-2.5 pr-10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer hover:border-indigo-500 transition-colors"
+              className="w-full sm:w-56 appearance-none bg-[var(--bg-input)] border border-[var(--border-light)] px-4 py-2.5 pr-10 rounded-xl text-xs font-bold text-[var(--text-main)] outline-none cursor-pointer hover:border-[var(--primary)] transition-colors"
             >
               <option value="Todos">Todas as Disciplinas</option>
               {insideSubjectsList.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-label)] pointer-events-none" size={14} />
           </div>
         </div>
 
         {/* Tab 1: Static Answer Keys Grid with clicking mechanism */}
         {activeTab === 'view' && (
           <div className="space-y-6">
-            <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-start gap-3">
-              <Sparkles className="text-indigo-500 shrink-0 mt-0.5" size={16} />
-              <p className="text-xs text-indigo-700 dark:text-indigo-300 font-bold leading-relaxed">
+            <div className="p-4 bg-[var(--bg-badge)] border border-[var(--primary-border)] rounded-2xl flex items-start gap-3">
+              <Sparkles className="text-[var(--primary)] shrink-0 mt-0.5" size={16} />
+              <p className="text-xs text-[var(--primary)] font-semibold leading-relaxed">
                 Dica de Ouro: Toque em qualquer questão do gabarito abaixo para visualizar o enunciado estético original, alternativas reais organizadas e a justificativa didática detalhada de sua resolução.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
               {interiorFilteredQuestions.map((q) => (
                 <motion.div 
                   key={q.numero}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   onClick={() => setSelectedQuestion(q)}
-                  className="bg-white dark:bg-slate-900 p-4 rounded-2.5xl border dark:border-slate-800 flex flex-col justify-between items-center shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all cursor-pointer group"
+                  className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-light)] flex flex-col justify-between items-center shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)] transition-all cursor-pointer group"
                 >
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Questão</p>
-                  <p className="text-xl font-black text-slate-800 dark:text-white group-hover:text-indigo-500 transition-colors mt-1 mb-3">{String(q.numero).padStart(2, '0')}</p>
+                  <p className="text-[10px] font-bold text-[var(--text-label)] uppercase tracking-widest text-center">Questão</p>
+                  <p className="text-xl font-extrabold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors mt-1 mb-3">{String(q.numero).padStart(2, '0')}</p>
                   
-                  <div className={cn(getAnswerColor(q.resposta), "w-11 h-11 rounded-1.5xl flex items-center justify-center text-lg font-black shadow-inner transition-transform group-hover:scale-105")}>
+                  <div className={cn(getAnswerColor(q.resposta), "w-11 h-11 rounded-xl flex items-center justify-center text-lg font-black shadow-inner transition-transform group-hover:scale-105")}>
                     {q.resposta}
                   </div>
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center block mt-2 text-ellipsis overflow-hidden w-full whitespace-nowrap">
+                  <span className="text-[9px] font-bold text-[var(--text-label)] uppercase tracking-wider text-center block mt-2 text-ellipsis overflow-hidden w-full whitespace-nowrap">
                     {q.disciplina.split(' ')[0]}
                   </span>
                 </motion.div>
@@ -702,13 +702,13 @@ export default function GabaritosOficiais() {
         {/* Tab 2: Simulated Student Check Panel */}
         {activeTab === 'simulate' && (
           <div className="space-y-6">
-            <div className="bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-6 md:p-8 rounded-[2rem] flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-light)] p-6 md:p-8 rounded-2xl flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+              <div className="space-y-1.5">
+                <h3 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
                   <Trophy size={20} className="text-amber-500" />
                   Auto-avaliação do Estudante
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold max-w-xl leading-relaxed">
+                <p className="text-[var(--text-muted)] text-xs font-medium max-w-xl leading-relaxed">
                   Marque as respostas que você assinalou no dia da prova oficial para conferir sua pontuação simulada de acertos no formato de relatório dinâmico instantâneo.
                 </p>
               </div>
@@ -716,13 +716,13 @@ export default function GabaritosOficiais() {
               <div className="flex gap-2.5">
                 <button
                   onClick={autofillCorrect}
-                  className="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-black rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-[var(--bg-hover)] text-[var(--text-main)] hover:bg-[var(--border-color)] text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border border-[var(--border-light)]"
                 >
                   Gabaritar Tudo
                 </button>
                 <button
                   onClick={clearSimulation}
-                  className="px-4 py-2.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/15 text-xs font-black rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border border-rose-500/30"
                 >
                   <RefreshCw size={12} />
                   Limpar
@@ -730,7 +730,7 @@ export default function GabaritosOficiais() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {interiorFilteredQuestions.map((q) => {
                 const userChoice = userAnswers[q.numero];
                 const isChecked = !!userChoice;
@@ -739,18 +739,18 @@ export default function GabaritosOficiais() {
                   <div
                     key={q.numero}
                     className={cn(
-                      "p-5 rounded-3xl border transition-all flex flex-col justify-between gap-4 bg-white dark:bg-slate-900",
+                      "p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 bg-[var(--bg-card)]",
                       isChecked 
                         ? isCorrect 
-                          ? "border-emerald-500/30 ring-1 ring-emerald-500/20 bg-emerald-500/[0.03]" 
-                          : "border-rose-500/30 ring-1 ring-rose-500/20 bg-rose-500/[0.03]"
-                        : "dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                          ? "border-emerald-500/40 ring-1 ring-emerald-500/20 bg-emerald-500/5" 
+                          : "border-rose-500/40 ring-1 ring-rose-500/20 bg-rose-500/5"
+                        : "border-[var(--border-light)] hover:border-[var(--border-color)]"
                     )}
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase">Questão {q.numero}</p>
-                        <p className="text-[9px] font-semibold text-slate-500">{q.disciplina}</p>
+                        <p className="text-[10px] font-bold text-[var(--text-label)] tracking-wider uppercase">Questão {q.numero}</p>
+                        <p className="text-[10px] font-semibold text-[var(--text-muted)]">{q.disciplina}</p>
                       </div>
 
                       {isChecked && (
@@ -772,10 +772,10 @@ export default function GabaritosOficiais() {
                             key={letter}
                             onClick={() => handleSimulateAnswerChange(q.numero, letter)}
                             className={cn(
-                              "w-8.5 h-8.5 rounded-xl text-xs font-black transition-all flex items-center justify-center border",
+                              "w-8.5 h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center border cursor-pointer",
                               cellActive 
-                                ? "bg-indigo-600 text-white border-indigo-600 scale-105 shadow-md shadow-indigo-600/10"
-                                : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:scale-105"
+                                ? "bg-[var(--primary)] text-white border-[var(--primary)] scale-105 shadow-md shadow-[var(--shadow-primary)]"
+                                : "bg-[var(--bg-hover)] border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:scale-105"
                             )}
                           >
                             {letter}
@@ -987,39 +987,39 @@ export default function GabaritosOficiais() {
       </div>
 
       {/* Advanced Filters */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 flex flex-col lg:flex-row gap-4 items-center shadow-sm">
+      <div className="bg-[var(--bg-card)] p-5 sm:p-6 rounded-2xl border border-[var(--border-light)] flex flex-col lg:flex-row gap-4 items-center shadow-sm">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-label)]" size={18} />
           <input 
             type="text"
             placeholder="Buscar por exame, caderno ou ano..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border dark:border-slate-800 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-700 dark:text-slate-300"
+            className="w-full pl-12 pr-4 py-3 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl text-sm font-semibold outline-none focus:border-[var(--primary)] transition-all text-[var(--text-main)] placeholder-[var(--text-label)]"
           />
         </div>
-        <div className="flex flex-wrap lg:flex-nowrap gap-4 w-full lg:w-auto">
+        <div className="flex flex-wrap lg:flex-nowrap gap-3 w-full lg:w-auto">
           <div className="relative flex-1 min-w-[140px]">
             <select 
               value={filterExame}
               onChange={(e) => setFilterExame(e.target.value)}
-              className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-950 border dark:border-slate-800 rounded-xl text-xs font-black outline-none cursor-pointer tracking-wide text-slate-700 dark:text-slate-300"
+              className="w-full appearance-none px-4 py-3 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl text-xs font-bold outline-none cursor-pointer tracking-wide text-[var(--text-main)] hover:border-[var(--primary)]"
             >
               <option value="Todos">Exame: Todos</option>
               {examsList.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-label)] pointer-events-none" size={14} />
           </div>
           <div className="relative flex-1 min-w-[120px]">
             <select 
               value={filterAno}
               onChange={(e) => setFilterAno(e.target.value)}
-              className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-950 border dark:border-slate-800 rounded-xl text-xs font-black outline-none cursor-pointer tracking-wide text-slate-700 dark:text-slate-300"
+              className="w-full appearance-none px-4 py-3 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl text-xs font-bold outline-none cursor-pointer tracking-wide text-[var(--text-main)] hover:border-[var(--primary)]"
             >
               <option value="Todos">Ano: Todos</option>
               {yearsList.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-label)] pointer-events-none" size={14} />
           </div>
         </div>
       </div>
@@ -1031,28 +1031,28 @@ export default function GabaritosOficiais() {
             <motion.div
               layout
               key={g.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={() => setSelectedGabarito(g)}
-              className="group bg-white dark:bg-slate-900 border dark:border-slate-800 p-6 rounded-[2rem] hover:border-indigo-500 dark:hover:border-indigo-500 transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1.5"
+              className="group bg-[var(--bg-card)] border border-[var(--border-light)] p-6 rounded-2xl hover:border-[var(--primary)] hover:bg-[var(--bg-card-elevated)] transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1"
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                  <FileSpreadsheet size={24} />
+              <div className="flex justify-between items-start mb-5">
+                <div className="p-3 bg-[var(--bg-hover)] text-[var(--primary)] rounded-xl border border-[var(--border-light)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
+                  <FileSpreadsheet size={22} />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#6366f1] bg-indigo-500/10 dark:bg-indigo-500/20 px-2.5 py-1 rounded-full whitespace-nowrap border border-indigo-500/10">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--bg-badge)] px-2.5 py-1 rounded-full whitespace-nowrap border border-[var(--primary-border)]">
                   {g.questoes.length} Questões
                 </span>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{g.ano}</p>
-                <h3 className="text-xl font-black text-slate-800 dark:text-white group-hover:text-indigo-500 transition-colors">{g.exame}</h3>
-                <p className="text-xs font-semibold text-slate-500">Caderno {g.caderno} • Dia {g.dia}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-label)]">{g.ano}</p>
+                <h3 className="text-xl font-bold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors">{g.exame}</h3>
+                <p className="text-xs text-[var(--text-muted)]">Caderno {g.caderno} • Dia {g.dia}</p>
               </div>
-              <div className="mt-6 pt-6 border-t dark:border-slate-800 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider">
-                Acessar Biblioteca
-                <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
+              <div className="mt-5 pt-4 border-t border-[var(--border-light)] flex items-center justify-between text-[var(--primary)] font-bold text-xs">
+                <span>Acessar Biblioteca</span>
+                <ChevronRight size={15} className="transition-transform group-hover:translate-x-1" />
               </div>
             </motion.div>
           ))}
@@ -1060,10 +1060,10 @@ export default function GabaritosOficiais() {
       </div>
 
       {filteredList.length === 0 && (
-        <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-          <FileText size={48} className="mx-auto text-slate-300 mb-4" />
-          <h3 className="text-xl font-black text-slate-400">Nenhum gabarito encontrado</h3>
-          <p className="text-slate-500 text-sm mt-1">Tente ajustar seus filtros de busca para encontrar cadernos específicos.</p>
+        <div className="text-center py-16 bg-[var(--bg-card)] rounded-2xl border border-dashed border-[var(--border-light)]">
+          <FileText size={40} className="mx-auto text-[var(--text-label)] mb-3" />
+          <h3 className="text-lg font-bold text-[var(--text-muted)]">Nenhum gabarito encontrado</h3>
+          <p className="text-[var(--text-label)] text-xs mt-1">Tente ajustar seus filtros de busca para encontrar cadernos específicos.</p>
         </div>
       )}
     </div>

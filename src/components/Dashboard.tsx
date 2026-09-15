@@ -7,12 +7,13 @@ import { missionEngine, MissionStatus } from '../services/missionService';
 import DailyMissions from './DailyMissions';
 import PomodoroTimer from './PomodoroTimer';
 import StudyMethodsSection from './StudyMethodsSection';
+import SubjectPerformanceEvolutionChart, { QuizResultDoc } from './SubjectPerformanceEvolutionChart';
+import QuizAccuracyHistoryChart from './QuizAccuracyHistoryChart';
+import { GraficosProvider, useGraficos } from './GraficosContext';
+import { SeletorFiltros } from './SeletorFiltros';
 import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { motion, AnimatePresence } from 'motion/react';
-
-// ... (Rest of component logic remains exactly the same, only styling changes below)
-// I will apply the new styling to the main return structure.
 
 interface SubjectPerformance {
   id: string;
@@ -43,6 +44,8 @@ interface QuizHistoryItem {
   score: number;
   totalQuestions: number;
   date: string;
+  subjectStats?: Record<string, { total: number; correct: number }>;
+  timestamp?: any;
 }
 
 interface Competency {
@@ -68,7 +71,16 @@ interface DashboardProps {
   selectedVestibular?: string;
 }
 
-export default function Dashboard({ selectedVestibular }: DashboardProps) {
+export default function Dashboard(props: DashboardProps) {
+  return (
+    <GraficosProvider>
+      <DashboardInner {...props} />
+    </GraficosProvider>
+  );
+}
+
+function DashboardInner({ selectedVestibular }: DashboardProps) {
+  const { filtroGlobal } = useGraficos();
   const [studyPlan, setStudyPlan] = useState<StudyPlan[]>([]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planWeeks, setPlanWeeks] = useState(4);
@@ -191,13 +203,35 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
             vestMap[d.vestibular].acertos += d.score || 0;
             vestMap[d.vestibular].total += d.totalQuestions || 0;
           }
+
+          const rawDate = d.createdAt || d.timestamp;
+          let dateStr = 'N/A';
+          if (rawDate) {
+            if (typeof rawDate.toDate === 'function') {
+              dateStr = rawDate.toDate().toLocaleDateString('pt-BR');
+            } else if (rawDate instanceof Date) {
+              dateStr = rawDate.toLocaleDateString('pt-BR');
+            } else if (typeof rawDate === 'string' || typeof rawDate === 'number') {
+              dateStr = new Date(rawDate).toLocaleDateString('pt-BR');
+            }
+          }
+
           history.push({
             id: doc.id,
             vestibular: d.vestibular || 'N/A',
             score: d.score || 0,
             totalQuestions: d.totalQuestions || 0,
-            date: d.timestamp ? d.timestamp.toDate().toLocaleDateString() : 'N/A'
+            date: dateStr,
+            subjectStats: d.subjectStats || undefined,
+            timestamp: rawDate || undefined
           });
+        });
+
+        // Sort history chronologically if timestamps are present
+        history.sort((a, b) => {
+          const timeA = a.timestamp?.seconds || (typeof a.timestamp === 'number' ? a.timestamp : 0);
+          const timeB = b.timestamp?.seconds || (typeof b.timestamp === 'number' ? b.timestamp : 0);
+          return timeB - timeA;
         });
 
         setQuizHistory(history);
@@ -313,37 +347,37 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
     <div className="space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-display font-black text-slate-900 dark:text-white">Seu Painel</h1>
-          <p className="text-slate-500 dark:text-slate-400">Acompanhe seu desempenho acadêmico.</p>
+          <h1 className="text-3xl font-display font-black text-[var(--text-main)]">Seu Painel</h1>
+          <p className="text-[var(--text-muted)]">Acompanhe seu desempenho acadêmico.</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           {levelStatus && (
             <>
-              <div className="bg-white dark:bg-slate-900 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-                <div className="bg-indigo-100 dark:bg-indigo-950 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
+              <div className="bg-[var(--bg-card)] p-3 px-4 rounded-2xl border border-[var(--border-light)] shadow-sm flex items-center gap-3">
+                <div className="bg-indigo-100 dark:bg-zinc-800 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
                   <Zap size={18} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-extrabold tracking-wider">XP Total</p>
-                  <p className="font-bold text-slate-900 dark:text-white">{levelStatus.global.xp.toLocaleString()}</p>
+                  <p className="text-[10px] text-[var(--text-label)] uppercase font-extrabold tracking-wider">XP Total</p>
+                  <p className="font-bold text-[var(--text-main)]">{levelStatus.global.xp.toLocaleString()}</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-                <div className="bg-amber-100 dark:bg-amber-950 p-2 rounded-xl text-amber-600 dark:text-amber-400">
+              <div className="bg-[var(--bg-card)] p-3 px-4 rounded-2xl border border-[var(--border-light)] shadow-sm flex items-center gap-3">
+                <div className="bg-amber-100 dark:bg-zinc-800 p-2 rounded-xl text-amber-600 dark:text-amber-400">
                   <Trophy size={18} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-extrabold tracking-wider">Nível</p>
-                  <p className="font-bold text-slate-900 dark:text-white">{levelStatus.global.level}</p>
+                  <p className="text-[10px] text-[var(--text-label)] uppercase font-extrabold tracking-wider">Nível</p>
+                  <p className="font-bold text-[var(--text-main)]">{levelStatus.global.level}</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-                <div className="bg-rose-100 dark:bg-rose-950 p-2 rounded-xl text-rose-600 dark:text-rose-400">
+              <div className="bg-[var(--bg-card)] p-3 px-4 rounded-2xl border border-[var(--border-light)] shadow-sm flex items-center gap-3">
+                <div className="bg-rose-100 dark:bg-zinc-800 p-2 rounded-xl text-rose-600 dark:text-rose-400">
                   <Clock size={18} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-extrabold tracking-wider">Ofensiva</p>
-                  <p className="font-bold text-slate-900 dark:text-white">{levelStatus.global.streak} dias</p>
+                  <p className="text-[10px] text-[var(--text-label)] uppercase font-extrabold tracking-wider">Ofensiva</p>
+                  <p className="font-bold text-[var(--text-main)]">{levelStatus.global.streak} dias</p>
                 </div>
               </div>
             </>
@@ -353,12 +387,12 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          <div key={i} className="bg-[var(--bg-card)] border border-[var(--border-light)] p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-[var(--primary)] transition-all">
             <div className={`${stat.iconBg} w-10 h-10 rounded-xl flex items-center justify-center ${stat.iconColor} mb-4`}>
               <stat.icon size={20} />
             </div>
-            <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</p>
+            <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider">{stat.label}</p>
+            <p className="text-2xl font-black text-[var(--text-main)]">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -374,20 +408,20 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
       </div>
 
       {/* Dica de Estudo do Dia */}
-      <div id="dica-de-estudo-do-dia" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden transition-all shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-6">
+      <div id="dica-de-estudo-do-dia" className="bg-[var(--bg-card)] border border-[var(--border-light)] rounded-2xl p-6 md:p-8 relative overflow-hidden transition-all shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-light)] pb-5 mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-amber-100 dark:bg-amber-950 p-3 rounded-xl text-amber-600 dark:text-amber-400">
+            <div className="bg-amber-100 dark:bg-zinc-800 p-3 rounded-xl text-amber-600 dark:text-amber-400">
               <Lightbulb size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-display font-black text-slate-900 dark:text-white">Dica de Estudo</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-xs">Estratégia diária recomendada</p>
+              <h2 className="text-xl font-display font-black text-[var(--text-main)]">Dica de Estudo</h2>
+              <p className="text-[var(--text-muted)] text-xs">Estratégia diária recomendada</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1 bg-white/80 dark:bg-blue-950/80 p-1 rounded-xl border border-amber-200/60 dark:border-amber-500/30 text-xs font-semibold">
+            <div className="flex items-center gap-1 bg-[var(--bg-hover)] dark:bg-[#15181E] p-1 rounded-xl border border-[var(--border-light)] text-xs font-semibold">
               {['ENEM', 'FUVEST', 'UNICAMP', 'UNESP', 'UERJ', 'ITA'].map((v) => (
                 <button
                   key={v}
@@ -397,8 +431,8 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                   }}
                   className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
                     tipVestibular === v
-                      ? 'bg-amber-500 text-white shadow-sm font-bold'
-                      : 'text-slate-600 dark:text-blue-200 hover:bg-slate-100 dark:hover:bg-blue-900'
+                      ? 'bg-[var(--primary)] text-white shadow-sm font-bold'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--bg-card)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   {v}
@@ -409,7 +443,7 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
             <button
               onClick={() => fetchDailyTip(tipVestibular, true)}
               disabled={loadingTip}
-              className="bg-amber-500 hover:bg-amber-600 active:scale-95 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:scale-95 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
               title="Gerar uma nova dica com a API Gemini"
             >
               <RefreshCw size={14} className={loadingTip ? 'animate-spin' : ''} />
@@ -420,34 +454,34 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
 
         {loadingTip ? (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-            <Loader2 size={36} className="text-amber-500 animate-spin" />
-            <p className="text-sm font-medium text-slate-600 dark:text-blue-200 animate-pulse">
+            <Loader2 size={36} className="text-[var(--primary)] animate-spin" />
+            <p className="text-sm font-medium text-[var(--text-muted)] animate-pulse">
               Consultando o Gemini para gerar uma dica estratégica para o {tipVestibular}...
             </p>
           </div>
         ) : dailyTip ? (
           <div className="space-y-6">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="bg-amber-500/15 dark:bg-amber-400/20 text-amber-800 dark:text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-300/60 dark:border-amber-500/40">
+              <span className="bg-[var(--bg-badge)] text-[var(--primary)] text-xs font-bold px-3 py-1 rounded-full border border-[var(--border-light)]">
                 {dailyTip.category}
               </span>
-              <span className="bg-slate-100 dark:bg-blue-950 text-slate-700 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full border border-slate-200 dark:border-blue-800">
+              <span className="bg-[var(--bg-badge-neutral)] text-[var(--text-muted)] text-xs font-bold px-3 py-1 rounded-full border border-[var(--border-light)]">
                 Foco: {tipVestibular}
               </span>
             </div>
 
             <div>
-              <h3 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white mb-2 leading-snug">
+              <h3 className="text-lg md:text-xl font-bold text-[var(--text-main)] mb-2 leading-snug">
                 {dailyTip.title}
               </h3>
-              <p className="text-slate-600 dark:text-blue-100 text-sm md:text-base leading-relaxed whitespace-pre-line">
+              <p className="text-[var(--text-muted)] text-sm md:text-base leading-relaxed whitespace-pre-line">
                 {dailyTip.content}
               </p>
             </div>
 
             {dailyTip.actionableSteps && dailyTip.actionableSteps.length > 0 && (
-              <div className="bg-white/80 dark:bg-blue-950/60 p-4 md:p-5 rounded-2xl border border-amber-200/50 dark:border-blue-800 space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <div className="bg-[var(--bg-hover)] dark:bg-[#15181E] p-4 md:p-5 rounded-2xl border border-[var(--border-light)] space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-[var(--primary)] flex items-center gap-1.5">
                   <Zap size={14} /> Como aplicar essa dica hoje:
                 </h4>
                 <div className="space-y-2">
@@ -457,19 +491,19 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                       <button
                         key={idx}
                         onClick={() => setCompletedTipSteps(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                        className="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-amber-50/50 dark:hover:bg-blue-900/50 transition-colors group cursor-pointer"
+                        className="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-[var(--bg-card)] transition-colors group cursor-pointer"
                       >
-                        <div className="mt-0.5 text-amber-600 dark:text-amber-400 shrink-0">
+                        <div className="mt-0.5 text-[var(--primary)] shrink-0">
                           {isDone ? (
-                            <CheckSquare size={18} className="text-green-600 dark:text-green-400" />
+                            <CheckSquare size={18} className="text-[var(--success)]" />
                           ) : (
                             <Square size={18} className="group-hover:scale-110 transition-transform" />
                           )}
                         </div>
                         <span className={`text-xs md:text-sm transition-all ${
                           isDone
-                            ? 'line-through text-slate-400 dark:text-blue-300/60'
-                            : 'text-slate-700 dark:text-blue-100 font-medium'
+                            ? 'line-through text-[var(--text-label)]'
+                            : 'text-[var(--text-main)] font-medium'
                         }`}>
                           {step}
                         </span>
@@ -482,9 +516,9 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs text-slate-400 dark:text-blue-300 font-semibold mr-1">Disciplinas sugeridas:</span>
+                <span className="text-xs text-[var(--text-muted)] font-semibold mr-1">Disciplinas sugeridas:</span>
                 {dailyTip.recommendedSubjects.map((sub, i) => (
-                  <span key={i} className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-amber-100/80 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700/40">
+                  <span key={i} className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[var(--bg-badge)] text-[var(--primary)] border border-[var(--border-light)]">
                     #{sub}
                   </span>
                 ))}
@@ -495,8 +529,8 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                   onClick={() => setTipSaved(!tipSaved)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer ${
                     tipSaved
-                      ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700'
-                      : 'bg-white dark:bg-blue-900 text-slate-700 dark:text-blue-200 border border-slate-200 dark:border-blue-700 hover:bg-slate-50'
+                      ? 'bg-emerald-500/10 text-[var(--success)] border border-emerald-500/30'
+                      : 'bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-light)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <BookmarkCheck size={14} />
@@ -506,8 +540,8 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
             </div>
 
             {dailyTip.quote && (
-              <div className="border-t border-amber-200/50 dark:border-amber-500/20 pt-4">
-                <p className="italic text-xs md:text-sm text-slate-500 dark:text-amber-200/90 font-serif text-center">
+              <div className="border-t border-[var(--border-light)] pt-4">
+                <p className="italic text-xs md:text-sm text-[var(--text-muted)] font-serif text-center">
                   "{dailyTip.quote}"
                 </p>
               </div>
@@ -519,38 +553,38 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
       <DailyMissions />
 
       {/* Planejamento de Rotina com IA */}
-      <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm space-y-6">
-        <div className="flex items-center gap-3 border-b dark:border-blue-800 pb-6">
-          <div className="bg-blue-100 dark:bg-blue-950 p-3 rounded-2xl text-blue-600 dark:text-blue-400">
+      <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm space-y-6">
+        <div className="flex items-center gap-3 border-b border-[var(--border-light)] pb-6">
+          <div className="bg-[var(--primary-light)] dark:bg-zinc-800 p-3 rounded-2xl text-[var(--primary)]">
             <Target size={28} />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-800 dark:text-white">Cronograma de Estudos IA</h2>
-            <p className="text-sm text-slate-500 dark:text-blue-300 font-medium">Gere um planejamento estratégico de estudo semanal personalizado para seu vestibular.</p>
+            <h2 className="text-2xl font-black text-[var(--text-main)]">Cronograma de Estudos IA</h2>
+            <p className="text-sm text-[var(--text-muted)] font-medium">Gere um planejamento estratégico de estudo semanal personalizado para seu vestibular.</p>
           </div>
         </div>
 
         <div className="space-y-8">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white flex flex-col lg:flex-row justify-between items-center gap-8 shadow-xl">
+          <div className="bg-[var(--bg-hover)] dark:bg-[#15181E] border border-[var(--border-light)] rounded-2xl p-8 text-[var(--text-main)] flex flex-col lg:flex-row justify-between items-center gap-8 shadow-sm">
             <div className="max-w-md w-full space-y-5">
               <div>
-                <h3 className="text-2xl font-black mb-2">Plano Estratégico do Vestibular</h3>
-                <p className="text-blue-100 text-sm">Organize as semanas restantes até a prova de forma inteligente e personalizada.</p>
+                <h3 className="text-2xl font-black mb-2 text-[var(--text-main)]">Plano Estratégico do Vestibular</h3>
+                <p className="text-[var(--text-muted)] text-sm">Organize as semanas restantes até a prova de forma inteligente e personalizada.</p>
               </div>
               
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-blue-200">Próximos Vestibulares</label>
+                <label className="text-xs font-black uppercase tracking-widest text-[var(--text-label)]">Próximos Vestibulares</label>
                 <input 
                   type="text"
                   value={upcomingExamsInput}
                   onChange={(e) => setUpcomingExamsInput(e.target.value)}
-                  className="w-full p-4 rounded-xl text-slate-800 bg-white/95 focus:ring-4 focus:ring-white/20 outline-none transition-all placeholder-indigo-300 font-semibold"
+                  className="w-full p-4 rounded-xl text-[var(--text-main)] bg-[var(--bg-card)] focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all placeholder-[var(--text-muted)] font-semibold border border-[var(--border-light)]"
                   placeholder="Ex: ENEM, Fuvest, ITA, Unicamp"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-blue-200">Focar nas matérias mais desafiadoras</label>
+                <label className="text-xs font-black uppercase tracking-widest text-[var(--text-label)]">Focar nas matérias mais desafiadoras</label>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {['Matemática', 'Português', 'Física', 'Química', 'História', 'Geografia', 'Biologia', 'Filosofia/Sociologia', 'Inglês'].map((subj) => {
                     const isSelected = difficulties.includes(subj);
@@ -567,8 +601,8 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                         }}
                         className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
                           isSelected
-                            ? 'bg-white text-blue-600 border-white shadow-sm scale-105'
-                            : 'bg-blue-700/40 text-blue-100 border-blue-500 hover:bg-blue-700/60'
+                            ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-sm scale-105'
+                            : 'bg-[var(--bg-badge-neutral)] text-[var(--text-muted)] border-[var(--border-light)] hover:bg-[var(--bg-card)] hover:text-[var(--text-main)]'
                         }`}
                       >
                         {subj}
@@ -579,9 +613,9 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
               </div>
 
               <div className="space-y-4 pt-2">
-                <div className="flex justify-between items-center text-blue-100">
-                  <label className="text-xs font-black uppercase tracking-widest text-blue-200">Período de estudos</label>
-                  <span className="font-black text-xl">{planWeeks} {planWeeks === 1 ? 'Semana' : 'Semanas'}</span>
+                <div className="flex justify-between items-center text-[var(--text-main)]">
+                  <label className="text-xs font-black uppercase tracking-widest text-[var(--text-label)]">Período de estudos</label>
+                  <span className="font-black text-xl text-[var(--text-main)]">{planWeeks} {planWeeks === 1 ? 'Semana' : 'Semanas'}</span>
                 </div>
                 <input 
                   type="range"
@@ -590,7 +624,8 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                   step="1"
                   value={planWeeks}
                   onChange={(e) => setPlanWeeks(Number(e.target.value))}
-                  className="w-full h-2 bg-blue-400 rounded-lg appearance-none cursor-pointer accent-white"
+                  className="w-full h-2 bg-[#2d457f] rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
+                  style={{ backgroundColor: '#2d457f' }}
                 />
               </div>
             </div>
@@ -599,30 +634,30 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
               <button 
                 onClick={handleGeneratePlan}
                 disabled={isGeneratingPlan}
-                className="w-full lg:w-auto bg-white text-blue-600 px-12 py-5 rounded-2xl font-black text-lg hover:bg-blue-50 hover:scale-105 transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md animate-pulse"
+                className="w-full lg:w-auto bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-12 py-5 rounded-2xl font-black text-lg hover:scale-105 transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md cursor-pointer"
               >
-                {isGeneratingPlan ? <Loader2 size={24} className="animate-spin text-blue-600" /> : <Clock size={24} />}
+                {isGeneratingPlan ? <Loader2 size={24} className="animate-spin text-white" /> : <Clock size={24} />}
                 <span>{isGeneratingPlan ? 'Gerando Plano...' : 'Criar Plano com IA'}</span>
               </button>
-              <p className="text-[10px] text-blue-100 opacity-60 font-medium">Processado via Gemini-3 Flash</p>
+              <p className="text-[10px] text-[var(--text-muted)] font-medium">Processado via Gemini-3 Flash</p>
             </div>
           </div>
 
           {studyPlan.length > 0 && (
-            <div className="p-6 rounded-2xl border border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30 space-y-4 animate-in fade-in duration-300">
-              <h4 className="text-lg font-black text-slate-800 dark:text-blue-100 flex items-center gap-2">
+            <div className="p-6 rounded-2xl border border-[var(--border-light)] bg-[var(--bg-hover)] dark:bg-[#15181E] space-y-4 animate-in fade-in duration-300">
+              <h4 className="text-lg font-black text-[var(--text-main)] flex items-center gap-2">
                 <span>Cronograma IA Gerado</span>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {studyPlan.map((week) => (
-                  <div key={week.week} className="p-4 rounded-xl border border-blue-100 dark:border-blue-950 bg-white dark:bg-blue-900/50 shadow-sm space-y-2">
-                    <div className="flex justify-between items-center bg-blue-50 dark:bg-blue-950 px-3 py-1.5 rounded-lg">
-                      <p className="font-bold text-xs text-blue-700 dark:text-blue-300">Semana {week.week}</p>
-                      <span className="text-xs font-black text-blue-600 dark:text-blue-400">{week.estimatedHours}h semanais</span>
+                  <div key={week.week} className="p-4 rounded-xl border border-[var(--border-light)] bg-[var(--bg-card)] shadow-sm space-y-2">
+                    <div className="flex justify-between items-center bg-[var(--bg-hover)] dark:bg-zinc-800 px-3 py-1.5 rounded-lg">
+                      <p className="font-bold text-xs text-[var(--primary)]">Semana {week.week}</p>
+                      <span className="text-xs font-black text-[var(--primary)]">{week.estimatedHours}h semanais</span>
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800 dark:text-white text-sm">{week.topic}</p>
-                      <p className="text-xs text-slate-500 dark:text-blue-300 mt-1">{week.focus}</p>
+                      <p className="font-bold text-[var(--text-main)] text-sm">{week.topic}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1">{week.focus}</p>
                     </div>
                   </div>
                 ))}
@@ -632,23 +667,54 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Progresso por Disciplina</h3>
+      {/* Barra de Filtros Globais dos Gráficos com SeletorFiltros */}
+      <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-5 rounded-2xl border border-[var(--border-light)] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h3 className="text-lg font-black text-[var(--text-main)]">Painel Analítico de Gráficos</h3>
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/10 text-[var(--primary)] border border-blue-500/20">
+              Filtro Global
+            </span>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            Selecione uma disciplina específica ou visualize todas para atualizar as curvas de evolução e o progresso.
+          </p>
+        </div>
+        <SeletorFiltros />
+      </div>
+
+      {/* Gráfico de Desempenho e Evolução por Disciplina (Recharts) */}
+      <SubjectPerformanceEvolutionChart quizHistory={quizHistory} overallAccuracy={stats.accuracyRate} />
+
+      <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+          <h3 className="text-xl font-bold text-[var(--text-main)]">Progresso por Disciplina</h3>
+          {filtroGlobal?.materia && filtroGlobal.materia !== 'Todas' && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-500/10 text-[var(--primary)] border border-blue-500/20 w-fit">
+              Filtrado por: <strong>{filtroGlobal.materia}</strong>
+            </span>
+          )}
+        </div>
         {loadingPerformance ? (
           <div className="h-64 flex items-center justify-center">
-            <Loader2 size={32} className="text-blue-600 animate-spin" />
+            <Loader2 size={32} className="text-[var(--primary)] animate-spin" />
           </div>
         ) : performance.length > 0 ? (
           <div className="space-y-6">
-            {Array.from(new Map(performance.map(p => [p.subject, p])).values()).map((p, i) => (
+            {Array.from(new Map(performance.map(p => [p.subject, p])).values())
+              .filter(p => {
+                if (!filtroGlobal?.materia || filtroGlobal.materia === 'Todas') return true;
+                return p.subject.toLowerCase() === filtroGlobal.materia.toLowerCase();
+              })
+              .map((p, i) => (
               <div key={i} className="space-y-2">
                 <div className="flex justify-between items-center gap-4">
-                  <span className="font-bold text-slate-700 dark:text-blue-200 truncate">{p.subject}</span>
-                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400 shrink-0">{p.percentage}%</span>
+                  <span className="font-bold text-[var(--text-main)] truncate">{p.subject}</span>
+                  <span className="text-sm font-bold text-[var(--primary)] shrink-0">{p.percentage}%</span>
                 </div>
-                <div className="h-3 bg-slate-100 dark:bg-blue-950 rounded-full overflow-hidden">
+                <div className="h-3 bg-[var(--bg-hover)] dark:bg-zinc-800 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-600 rounded-full transition-all duration-1000" 
+                    className="h-full bg-[var(--primary)] rounded-full transition-all duration-1000" 
                     style={{ width: `${p.percentage}%` }}
                   ></div>
                 </div>
@@ -656,13 +722,13 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
             ))}
           </div>
         ) : (
-          <p className="text-slate-500 dark:text-blue-300 text-center py-8">Nenhum quiz realizado ainda.</p>
+          <p className="text-[var(--text-muted)] text-center py-8">Nenhum quiz realizado ainda.</p>
         )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Desempenho por Disciplina (Gráfico)</h3>
+        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
+          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6">Desempenho por Disciplina (Gráfico)</h3>
           <div className="h-80 flex items-center justify-center">
             {performance.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -692,26 +758,26 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                       }
                       return acc;
                     }, [] as SubjectPerformance[]).map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][index % 4]} />
+                      <Cell key={`cell-${index}`} fill={['#1D4ED8', '#0D9488', '#0284C7', '#4F46E5'][index % 4]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#1e3a8a', border: 'none', borderRadius: '8px', color: '#f8fafc' }} />
-                  <Legend formatter={(value) => <span className="text-slate-600 dark:text-slate-200">{value}</span>} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                  <Legend formatter={(value) => <span className="text-[var(--text-main)]">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
               <div className="text-center space-y-3">
-                <div className="p-3 bg-slate-50 dark:bg-blue-950 rounded-full text-blue-500 w-fit mx-auto">
+                <div className="p-3 bg-[var(--primary-light)] dark:bg-zinc-800 rounded-full text-[var(--primary)] w-fit mx-auto">
                   <Target size={28} />
                 </div>
-                <p className="text-slate-500 dark:text-blue-300 text-sm font-medium">Nenhum dado de desempenho cadastrado ainda.</p>
+                <p className="text-[var(--text-muted)] text-sm font-medium">Nenhum dado de desempenho cadastrado ainda.</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Progresso por Vestibular</h3>
+        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
+          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6">Progresso por Vestibular</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={vestibularStats.length > 0 ? vestibularStats : [
@@ -722,25 +788,30 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                 { name: 'UERJ', acertos: 0, total: 100 },
                 { name: 'ITA', acertos: 0, total: 100 },
               ]}>
-                <XAxis dataKey="name" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip contentStyle={{ backgroundColor: '#1e3a8a', border: 'none', borderRadius: '8px', color: '#f8fafc' }} />
-                <Bar dataKey="acertos" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" />
+                <YAxis stroke="var(--text-muted)" />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Bar dataKey="acertos" fill="#1D4ED8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
 
+      {/* Gráfico de Linhas do Histórico de Acertos nos Quizzes (Recharts) */}
+      <QuizAccuracyHistoryChart quizHistory={quizHistory} targetAccuracy={80} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Donut / Rosca Chart for Daily Missions and Tasks */}
-        <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm flex flex-col justify-between">
+        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Conclusão de Missões do Dia</h3>
-            <p className="text-xs text-slate-500 dark:text-blue-300 font-medium mb-6">Visualização do percentual de conclusão das missões diárias.</p>
+            <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">Conclusão de Missões do Dia</h3>
+            <p className="text-xs text-[var(--text-muted)] font-medium mb-6">Visualização do percentual de conclusão das missões diárias.</p>
           </div>
           <div className="h-64 flex items-center justify-center relative">
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-              <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{missionsCompletionPercentage}%</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#10b981] mt-2 font-mono">Concluído</span>
+              <span className="text-3xl font-black text-[var(--text-main)] leading-none">{missionsCompletionPercentage}%</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--success)] mt-2 font-mono">Concluído</span>
             </div>
             
             <ResponsiveContainer width="100%" height="100%">
@@ -755,25 +826,25 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                   dataKey="value"
                 >
                   {missionsChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.name === 'Pendentes' ? '#94A3B8' : '#0D9488'} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`${value} itens`, 'Quantidade']} contentStyle={{ backgroundColor: '#1e3a8a', border: 'none', borderRadius: '8px', color: '#f8fafc', fontSize: '12px' }} />
+                <Tooltip formatter={(value) => [`${value} itens`, 'Quantidade']} contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="flex flex-col gap-2.5 w-full mt-4 pt-4 border-t dark:border-blue-800 text-sm font-bold text-slate-600 dark:text-blue-100">
+          <div className="flex flex-col gap-2.5 w-full mt-4 pt-4 border-t border-[var(--border-light)] text-sm font-bold text-[var(--text-main)]">
             <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2 font-semibold text-slate-500 dark:text-blue-300">
-                <span className="w-3 h-3 rounded-full bg-[#10b981]"></span>
+              <span className="flex items-center gap-2 font-semibold text-[var(--text-muted)]">
+                <span className="w-3 h-3 rounded-full bg-[#0D9488]"></span>
                 Missões Realizadas
               </span>
               <span className="font-mono text-sm">{completedMissionsCount} de {totalMissionsCount} ({missionsCompletionPercentage}%)</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2 font-semibold text-slate-500 dark:text-blue-300">
-                <span className="w-3 h-3 rounded-full bg-[#3b82f6]"></span>
+              <span className="flex items-center gap-2 font-semibold text-[var(--text-muted)]">
+                <span className="w-3 h-3 rounded-full bg-slate-400"></span>
                 Missões Restantes
               </span>
               <span className="font-mono text-sm">{pendingMissionsCount} de {totalMissionsCount}</span>
@@ -781,112 +852,96 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Progresso Geral ao Longo do Tempo</h3>
-          <div className="h-80 flex items-center justify-center">
-            {quizHistory.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={quizHistory}>
-                  <XAxis dataKey="date" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
-                  <Tooltip contentStyle={{ backgroundColor: '#1e3a8a', border: 'none', borderRadius: '8px', color: '#f8fafc' }} />
-                  <Line type="monotone" dataKey="score" stroke="#3b82f6" strokeWidth={3} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center space-y-3">
-                <div className="p-3 bg-slate-50 dark:bg-blue-950 rounded-full text-blue-500 w-fit mx-auto">
-                  <Clock size={28} />
+        {/* Ranking de Desempenho */}
+        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
+          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6 flex items-center gap-2">
+            <Trophy className="text-amber-500" />
+            Ranking de Desempenho
+          </h3>
+          <div className="space-y-3">
+            {[
+              { name: 'Ana Silva', score: 95, subject: 'Matemática' },
+              { name: 'Você', score: 88, subject: 'Matemática' },
+              { name: 'Carlos Souza', score: 82, subject: 'Matemática' },
+              { name: 'Beatriz Lima', score: 79, subject: 'Matemática' },
+            ].map((user, i) => {
+              const isUser = i === 1;
+              const rankColor = i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-[var(--text-muted)]';
+              return (
+                <div key={i} className={`flex items-center justify-between p-4 rounded-xl transition-colors ${
+                  isUser 
+                    ? 'bg-[var(--primary)] text-white shadow-sm' 
+                    : 'bg-[var(--bg-hover)] dark:bg-[#15181E] border border-[var(--border-light)] text-[var(--text-main)]'
+                }`}>
+                  <div className="flex items-center gap-4 overflow-hidden">
+                    <span className={`font-bold text-lg shrink-0 ${isUser ? 'text-white' : rankColor}`}>#{i + 1}</span>
+                    <span className={`font-medium truncate ${isUser ? 'text-white' : 'text-[var(--text-main)]'}`}>{user.name}</span>
+                  </div>
+                  <div className="flex items-center gap-6 shrink-0 ml-4">
+                    <span className={`text-sm hidden sm:inline truncate max-w-[100px] ${isUser ? 'text-blue-100' : 'text-[var(--text-muted)]'}`}>{user.subject}</span>
+                    <span className={`font-bold ${isUser ? 'text-white' : 'text-[var(--text-main)]'}`}>{user.score}%</span>
+                  </div>
                 </div>
-                <p className="text-slate-500 dark:text-blue-300 text-sm font-medium">Sem dados históricos. Complete simulados para iniciar.</p>
-              </div>
-            )}
+              );
+            })}
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-          <Trophy className="text-yellow-500" />
-          Ranking de Desempenho
-        </h3>
-        <div className="space-y-4">
-          {[
-            { name: 'Ana Silva', score: 95, subject: 'Matemática' },
-            { name: 'Você', score: 88, subject: 'Matemática' },
-            { name: 'Carlos Souza', score: 82, subject: 'Matemática' },
-            { name: 'Beatriz Lima', score: 79, subject: 'Matemática' },
-          ].map((user, i) => (
-            <div key={i} className={`flex items-center justify-between p-4 rounded-xl ${user.name === 'Você' ? 'bg-blue-50 dark:bg-blue-800/50' : 'bg-slate-50 dark:bg-blue-950'}`}>
-              <div className="flex items-center gap-4 overflow-hidden">
-                <span className={`font-bold text-lg shrink-0 ${i < 3 ? 'text-yellow-500' : 'text-slate-400'}`}>#{i + 1}</span>
-                <span className="font-medium text-slate-800 dark:text-white truncate">{user.name}</span>
-              </div>
-              <div className="flex items-center gap-6 shrink-0 ml-4">
-                <span className="text-sm text-slate-500 dark:text-blue-300 hidden sm:inline truncate max-w-[100px]">{user.subject}</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">{user.score}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* O antigo layout redundante foi integrado de forma harmoniosa no bloco unificado acima */}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Histórico de Simulados</h3>
+        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
+          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6">Histórico de Simulados</h3>
           {quizHistory.length > 0 ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {quizHistory.map((h) => (
-                <div key={h.id} className="flex justify-between items-center p-4 rounded-xl border border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
+                <div key={h.id} className="flex justify-between items-center p-4 rounded-xl border border-[var(--border-light)] bg-[var(--bg-hover)] dark:bg-[#15181E]">
                   <div>
-                    <p className="font-bold text-slate-800 dark:text-white">{h.vestibular}</p>
-                    <p className="text-sm text-slate-500 dark:text-blue-300">{h.date}</p>
+                    <p className="font-bold text-[var(--text-main)]">{h.vestibular}</p>
+                    <p className="text-sm text-[var(--text-muted)]">{h.date}</p>
                   </div>
-                  <span className="font-bold text-blue-600 dark:text-blue-400">{h.score} / {h.totalQuestions}</span>
+                  <span className="font-bold text-[var(--primary)]">{h.score} / {h.totalQuestions}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-slate-500 dark:text-blue-300 text-center py-8">Nenhum simulado realizado ainda.</p>
+            <p className="text-[var(--text-muted)] text-center py-8">Nenhum simulado realizado ainda.</p>
           )}
         </div>
 
-        <div className="bg-white dark:bg-blue-900 p-8 rounded-2xl border dark:border-blue-800 shadow-sm">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
+          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6 flex items-center gap-2">
             <FileText size={20} />
             Histórico de Redações
           </h3>
           {essayHistory.length > 0 ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {essayHistory.map((h) => (
                 <div 
                   key={h.id} 
                   onClick={() => setSelectedEssay(h)}
-                  className="flex justify-between items-center p-4 rounded-xl border border-purple-100 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/30 hover:scale-[1.01] hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer group"
+                  className="flex justify-between items-center p-4 rounded-xl border border-[var(--border-light)] bg-[var(--bg-hover)] dark:bg-[#15181E] hover:border-[var(--primary)] transition-all cursor-pointer group"
                 >
                   <div className="overflow-hidden">
-                    <p className="font-bold text-slate-800 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-350 transition-colors">{h.theme}</p>
-                    <p className="text-sm text-slate-500 dark:text-purple-300">{h.date}</p>
+                    <p className="font-bold text-[var(--text-main)] truncate group-hover:text-[var(--primary)] transition-colors">{h.theme}</p>
+                    <p className="text-sm text-[var(--text-muted)]">{h.date}</p>
                   </div>
                   <div className="flex items-center gap-3">
                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                         h.status === 'corrected' 
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
-                          : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                          ? 'bg-emerald-500/10 text-[var(--success)] border border-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
                       }`}>
                         {h.status === 'corrected' ? 'Corrigida' : 'Rascunho'}
                       </span>
                     {h.status === 'corrected' && (
-                      <span className="font-bold text-green-600 dark:text-green-400">{h.grade}</span>
+                      <span className="font-bold text-[var(--success)]">{h.grade}</span>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-slate-500 dark:text-blue-300 text-center py-8">Nenhuma redação encontrada no histórico.</p>
+            <p className="text-[var(--text-muted)] text-center py-8">Nenhuma redação encontrada no histórico.</p>
           )}
         </div>
       </div>
@@ -898,7 +953,7 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
             onClick={() => setSelectedEssay(null)}
           >
             <motion.div 
@@ -906,23 +961,23 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 20, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="bg-white dark:bg-blue-900 w-full max-w-4xl rounded-[2.5rem] shadow-2xl border dark:border-blue-800 overflow-hidden relative max-h-[90vh] flex flex-col"
+              className="bg-[var(--bg-card)] w-full max-w-4xl rounded-3xl shadow-2xl border border-[var(--border-light)] overflow-hidden relative max-h-[90vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 md:p-8 text-white relative shrink-0">
+              <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-6 md:p-8 text-white relative shrink-0">
                 <button 
                   onClick={() => setSelectedEssay(null)}
-                  className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white transition-all shadow-sm"
+                  className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all shadow-sm cursor-pointer"
                 >
                   <X size={20} />
                 </button>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pr-10">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-1 rounded-md">
+                    <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 px-2.5 py-1 rounded-md">
                       {selectedEssay.status === 'corrected' ? 'Redação Corrigida' : 'Rascunho Salvo'}
                     </span>
-                    <h3 className="text-xl md:text-2xl font-black leading-snug truncate max-w-xl" title={selectedEssay.theme}>
+                    <h3 className="text-xl md:text-2xl font-bold leading-snug truncate max-w-xl" title={selectedEssay.theme}>
                       {selectedEssay.theme}
                     </h3>
                     <p className="text-xs text-blue-100 font-medium">Enviada em {selectedEssay.date}</p>
@@ -930,9 +985,9 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                   {selectedEssay.status === 'corrected' && selectedEssay.grade !== undefined && (
                     <div className="relative group shrink-0">
                       <div className="absolute inset-0 bg-white/25 blur-xl rounded-full"></div>
-                      <div className="relative bg-white text-blue-600 w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center border-4 border-white/30 shadow-lg">
-                        <span className="text-2xl md:text-3xl font-black">{selectedEssay.grade}</span>
-                        <span className="text-[8px] font-black uppercase tracking-widest mt-[-2px]">Nota</span>
+                      <div className="relative bg-[var(--bg-card)] text-white w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center border-4 border-white/20 shadow-lg">
+                        <span className="text-2xl md:text-3xl font-extrabold text-[var(--primary)]">{selectedEssay.grade}</span>
+                        <span className="text-[8px] font-bold uppercase tracking-widest mt-[-2px] text-[var(--text-muted)]">Nota</span>
                       </div>
                     </div>
                   )}
@@ -943,41 +998,41 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
               <div className="p-6 md:p-8 overflow-y-auto space-y-8 flex-1">
                 {/* Texto da Redação */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black text-slate-400 dark:text-blue-300 uppercase tracking-widest">Texto da Redação</h4>
-                  <div className="p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-blue-950 bg-slate-50 dark:bg-blue-950/40 text-slate-800 dark:text-white font-serif text-lg leading-relaxed whitespace-pre-wrap shadow-inner max-h-80 overflow-y-auto">
+                  <h4 className="text-xs font-bold text-[var(--text-label)] uppercase tracking-wider">Texto da Redação</h4>
+                  <div className="p-6 md:p-8 rounded-2xl border border-[var(--border-light)] bg-[var(--bg-hover)] text-[var(--text-main)] text-base sm:text-lg leading-relaxed whitespace-pre-wrap shadow-inner max-h-80 overflow-y-auto">
                     {selectedEssay.essayText || 'Nenhum texto salvo para esta redação.'}
                   </div>
                 </div>
 
                 {/* Seção de Correção para Corrigidas */}
                 {selectedEssay.status === 'corrected' ? (
-                  <div className="space-y-8 pt-4 border-t border-slate-100 dark:border-blue-950">
+                  <div className="space-y-8 pt-4 border-t border-[var(--border-light)]">
                     {/* Competências com Barras */}
                     <div className="space-y-4">
-                      <h4 className="text-xs font-black text-slate-400 dark:text-blue-300 uppercase tracking-widest">Desempenho por Competência</h4>
+                      <h4 className="text-xs font-bold text-[var(--text-label)] uppercase tracking-wider">Desempenho por Competência</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {selectedEssay.competencies && selectedEssay.competencies.map((c, i) => (
-                          <div key={i} className="bg-slate-50/50 dark:bg-blue-950/20 p-5 rounded-2xl border border-slate-100 dark:border-blue-950 flex flex-col justify-between gap-3">
+                          <div key={i} className="bg-[var(--bg-hover)] p-5 rounded-2xl border border-[var(--border-light)] flex flex-col justify-between gap-3">
                             <div>
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 px-2.5 py-0.5 rounded">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--bg-badge)] px-2.5 py-0.5 rounded border border-[var(--primary-border)]">
                                   Comp. {i + 1}
                                 </span>
-                                <span className="font-mono text-sm font-black text-blue-600 dark:text-blue-400">{c.score} <span className="text-[10px] font-bold text-slate-400">/ 200</span></span>
+                                <span className="font-mono text-sm font-bold text-[var(--primary)]">{c.score} <span className="text-[10px] font-medium text-[var(--text-label)]">/ 200</span></span>
                               </div>
-                              <h5 className="font-bold text-slate-800 dark:text-white text-xs leading-tight mb-2">{c.name}</h5>
+                              <h5 className="font-bold text-[var(--text-main)] text-xs leading-tight mb-2">{c.name}</h5>
                             </div>
                             
                             <div className="space-y-2">
-                              <div className="h-1.5 bg-slate-100 dark:bg-blue-950 rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-[var(--bg-card)] rounded-full overflow-hidden border border-[var(--border-light)]">
                                 <div 
-                                  className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                  className="h-full bg-[var(--primary)] rounded-full transition-all duration-500"
                                   style={{ width: `${(c.score / 200) * 100}%` }}
                                 ></div>
                               </div>
-                              <div className="text-[11px] space-y-1.5 text-slate-500 dark:text-blue-300">
-                                <p><span className="font-bold text-green-600">Pontos Fortes:</span> {c.strengths}</p>
-                                <p><span className="font-bold text-amber-600">Melhorar:</span> {c.weaknesses}</p>
+                              <div className="text-[11px] space-y-1.5 text-[var(--text-muted)]">
+                                <p><span className="font-bold text-emerald-400">Pontos Fortes:</span> {c.strengths}</p>
+                                <p><span className="font-bold text-amber-400">Melhorar:</span> {c.weaknesses}</p>
                               </div>
                             </div>
                           </div>
@@ -987,24 +1042,24 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
 
                     {/* Destaques e Evolução */}
                     {selectedEssay.generalCorrection && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-blue-950">
-                        <div className="space-y-3 p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/20">
-                          <div className="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[var(--border-light)]">
+                        <div className="space-y-3 p-6 bg-emerald-500/5 rounded-2xl border border-emerald-500/20">
+                          <div className="flex items-center gap-2.5 text-emerald-400">
                             <CheckCircle size={22} />
-                            <h4 className="font-black text-sm uppercase tracking-wide">Destaques Positivos</h4>
+                            <h4 className="font-bold text-sm uppercase tracking-wide">Destaques Positivos</h4>
                           </div>
-                          <p className="text-sm text-slate-600 dark:text-blue-100 leading-relaxed italic">
+                          <p className="text-sm text-[var(--text-muted)] leading-relaxed italic">
                             {selectedEssay.generalCorrection}
                           </p>
                         </div>
 
                         {selectedEssay.competencies && selectedEssay.competencies[0] && (
-                          <div className="space-y-3 p-6 bg-amber-500/5 dark:bg-amber-500/10 rounded-3xl border border-amber-500/20">
-                            <div className="flex items-center gap-2.5 text-amber-600 dark:text-amber-400">
-                              <Award size={22} className="rotate-12" />
-                              <h4 className="font-black text-sm uppercase tracking-wide">Plano de Evolução</h4>
+                          <div className="space-y-3 p-6 bg-amber-500/5 rounded-2xl border border-amber-500/20">
+                            <div className="flex items-center gap-2.5 text-amber-400">
+                              <Award size={22} />
+                              <h4 className="font-bold text-sm uppercase tracking-wide">Plano de Evolução</h4>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-blue-100 leading-relaxed font-medium">
+                            <p className="text-sm text-[var(--text-muted)] leading-relaxed font-medium">
                               {selectedEssay.competencies[0].improvementExample || selectedEssay.competencies[0].weaknesses}
                             </p>
                           </div>
@@ -1013,23 +1068,23 @@ export default function Dashboard({ selectedVestibular }: DashboardProps) {
                     )}
                   </div>
                 ) : (
-                  <div className="p-6 bg-amber-500/5 rounded-3xl border border-amber-500/20 flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-                    <div className="bg-amber-100 dark:bg-amber-950/50 p-3 rounded-2xl text-amber-600 dark:text-amber-400">
+                  <div className="p-6 bg-amber-500/5 rounded-2xl border border-amber-500/20 flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                    <div className="bg-amber-500/10 p-3 rounded-xl text-amber-400">
                       <FileText size={28} />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-800 dark:text-white">Este é um rascunho de redação</h4>
-                      <p className="text-sm text-slate-500 dark:text-blue-300">Ela foi salva como rascunho e ainda não foi submetida para avaliação técnica.</p>
+                      <h4 className="font-bold text-[var(--text-main)]">Este é um rascunho de redação</h4>
+                      <p className="text-sm text-[var(--text-muted)]">Ela foi salva como rascunho e ainda não foi submetida para avaliação técnica.</p>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="p-5 bg-slate-50 dark:bg-blue-950 border-t dark:border-blue-800 flex justify-end gap-3 shrink-0">
+              <div className="p-5 bg-[var(--bg-hover)] border-t border-[var(--border-light)] flex justify-end gap-3 shrink-0">
                 <button 
                   onClick={() => setSelectedEssay(null)}
-                  className="px-6 py-3 rounded-xl font-bold bg-white dark:bg-blue-900 border dark:border-blue-800 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-blue-800 transition-all text-sm"
+                  className="px-6 py-2.5 rounded-xl font-bold bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-main)] hover:bg-[var(--border-color)] transition-all text-xs sm:text-sm cursor-pointer"
                 >
                   Fechar
                 </button>

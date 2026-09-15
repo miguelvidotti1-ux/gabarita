@@ -1,6 +1,5 @@
 import React from 'react';
-import { BookOpen } from 'lucide-react';
-import { Question } from '../types';
+import { BookOpen, CheckCircle } from 'lucide-react';
 
 interface QuizSummaryProps {
   questions: any[];
@@ -11,33 +10,38 @@ export default function QuizSummary({ questions, userAnswers }: QuizSummaryProps
   const topicsToReview = React.useMemo(() => {
     const topics = new Set<string>();
     questions.forEach((q, i) => {
-      // Usando 'correctAnswer' conforme usado em Quiz.tsx
-      if (userAnswers[i] !== (q as any).correctAnswer) {
+      if (userAnswers[i] !== (q as any).correctAnswer && q.topic) {
         topics.add(q.topic);
       }
     });
     return Array.from(topics);
   }, [questions, userAnswers]);
 
-  if (topicsToReview.length === 0) return (
-    <div className="bg-green-50 dark:bg-green-900/20 p-8 rounded-3xl border border-green-200 dark:border-green-800 shadow-sm text-center">
-        <h4 className="text-xl font-bold text-green-800 dark:text-green-300">Parabéns!</h4>
-        <p className="text-green-700 dark:text-green-400">Você acertou todas as questões!</p>
-    </div>
-  );
+  if (topicsToReview.length === 0) {
+    return (
+      <div className="bg-emerald-500/10 p-6 sm:p-8 rounded-2xl border border-emerald-500/30 shadow-sm text-center space-y-1">
+        <CheckCircle className="text-emerald-400 mx-auto mb-2" size={32} />
+        <h4 className="text-lg font-bold text-emerald-300">Desempenho Impecável!</h4>
+        <p className="text-xs sm:text-sm text-emerald-400/90">Você acertou todas as questões deste simulado!</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white dark:bg-blue-900 p-8 rounded-3xl border border-blue-100 dark:border-blue-800 shadow-sm">
-      <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-        <BookOpen className="text-blue-600 dark:text-blue-400" />
-        Temas para Revisão
+    <div className="bg-[var(--bg-card)] p-6 sm:p-8 rounded-2xl border border-[var(--border-light)] shadow-sm text-left">
+      <h4 className="text-lg font-bold text-[var(--text-main)] mb-2 flex items-center gap-2">
+        <BookOpen className="text-[var(--primary)]" size={20} />
+        Temas Sugeridos para Revisão
       </h4>
-      <p className="text-slate-500 dark:text-blue-300 text-sm mb-6">
-        Você errou questões sobre estes temas. Dedique um tempo para revisá-los:
+      <p className="text-[var(--text-muted)] text-xs sm:text-sm mb-4">
+        Com base nos seus erros, recomendamos reforçar o estudo dos seguintes tópicos:
       </p>
       <div className="flex flex-wrap gap-2">
         {topicsToReview.map(topic => (
-          <span key={topic} className="bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-semibold">
+          <span 
+            key={topic} 
+            className="bg-[var(--bg-hover)] text-[var(--primary)] border border-[var(--border-light)] px-3.5 py-1.5 rounded-xl text-xs font-semibold"
+          >
             {topic}
           </span>
         ))}

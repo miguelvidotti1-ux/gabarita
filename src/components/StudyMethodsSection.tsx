@@ -10,19 +10,19 @@ export default function StudyMethodsSection() {
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-      <h3 className="text-lg font-black font-display text-slate-900 dark:text-white flex items-center gap-2">
-        <BookOpen className="text-indigo-600 dark:text-indigo-400" size={20} />
+    <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-light)] shadow-sm space-y-4">
+      <h3 className="text-lg font-black font-display text-[var(--text-main)] flex items-center gap-2">
+        <BookOpen className="text-[var(--primary)]" size={20} />
         Técnicas de Estudo
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {methods.map((method, i) => (
-          <div key={i} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-1">
+          <div key={i} className="p-4 rounded-xl bg-[var(--bg-hover)] dark:bg-[#15181E] border border-[var(--border-light)] space-y-1">
             <div className={`w-8 h-8 rounded-lg ${method.bg} flex items-center justify-center ${method.color} mb-2`}>
               <method.icon size={18} />
             </div>
-            <p className="font-bold text-sm text-slate-900 dark:text-slate-100">{method.name}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{method.desc}</p>
+            <p className="font-bold text-sm text-[var(--text-main)]">{method.name}</p>
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{method.desc}</p>
           </div>
         ))}
       </div>

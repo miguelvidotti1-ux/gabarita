@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Check, 
-  X, 
   CreditCard, 
   QrCode, 
   FileText, 
@@ -11,21 +10,16 @@ import {
   CheckCircle, 
   AlertCircle, 
   Sparkles, 
-  Sun, 
-  Moon, 
   Copy, 
   ShieldCheck,
   Crown,
   RefreshCw,
-  Zap,
   TrendingUp,
   Calendar,
-  Settings,
+  Info,
   ChevronRight,
-  Info
+  Zap
 } from 'lucide-react';
-import { useTheme } from '../hooks/useTheme';
-import ThemeToggle from './ThemeToggle';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
@@ -112,12 +106,9 @@ const PLANS: PlanOption[] = [
 
 export const PlanSelection: React.FC<PlanSelectionProps> = ({ 
   onComplete, 
-  userEmail, 
   userName,
   currentPlanId = 'semestral'
 }) => {
-  const { theme, toggleTheme } = useTheme();
-
   // State
   const [activePlanId, setActivePlanId] = useState<'mensal' | 'trimestral' | 'semestral' | 'anual'>(currentPlanId);
   const [screen, setScreen] = useState<'overview' | 'payment' | 'success'>('overview');
@@ -212,7 +203,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
     setLoading(true);
 
     try {
-      await new Promise((r) => setTimeout(r, 1800));
+      await new Promise((r) => setTimeout(r, 1400));
 
       // Save active plan to Firestore if logged in
       if (auth.currentUser) {
@@ -248,39 +239,40 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary,#F0F1F4)] dark:bg-[#0F0F11] flex items-center justify-center p-4 font-sans text-[#1A1A1A] dark:text-[#F0F1F4] transition-colors relative">
-      
-      {/* TOGGLE DARK MODE */}
-      <ThemeToggle className="fixed left-4 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-50" />
-
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0C0E] text-slate-900 dark:text-zinc-100 flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans transition-colors duration-200 relative">
       {/* MAIN CONTAINER */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.97, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white dark:bg-[#1A1A1E] rounded-[24px] shadow-2xl overflow-hidden w-[1020px] max-w-full transition-colors border border-gray-100 dark:border-gray-800"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="w-full max-w-5xl bg-white dark:bg-[#15171C] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xl overflow-hidden transition-colors"
       >
         
-        {/* HEADER */}
-        <div className="p-8 sm:p-10 border-b border-gray-100 dark:border-[#2D2D33] bg-gradient-to-b from-gray-50/80 to-transparent dark:from-[#25252B]/40 dark:to-transparent">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 mb-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 dark:text-amber-400">
-                <Crown size={14} />
+        {/* HEADER SECTION */}
+        <div className="px-6 py-8 sm:px-10 sm:py-9 border-b border-slate-100 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-full text-xs font-semibold text-amber-700 dark:text-amber-400">
+                <Crown size={14} className="text-amber-600 dark:text-amber-400" />
                 <span>Gestão de Assinatura</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] dark:text-[#F0F1F4] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                 Planos & Assinatura
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-slate-500 dark:text-zinc-400 max-w-xl">
                 Visualize seu plano ativo, acompanhe renovações ou escolha uma nova opção de estudos.
               </p>
             </div>
 
             {userName && (
-              <div className="self-start sm:self-auto px-4 py-2 bg-gray-100 dark:bg-[#25252B] border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300">
-                <span>Usuário: </span>
-                <span className="font-bold text-[#1A1A1A] dark:text-white">{userName}</span>
+              <div className="self-start sm:self-auto px-4 py-2.5 bg-white dark:bg-[#1F222A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xs flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-xs">
+                  <div className="text-slate-400 dark:text-zinc-400 text-[10px]">Usuário logado</div>
+                  <div className="font-bold text-slate-800 dark:text-white">{userName}</div>
+                </div>
               </div>
             )}
           </div>
@@ -290,121 +282,137 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
         {screen === 'overview' && (
           <div className="p-6 sm:p-10 space-y-10">
 
-            {/* SECTION 1: SEU PLANO ATUAL */}
+            {/* SEU PLANO ATUAL CARD */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-[#1A1A1A] dark:text-[#F0F1F4] flex items-center gap-2">
-                  <ShieldCheck size={20} className="text-emerald-500" />
-                  <span>Seu Plano Atual</span>
-                </h2>
-                <span className="text-xs text-gray-400 font-medium">Assinatura Ativa</span>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Seu Plano Atual
+                  </h2>
+                </div>
+                <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+                  Assinatura Ativa
+                </span>
               </div>
 
-              <div className="relative overflow-hidden rounded-2xl border-2 border-indigo-600/30 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50/60 via-white to-gray-50 dark:from-indigo-950/20 dark:via-[#1A1A1E] dark:to-[#25252B] p-6 sm:p-8 shadow-sm">
+              {/* ACTIVE PLAN HIGHLIGHT BOX */}
+              <div className="rounded-2xl border-2 border-blue-500/30 dark:border-blue-500/40 bg-gradient-to-br from-blue-50/40 via-white to-slate-50/60 dark:from-blue-950/20 dark:via-[#181A20] dark:to-[#181A20] p-6 sm:p-8 shadow-sm transition-colors">
                 
-                {/* Status Badge */}
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-6 border-b border-gray-200/80 dark:border-gray-800">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md">
-                      <Crown size={22} />
+                {/* Header of Active Plan */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-white/10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-13 h-13 rounded-2xl bg-blue-600 dark:bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+                      <Crown size={26} />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-extrabold text-[#1A1A1A] dark:text-white">
+                      <div className="flex items-center gap-2.5">
+                        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
                           Plano {activePlanObj.name}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        </h3>
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
                           ATIVO
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                         {activePlanObj.cycleLabel}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-left sm:text-right">
-                    <div className="text-2xl font-black text-[#1A1A1A] dark:text-white">
+                  <div className="sm:text-right">
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                       R$&nbsp;{activePlanObj.price.toFixed(2).replace('.', ',')}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
                       {activePlanObj.periodLabel}
                     </div>
                   </div>
                 </div>
 
-                {/* Details Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  <div className="p-3.5 bg-white dark:bg-[#25252B] rounded-xl border border-gray-200/80 dark:border-gray-800">
-                    <div className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mb-1">
-                      <Calendar size={14} className="text-indigo-500" />
-                      Próxima renovação
+                {/* Status & Billing Mini Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 my-6">
+                  
+                  {/* Renewal Date */}
+                  <div className="p-4 bg-white dark:bg-[#1E2128] rounded-xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                    <div className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1.5 mb-1.5">
+                      <Calendar size={14} className="text-blue-600 dark:text-blue-400" />
+                      <span>Próxima renovação</span>
                     </div>
-                    <div className="text-sm font-bold text-[#1A1A1A] dark:text-white">
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">
                       {calculateNextBillingDate(activePlanObj.id)}
                     </div>
                   </div>
 
-                  <div className="p-3.5 bg-white dark:bg-[#25252B] rounded-xl border border-gray-200/80 dark:border-gray-800">
-                    <div className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mb-1">
-                      <CreditCard size={14} className="text-indigo-500" />
-                      Forma de pagamento
+                  {/* Payment Method */}
+                  <div className="p-4 bg-white dark:bg-[#1E2128] rounded-xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                    <div className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1.5 mb-1.5">
+                      <CreditCard size={14} className="text-blue-600 dark:text-blue-400" />
+                      <span>Forma de pagamento</span>
                     </div>
-                    <div className="text-sm font-bold text-[#1A1A1A] dark:text-white flex items-center gap-1.5">
+                    <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>Cartão •••• 4242</span>
-                      <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded">Principal</span>
+                      <span className="text-[10px] bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-zinc-300 font-bold px-2 py-0.5 rounded-md">
+                        Principal
+                      </span>
                     </div>
                   </div>
 
-                  <div className="p-3.5 bg-white dark:bg-[#25252B] rounded-xl border border-gray-200/80 dark:border-gray-800">
-                    <div className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mb-1">
-                      <RefreshCw size={14} className="text-indigo-500" />
-                      Status da renovação
+                  {/* Status */}
+                  <div className="p-4 bg-white dark:bg-[#1E2128] rounded-xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                    <div className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1.5 mb-1.5">
+                      <RefreshCw size={14} className="text-blue-600 dark:text-blue-400" />
+                      <span>Status da renovação</span>
                     </div>
                     <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
                       Renovação Automática
                     </div>
                   </div>
+
                 </div>
 
-                {/* Active Perks List */}
-                <div className="space-y-2 mb-6">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                    Benefícios inclusos no seu plano atual
+                {/* Features Included List */}
+                <div className="space-y-3 mb-6">
+                  <div className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                    Benefícios ativos neste plano:
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {activePlanObj.features.map((feat, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${feat.enabled ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-gray-200 dark:bg-gray-800 text-gray-400'}`}>
-                          <Check size={10} strokeWidth={3} />
+                      <div key={idx} className="flex items-center gap-2 text-xs">
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                          feat.enabled 
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' 
+                            : 'bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-zinc-600'
+                        }`}>
+                          <Check size={11} strokeWidth={3} />
                         </div>
-                        <span className={feat.enabled ? '' : 'line-through opacity-40'}>{feat.text}</span>
+                        <span className={feat.enabled ? 'font-medium text-slate-800 dark:text-zinc-200' : 'text-slate-400 dark:text-zinc-500 line-through'}>
+                          {feat.text}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-200/80 dark:border-gray-800">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextPlan = PLANS.find(p => p.id !== activePlanId) || PLANS[3];
-                        handleInitiatePlanChange(nextPlan);
-                      }}
-                      className="px-4 py-2 bg-[#1A1A1A] hover:bg-[#2D2D2D] dark:bg-[#F0F1F4] dark:hover:bg-white text-white dark:text-[#1A1A1A] text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Sparkles size={14} />
-                      <span>Alterar ou fazer upgrade</span>
-                    </button>
-                  </div>
+                {/* Actions Footer */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-slate-200/80 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextPlan = PLANS.find(p => p.id !== activePlanId) || PLANS[3];
+                      handleInitiatePlanChange(nextPlan);
+                    }}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center gap-2 text-xs cursor-pointer active:scale-95"
+                  >
+                    <Sparkles size={15} />
+                    <span>Alterar ou fazer upgrade</span>
+                  </button>
 
                   <button
                     type="button"
                     onClick={() => setShowCancelModal(true)}
-                    className="text-xs text-gray-500 hover:text-rose-600 dark:hover:text-rose-400 font-medium transition-colors cursor-pointer"
+                    className="text-xs text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 font-medium transition-colors cursor-pointer"
                   >
                     Cancelar assinatura
                   </button>
@@ -413,21 +421,21 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
               </div>
             </div>
 
-            {/* SECTION 2: POSSÍVEIS MUDANÇAS DE PLANOS */}
+            {/* SELEÇÃO DE NOVOS PLANOS */}
             <div>
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp size={20} className="text-indigo-600 dark:text-indigo-400" />
-                  <h2 className="text-xl font-bold text-[#1A1A1A] dark:text-[#F0F1F4]">
+                  <TrendingUp size={20} className="text-blue-600 dark:text-blue-400" />
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                     Opções de Mudança de Plano
                   </h2>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Migre para um plano superior a qualquer momento com desconto proporcional instantâneo.
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  Escolha o melhor plano para seu ritmo de estudos. Ao fazer upgrade, a alteração é imediata.
                 </p>
               </div>
 
-              {/* Grid of All Plans for Migration */}
+              {/* 4 Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {PLANS.map((plan) => {
                   const isActive = plan.id === activePlanId;
@@ -438,52 +446,52 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                     <div
                       key={plan.id}
                       className={`
-                        relative p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col justify-between
+                        relative p-5 sm:p-6 rounded-2xl border-2 transition-all flex flex-col justify-between
                         ${isActive 
-                          ? 'bg-emerald-500/5 dark:bg-emerald-950/20 border-emerald-500 dark:border-emerald-500 shadow-md' 
+                          ? 'bg-emerald-500/[0.03] dark:bg-emerald-500/[0.05] border-emerald-500 dark:border-emerald-500 shadow-sm' 
                           : plan.popular 
-                          ? 'bg-white dark:bg-[#25252B] border-indigo-600 dark:border-indigo-500 shadow-md' 
-                          : 'bg-white dark:bg-[#1A1A1E] border-gray-200 dark:border-[#2D2D33] hover:border-gray-300'
+                          ? 'bg-white dark:bg-[#1B1D24] border-blue-500/60 dark:border-blue-500/50 shadow-md' 
+                          : 'bg-white dark:bg-[#181A20] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                         }
                       `}
                     >
                       {/* Top Badges */}
                       {isActive && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white font-bold text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-                          <CheckCircle size={12} />
+                          <CheckCircle size={11} />
                           <span>PLANO ATUAL</span>
                         </div>
                       )}
 
                       {!isActive && isUpgrade && plan.savings && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white font-bold text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-                          <Sparkles size={12} />
-                          <span>UPGRADE — {plan.savings}</span>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white font-bold text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                          <Zap size={11} />
+                          <span>{plan.savings}</span>
                         </div>
                       )}
 
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                          <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-zinc-400'}`}>
                             {plan.name}
                           </span>
                         </div>
 
                         <div className="flex items-baseline gap-0.5 mb-1">
-                          <span className="text-sm font-bold">R$&nbsp;</span>
-                          <span className="text-3xl font-extrabold tracking-tight">{main}</span>
-                          <span className="text-sm font-semibold text-gray-400">,{cents}</span>
+                          <span className="text-sm font-bold text-slate-500 dark:text-zinc-400">R$&nbsp;</span>
+                          <span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">{main}</span>
+                          <span className="text-sm font-semibold text-slate-400 dark:text-zinc-400">,{cents}</span>
                         </div>
 
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                        <div className="text-xs text-slate-500 dark:text-zinc-400 mb-4">
                           {plan.periodLabel}
                         </div>
 
-                        {/* Features summary */}
-                        <ul className="space-y-2 mb-6 border-t border-gray-100 dark:border-gray-800 pt-4">
+                        {/* Features checklist */}
+                        <ul className="space-y-2 mb-6 border-t border-slate-100 dark:border-white/10 pt-4">
                           {plan.features.map((f, i) => (
-                            <li key={i} className={`text-[11px] flex items-start gap-1.5 ${f.enabled ? 'text-gray-700 dark:text-gray-300' : 'opacity-35 line-through'}`}>
-                              <Check size={12} className={`shrink-0 mt-0.5 ${f.enabled ? 'text-emerald-500' : 'text-gray-400'}`} />
+                            <li key={i} className={`text-[11px] flex items-start gap-2 ${f.enabled ? 'text-slate-700 dark:text-zinc-300' : 'text-slate-400 dark:text-zinc-600 line-through'}`}>
+                              <Check size={12} className={`shrink-0 mt-0.5 ${f.enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-zinc-700'}`} />
                               <span>{f.text}</span>
                             </li>
                           ))}
@@ -493,21 +501,21 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                       {/* Action Button */}
                       <div>
                         {isActive ? (
-                          <div className="w-full py-2.5 px-4 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-bold text-center border border-emerald-500/20">
+                          <div className="w-full py-2.5 px-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-bold text-center border border-emerald-500/20">
                             ✓ Seu plano ativo
                           </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleInitiatePlanChange(plan)}
-                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-[0.98] ${
+                            className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98] ${
                               isUpgrade 
-                                ? 'bg-[#1A1A1A] hover:bg-[#2D2D2D] dark:bg-[#F0F1F4] dark:hover:bg-white text-white dark:text-[#1A1A1A]' 
-                                : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#25252B] dark:hover:bg-[#2D2D33] text-gray-800 dark:text-gray-200'
+                                ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-zinc-200'
                             }`}
                           >
-                            <span>{isUpgrade ? 'Fazer Upgrade' : 'Mudar para este plano'}</span>
-                            <ArrowRight size={14} />
+                            <span>{isUpgrade ? 'Fazer Upgrade' : 'Mudar para este'}</span>
+                            <ChevronRight size={14} />
                           </button>
                         )}
                       </div>
@@ -518,12 +526,12 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
               </div>
             </div>
 
-            {/* INFO BOX */}
-            <div className="p-4 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 flex items-start gap-3">
-              <Info size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-              <div className="text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed">
-                <span className="font-bold">Como funciona a troca de plano? </span>
-                Ao migrar de plano, a alteração entra em vigor imediatamente. O saldo restante do seu plano anterior é convertido automaticamente em desconto na cobrança do novo plano escolhido.
+            {/* INFO CALLOUT BANNER */}
+            <div className="p-4 sm:p-5 bg-blue-50/70 dark:bg-blue-950/30 rounded-2xl border border-blue-200/80 dark:border-blue-500/20 flex items-start gap-3.5">
+              <Info size={20} className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-blue-950 dark:text-blue-200 leading-relaxed">
+                <strong className="font-bold">Como funciona a migração de plano? </strong>
+                Ao solicitar um upgrade ou mudança, o acesso é liberado instantaneamente. Qualquer valor restante do ciclo atual é convertido em crédito automático proporcional.
               </div>
             </div>
 
@@ -533,17 +541,17 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
         {/* PAYMENT / CONFIRMATION SCREEN */}
         {screen === 'payment' && selectedPlanForMigration && (
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 0, x: -16 }}
             className="p-6 sm:p-10 max-w-xl mx-auto space-y-6"
           >
             {/* Header */}
             <div className="text-center">
-              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                 Confirmação de Migração
               </span>
-              <h2 className="text-2xl font-bold text-[#1A1A1A] dark:text-white mt-1">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
                 Migrar para o Plano {selectedPlanForMigration.name}
               </h2>
             </div>
@@ -561,12 +569,12 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
             )}
 
             {/* ORDER COMPARISON */}
-            <div className="p-5 bg-gray-50 dark:bg-[#25252B] rounded-2xl border border-gray-200 dark:border-[#3D3D45] space-y-3 text-xs">
-              <div className="flex justify-between text-gray-500">
+            <div className="p-5 bg-slate-50 dark:bg-[#1A1D24] rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 text-xs">
+              <div className="flex justify-between text-slate-500 dark:text-zinc-400">
                 <span>Plano Atual</span>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{activePlanObj.name} (R$ {activePlanObj.price.toFixed(2).replace('.', ',')})</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">{activePlanObj.name} (R$ {activePlanObj.price.toFixed(2).replace('.', ',')})</span>
               </div>
-              <div className="flex justify-between text-indigo-600 dark:text-indigo-400 font-medium">
+              <div className="flex justify-between text-blue-600 dark:text-blue-400 font-medium">
                 <span>Novo Plano Selecionado</span>
                 <span className="font-bold">{selectedPlanForMigration.name} ({selectedPlanForMigration.periodLabel})</span>
               </div>
@@ -574,7 +582,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 <span>Ajuste proporcional aplicado</span>
                 <span>Desconto imediato na fatura</span>
               </div>
-              <div className="pt-3 border-t border-gray-200 dark:border-[#3D3D45] flex justify-between font-bold text-base text-[#1A1A1A] dark:text-white">
+              <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between font-bold text-base text-slate-900 dark:text-white">
                 <span>Valor Final a Pagar</span>
                 <span>R$&nbsp;{selectedPlanForMigration.price.toFixed(2).replace('.', ',')}</span>
               </div>
@@ -587,12 +595,12 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 onClick={() => setPaymentMethod('cartao')}
                 className={`p-3.5 rounded-xl border-2 flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                   paymentMethod === 'cartao'
-                    ? 'border-[#1A1A1A] dark:border-white bg-indigo-50/50 dark:bg-indigo-950/20 text-[#1A1A1A] dark:text-[#F0F1F4]'
-                    : 'border-gray-200 dark:border-[#2D2D33] text-gray-500 hover:border-gray-300'
+                    ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 font-bold'
+                    : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
                 }`}
               >
                 <CreditCard size={22} />
-                <span className="text-xs font-semibold">Cartão de Crédito</span>
+                <span className="text-xs">Cartão</span>
               </button>
 
               <button
@@ -600,12 +608,12 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 onClick={() => setPaymentMethod('pix')}
                 className={`p-3.5 rounded-xl border-2 flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                   paymentMethod === 'pix'
-                    ? 'border-[#1A1A1A] dark:border-white bg-indigo-50/50 dark:bg-indigo-950/20 text-[#1A1A1A] dark:text-[#F0F1F4]'
-                    : 'border-gray-200 dark:border-[#2D2D33] text-gray-500 hover:border-gray-300'
+                    ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 font-bold'
+                    : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
                 }`}
               >
                 <QrCode size={22} />
-                <span className="text-xs font-semibold">PIX</span>
+                <span className="text-xs">PIX</span>
               </button>
 
               <button
@@ -613,12 +621,12 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 onClick={() => setPaymentMethod('boleto')}
                 className={`p-3.5 rounded-xl border-2 flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                   paymentMethod === 'boleto'
-                    ? 'border-[#1A1A1A] dark:border-white bg-indigo-50/50 dark:bg-indigo-950/20 text-[#1A1A1A] dark:text-[#F0F1F4]'
-                    : 'border-gray-200 dark:border-[#2D2D33] text-gray-500 hover:border-gray-300'
+                    ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 font-bold'
+                    : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
                 }`}
               >
                 <FileText size={22} />
-                <span className="text-xs font-semibold">Boleto</span>
+                <span className="text-xs">Boleto</span>
               </button>
             </div>
 
@@ -626,49 +634,49 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
             {paymentMethod === 'cartao' && (
               <div className="space-y-3.5 pt-2">
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Número do cartão</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">Número do cartão</label>
                   <input
                     type="text"
                     value={cardNumber}
                     onChange={(e) => handleCardNumberChange(e.target.value)}
                     placeholder="0000 0000 0000 0000"
                     maxLength={19}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                    className="w-full px-4 py-3 bg-white dark:bg-[#181A20] border border-slate-300 dark:border-white/15 rounded-xl text-sm text-slate-900 dark:text-zinc-100 outline-none focus:border-blue-600 dark:focus:border-blue-500 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Nome impresso no cartão</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">Nome impresso no cartão</label>
                   <input
                     type="text"
                     value={cardName}
                     onChange={(e) => setCardName(e.target.value)}
                     placeholder="Como aparece no cartão"
-                    className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                    className="w-full px-4 py-3 bg-white dark:bg-[#181A20] border border-slate-300 dark:border-white/15 rounded-xl text-sm text-slate-900 dark:text-zinc-100 outline-none focus:border-blue-600 dark:focus:border-blue-500 transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold mb-1">Validade</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">Validade</label>
                     <input
                       type="text"
                       value={cardExpiry}
                       onChange={(e) => handleExpiryChange(e.target.value)}
                       placeholder="MM/AA"
                       maxLength={5}
-                      className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                      className="w-full px-4 py-3 bg-white dark:bg-[#181A20] border border-slate-300 dark:border-white/15 rounded-xl text-sm text-slate-900 dark:text-zinc-100 outline-none focus:border-blue-600 dark:focus:border-blue-500 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold mb-1">CVV</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">CVV</label>
                     <input
                       type="text"
                       value={cardCvv}
                       onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
                       placeholder="123"
                       maxLength={4}
-                      className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                      className="w-full px-4 py-3 bg-white dark:bg-[#181A20] border border-slate-300 dark:border-white/15 rounded-xl text-sm text-slate-900 dark:text-zinc-100 outline-none focus:border-blue-600 dark:focus:border-blue-500 transition-all"
                     />
                   </div>
                 </div>
@@ -677,17 +685,17 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
 
             {/* FORM PIX */}
             {paymentMethod === 'pix' && (
-              <div className="text-center p-6 space-y-4 bg-gray-50 dark:bg-[#25252B] rounded-2xl border border-gray-100 dark:border-[#3D3D45]">
-                <div className="w-40 h-40 mx-auto bg-white dark:bg-[#1A1A1E] p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex items-center justify-center">
-                  <QrCode size={120} className="text-[#1A1A1A] dark:text-[#F0F1F4]" />
+              <div className="text-center p-6 space-y-4 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="w-40 h-40 mx-auto bg-white p-3 rounded-xl border border-slate-200 dark:border-zinc-700 flex items-center justify-center">
+                  <QrCode size={120} className="text-slate-900" />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
                   Escaneie o QR Code ou copie a chave PIX para confirmar a troca de plano:
                 </p>
                 <button
                   type="button"
                   onClick={handleCopyPix}
-                  className="py-2 px-5 bg-white dark:bg-[#1A1A1E] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-xs font-semibold text-[#1A1A1A] dark:text-[#F0F1F4] hover:bg-gray-100 dark:hover:bg-[#2D2D33] transition-all inline-flex items-center gap-2 cursor-pointer"
+                  className="py-2.5 px-5 bg-white dark:bg-[#20232B] border border-slate-300 dark:border-white/15 rounded-xl text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-all inline-flex items-center gap-2 cursor-pointer"
                 >
                   <Copy size={14} />
                   <span>{copiedPix ? 'Código PIX copiado!' : 'Copiar código PIX'}</span>
@@ -697,9 +705,9 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
 
             {/* FORM BOLETO */}
             {paymentMethod === 'boleto' && (
-              <div className="text-center p-6 space-y-3 bg-gray-50 dark:bg-[#25252B] rounded-2xl border border-gray-100 dark:border-[#3D3D45]">
-                <FileText size={44} className="mx-auto text-gray-400" />
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              <div className="text-center p-6 space-y-3 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10">
+                <FileText size={44} className="mx-auto text-slate-400 dark:text-zinc-500" />
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   Ao selecionar boleto, o novo plano será ativado após a compensação bancária.
                 </p>
               </div>
@@ -710,10 +718,10 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
               type="button"
               disabled={loading}
               onClick={handleConfirmPlanChange}
-              className="w-full py-4 bg-[#1A1A1A] hover:bg-[#2D2D2D] dark:bg-[#F0F1F4] dark:hover:bg-white dark:text-[#1A1A1A] text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white dark:border-black/30 dark:border-t-black rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <span>Confirmar Mudança de Plano</span>
@@ -726,7 +734,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
               <button
                 type="button"
                 onClick={() => setScreen('overview')}
-                className="text-xs text-gray-500 hover:text-[#1A1A1A] dark:hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1"
+                className="text-xs text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1"
               >
                 <ArrowLeft size={13} />
                 <span>Voltar para meus planos</span>
@@ -738,40 +746,35 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
         {/* SUCCESS SCREEN */}
         {screen === 'success' && selectedPlanForMigration && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             className="p-8 sm:p-14 text-center space-y-6 max-w-lg mx-auto"
           >
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="w-20 h-20 mx-auto bg-emerald-100 dark:bg-emerald-950/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-inner"
-            >
+            <div className="w-20 h-20 mx-auto bg-emerald-100 dark:bg-emerald-950/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-inner">
               <CheckCircle size={44} />
-            </motion.div>
+            </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0F1F4] mb-1">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">
                 Plano atualizado com sucesso!
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Sua migração para o <span className="font-bold text-[#1A1A1A] dark:text-white">Plano {selectedPlanForMigration.name}</span> foi concluída.
+              <p className="text-sm text-slate-500 dark:text-zinc-400">
+                Sua migração para o <span className="font-bold text-slate-900 dark:text-white">Plano {selectedPlanForMigration.name}</span> foi concluída.
               </p>
             </div>
 
-            <div className="p-5 bg-gray-50 dark:bg-[#25252B] rounded-2xl border border-gray-100 dark:border-[#3D3D45] text-xs space-y-2.5 text-left">
+            <div className="p-5 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10 text-xs space-y-2.5 text-left">
               <div className="flex justify-between">
-                <span className="text-gray-400">Novo Plano</span>
-                <span className="font-bold text-[#1A1A1A] dark:text-[#F0F1F4]">Plano {selectedPlanForMigration.name}</span>
+                <span className="text-slate-500 dark:text-zinc-400">Novo Plano</span>
+                <span className="font-bold text-slate-900 dark:text-white">Plano {selectedPlanForMigration.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Valor</span>
-                <span className="font-bold text-[#1A1A1A] dark:text-[#F0F1F4]">R$&nbsp;{selectedPlanForMigration.price.toFixed(2).replace('.', ',')}</span>
+                <span className="text-slate-500 dark:text-zinc-400">Valor</span>
+                <span className="font-bold text-slate-900 dark:text-white">R$&nbsp;{selectedPlanForMigration.price.toFixed(2).replace('.', ',')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Próxima renovação</span>
-                <span className="font-bold text-[#1A1A1A] dark:text-[#F0F1F4]">{calculateNextBillingDate(selectedPlanForMigration.id)}</span>
+                <span className="text-slate-500 dark:text-zinc-400">Próxima renovação</span>
+                <span className="font-bold text-slate-900 dark:text-white">{calculateNextBillingDate(selectedPlanForMigration.id)}</span>
               </div>
             </div>
 
@@ -781,7 +784,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 setScreen('overview');
                 if (onComplete) onComplete();
               }}
-              className="w-full py-4 bg-[#1A1A1A] hover:bg-[#2D2D2D] dark:bg-[#F0F1F4] dark:hover:bg-white dark:text-[#1A1A1A] text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] cursor-pointer"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 active:scale-[0.99] cursor-pointer"
             >
               <span>Voltar ao Meu Painel</span>
               <ArrowRight size={16} />
@@ -799,7 +802,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-[#1A1A1E] rounded-2xl p-6 sm:p-8 max-w-md w-full border border-gray-200 dark:border-gray-800 shadow-2xl space-y-4"
+              className="bg-white dark:bg-[#1A1D24] rounded-2xl p-6 sm:p-8 max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl space-y-4"
             >
               {!cancelSuccess ? (
                 <>
@@ -808,11 +811,11 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-[#1A1A1A] dark:text-white">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                       Cancelar Assinatura?
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                      Seu plano atual continuará ativo até <span className="font-semibold text-gray-700 dark:text-gray-200">{calculateNextBillingDate(activePlanObj.id)}</span>. Após essa data, seu acesso aos simulados e gabaritos comentados será limitado.
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                      Seu plano atual continuará ativo até <span className="font-semibold text-slate-800 dark:text-zinc-200">{calculateNextBillingDate(activePlanObj.id)}</span>. Após essa data, seu acesso aos simulados e gabaritos comentados será limitado.
                     </p>
                   </div>
 
@@ -827,7 +830,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowCancelModal(false)}
-                      className="w-full py-2.5 bg-gray-100 dark:bg-[#25252B] hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                      className="w-full py-2.5 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
                     >
                       Manter minha assinatura
                     </button>
@@ -835,14 +838,14 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 </>
               ) : (
                 <div className="text-center py-4 space-y-4">
-                  <div className="w-12 h-12 mx-auto bg-amber-100 dark:bg-amber-950/60 rounded-full flex items-center justify-center text-amber-600">
+                  <div className="w-12 h-12 mx-auto bg-amber-100 dark:bg-amber-950/60 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400">
                     <CheckCircle size={28} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#1A1A1A] dark:text-white">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
                       Solicitação registrada
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                       A renovação automática foi desativada. Você ainda pode aproveitar todos os benefícios até o fim do período já pago.
                     </p>
                   </div>
@@ -852,7 +855,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                       setShowCancelModal(false);
                       setCancelSuccess(false);
                     }}
-                    className="w-full py-3 bg-[#1A1A1A] dark:bg-white text-white dark:text-black rounded-xl text-xs font-bold cursor-pointer"
+                    className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold cursor-pointer"
                   >
                     Entendido
                   </button>

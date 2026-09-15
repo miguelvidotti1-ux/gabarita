@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ExternalLink, Library, ChevronRight } from 'lucide-react';
+import { X, ExternalLink, Library, ChevronRight, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PROVAS_LINKS } from '../data/provas_links';
 
@@ -15,9 +15,42 @@ const DATABASE: Record<string, { year: string; size: string }[]> = {
   Fuvest: Array.from({ length: 17 }, (_, i) => ({ year: (2026 - i).toString(), size: `${(3 + Math.random()).toFixed(1)} MB` })),
   Unicamp: Array.from({ length: 16 }, (_, i) => ({ year: (2025 - i).toString(), size: `${(2 + Math.random()).toFixed(1)} MB` })),
   Unesp: Array.from({ length: 16 }, (_, i) => ({ year: (2025 - i).toString(), size: `${(2.5 + Math.random()).toFixed(1)} MB` })),
+  ITA: Array.from({ length: 18 }, (_, i) => ({ year: (2026 - i).toString(), size: `${(3.2 + ((i * 3) % 10) * 0.15).toFixed(1)} MB` })),
+};
+
+export const getItaExamLink = (
+  year: string,
+  fase?: '1' | '2' | 'unica',
+  materia?: string
+): string => {
+  const y = parseInt(year, 10);
+  if (y >= 2019) {
+    if (fase === '2') {
+      if (materia) {
+        const key = `ITA_${year}_2_${materia}`;
+        if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
+        const matSlug = materia.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return `https://www.vestibular.ita.br/provas/${year}_fase2_${matSlug}.pdf`;
+      }
+      const key = `ITA_${year}_2_Prova`;
+      if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
+      return `https://www.vestibular.ita.br/provas/${year}_fase2.pdf`;
+    }
+    const key = `ITA_${year}_1_Prova`;
+    if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
+    return `https://www.vestibular.ita.br/provas/${year}_fase1.pdf`;
+  } else {
+    const key = `ITA_${year}_unica_Prova`;
+    if (PROVAS_LINKS[key]) return PROVAS_LINKS[key];
+    return `https://www.vestibular.ita.br/provas/${year}_prova.pdf`;
+  }
 };
 
 const getExamLink = (vest: string, year: string, day?: string, color?: string) => {
+  if (vest.toUpperCase() === 'ITA') {
+    return getItaExamLink(year);
+  }
+
   if (vest.toUpperCase() === 'ENEM' && day && color) {
     const key = `ENEM_${year}_${day}_${color}`;
     if (PROVAS_LINKS[key]) {
@@ -27,7 +60,8 @@ const getExamLink = (vest: string, year: string, day?: string, color?: string) =
     const cdMapDay1: Record<string, string> = { 'Azul': 'CD1', 'Amarelo': 'CD2', 'Branco': 'CD3', 'Verde': 'CD4', 'Rosa': 'CD4' };
     const cdMapDay2: Record<string, string> = { 'Amarelo': 'CD5', 'Cinza': 'CD6', 'Azul': 'CD7', 'Verde': 'CD8', 'Rosa': 'CD8' };
     
-    if (year === '2025' || year === '2024' || year === '2023') {
+    const yearNum = parseInt(year, 10);
+    if (yearNum >= 2015 && yearNum <= 2025) {
       const cd = day === '1' ? cdMapDay1[color] : cdMapDay2[color];
       if (cd) {
         return `https://download.inep.gov.br/enem/provas_e_gabaritos/${year}_PV_impresso_D${day}_${cd}.pdf`;
@@ -64,6 +98,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
   const [expandedEnemYear, setExpandedEnemYear] = useState<string | null>(null);
   const [expandedFuvestYear, setExpandedFuvestYear] = useState<string | null>(null);
   const [expandedFuvestDay, setExpandedFuvestDay] = useState<string | null>(null);
+  const [expandedItaYear, setExpandedItaYear] = useState<string | null>(null);
 
   const filteredDatabase = targetVestibular 
     ? { [targetVestibular]: DATABASE[targetVestibular] || [] }
@@ -73,6 +108,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
     setExpandedEnemYear(null);
     setExpandedFuvestYear(null);
     setExpandedFuvestDay(null);
+    setExpandedItaYear(null);
     onClose();
   };
 
@@ -117,22 +153,25 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-12 custom-scrollbar">
-              {Object.entries(filteredDatabase).map(([vest, items]) => (
-                <div key={vest} className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="px-4 py-1.5 bg-[var(--text-accent)] text-white text-sm font-black rounded-lg shadow-lg shadow-[var(--text-accent)]/20">
-                      {vest}
+              {Object.entries(filteredDatabase).map(([vest, items]) => {
+                return (
+                  <div key={vest} className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="px-4 py-1.5 bg-[var(--text-accent)] text-white text-sm font-black rounded-lg shadow-lg shadow-[var(--text-accent)]/20">
+                        {vest}
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                     </div>
-                    <div className="h-px flex-1 bg-gradient-to-r from-[var(--card-border)] to-transparent" />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {items.map(item => {
-                      const isEnem = vest === 'ENEM';
-                      const isFuvest = vest === 'Fuvest';
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {items.map(item => {
+                        const isEnem = vest === 'ENEM';
+                        const isIta = vest.toUpperCase() === 'ITA';
+                        const isFuvest = vest === 'Fuvest';
                       
-                      const isEnemExpanded = expandedEnemYear === item.year;
-                      const isFuvestExpanded = expandedFuvestYear === item.year;
+                        const isEnemExpanded = expandedEnemYear === item.year;
+                        const isItaExpanded = expandedItaYear === item.year;
+                        const isFuvestExpanded = expandedFuvestYear === item.year;
 
                       if (isEnem) {
                         return (
@@ -248,6 +287,134 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                       ))}
                                     </div>
                                   </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      }
+
+                      if (isIta) {
+                        const y = parseInt(item.year, 10);
+                        const is2Fases = y >= 2019;
+                        const is2025or2026 = y === 2025 || y === 2026;
+
+                        return (
+                          <div key={`${vest}-${item.year}`} className="flex flex-col gap-2">
+                            <button
+                              onClick={() => setExpandedItaYear(isItaExpanded ? null : item.year)}
+                              className={`group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
+                                isItaExpanded 
+                                  ? 'bg-[var(--text-accent)] border-[var(--text-accent)] shadow-lg text-white' 
+                                  : 'bg-[var(--bg-secondary)] border-[var(--card-border)] hover:bg-white dark:hover:bg-[var(--card-border)] hover:border-[var(--text-accent)] text-[var(--text-primary)]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-4">
+                                <span className={`w-12 h-12 flex items-center justify-center rounded-xl font-black text-sm shadow-md transition-all ${
+                                  isItaExpanded ? 'bg-white/20 text-white' : 'bg-gradient-to-br from-[#00b894] to-[#00cec9] text-white'
+                                }`}>
+                                  {item.year.slice(2)}
+                                </span>
+                                <div className="flex flex-col items-start">
+                                  <span className="text-sm font-black">{vest} {item.year}</span>
+                                  <span className={`text-[10px] font-bold ${isItaExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
+                                    {is2Fases ? 'Ver opções de fases' : 'Ver caderno integral'}
+                                  </span>
+                                </div>
+                              </div>
+                              <ChevronRight size={20} className={`transition-transform duration-300 ${isItaExpanded ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                              {isItaExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="overflow-hidden space-y-4 ml-2 pl-3 border-l-2 border-[var(--text-accent)]/30 mt-1"
+                                >
+                                  {is2Fases ? (
+                                    <>
+                                      {/* 1ª FASE Row */}
+                                      <div className="space-y-1.5 text-left">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-accent)]" />
+                                          <span className="text-[10px] font-black uppercase text-[var(--text-accent)] tracking-wider">
+                                            1ª FASE — Prova Objetiva
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-2">
+                                          <a
+                                            href={getItaExamLink(item.year, '1')}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500" />
+                                              <span>Caderno 1ª Fase</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity" />
+                                          </a>
+                                        </div>
+                                      </div>
+
+                                      {/* 2ª FASE Row */}
+                                      <div className="space-y-1.5 text-left">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                          <span className="text-[10px] font-black uppercase text-violet-500 dark:text-violet-400 tracking-wider">
+                                            2ª FASE — Provas Dissertativas
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          {[
+                                            { name: 'Matemática', dot: 'bg-amber-400', hover: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500' },
+                                            { name: 'Física', dot: 'bg-sky-500', hover: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500' },
+                                            { name: 'Química', dot: 'bg-emerald-500', hover: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500' },
+                                            ...(is2025or2026 ? [{ name: 'Português', dot: 'bg-purple-500', hover: 'hover:bg-purple-50 dark:hover:bg-purple-950/20 hover:border-purple-500' }] : []),
+                                          ].map((m) => (
+                                            <a
+                                              key={`ita-${item.year}-f2-${m.name}`}
+                                              href={getItaExamLink(item.year, '2', m.name)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className={`flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] ${m.hover} text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn`}
+                                            >
+                                              <div className="flex items-center gap-2 truncate">
+                                                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${m.dot}`} />
+                                                <span className="truncate">Caderno {m.name}</span>
+                                              </div>
+                                              <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity shrink-0 ml-1" />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="space-y-1.5 text-left">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">
+                                          PROVA ÚNICA — Formato Clássico
+                                        </span>
+                                      </div>
+                                      <div className="grid grid-cols-1 gap-2">
+                                        <a
+                                          href={getItaExamLink(item.year, 'unica')}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            <span>Caderno Integral (PDF)</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity" />
+                                        </a>
+                                      </div>
+                                    </div>
+                                  )}
                                 </motion.div>
                               )}
                             </AnimatePresence>
@@ -373,7 +540,8 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                     })}
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </motion.div>
         </div>
