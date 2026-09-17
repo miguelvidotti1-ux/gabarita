@@ -43,23 +43,17 @@ export default function App() {
   const [showSplash, setShowSplash] = React.useState(true);
   const [user, setUser] = React.useState<User | any | null>(() => {
     try {
-      const saved = localStorage.getItem('vestibularpro_session_user');
-      if (saved) {
-        return JSON.parse(saved);
+      const isAuth = localStorage.getItem('vestibularpro_authenticated') === 'true';
+      if (isAuth) {
+        const saved = localStorage.getItem('vestibularpro_session_user');
+        if (saved) {
+          return JSON.parse(saved);
+        }
       }
     } catch (e) {
       console.error("Error restoring session:", e);
     }
-    const defaultStudent = {
-      uid: 'estudante_vestpro',
-      email: 'estudante@vestibularpro.com.br',
-      displayName: 'Estudante VESTIBULARPRO',
-      isAnonymous: true,
-    };
-    try {
-      localStorage.setItem('vestibularpro_session_user', JSON.stringify(defaultStudent));
-    } catch (e) {}
-    return defaultStudent;
+    return null;
   });
   const [activeTab, setActiveTab] = React.useState('home');
   const [selectedVestibular, setSelectedVestibular] = React.useState<Vestibular>(Vestibular.ENEM);
@@ -100,6 +94,7 @@ export default function App() {
           }
           setUser(currentUser);
           try {
+            localStorage.setItem('vestibularpro_authenticated', 'true');
             localStorage.setItem('vestibularpro_session_user', JSON.stringify({
               uid: currentUser.uid,
               email: currentUser.email,
@@ -125,7 +120,9 @@ export default function App() {
       console.error('Logout error:', error);
     }
     try {
+      localStorage.removeItem('vestibularpro_authenticated');
       localStorage.removeItem('vestibularpro_session_user');
+      sessionStorage.removeItem('auth_token');
     } catch (e) {}
     setUser(null);
     setActiveTab('home');
@@ -142,6 +139,10 @@ export default function App() {
           email: 'miguelvidotti1@gmail.com',
           displayName: 'Miguel Vidotti'
         };
+        try {
+          localStorage.setItem('vestibularpro_authenticated', 'true');
+          localStorage.setItem('vestibularpro_session_user', JSON.stringify(mockUser));
+        } catch (e) {}
         setUser(mockUser);
         setActiveTab('home');
       } else {
@@ -263,12 +264,17 @@ export default function App() {
       case 'login':
         return (
           <LoginScreen
-            onLoginSuccess={(u) => {
+            onLoginSuccess={(u, isNewUser) => {
               setUser(u);
               try {
+                localStorage.setItem('vestibularpro_authenticated', 'true');
                 localStorage.setItem('vestibularpro_session_user', JSON.stringify(u));
               } catch (e) {}
-              setActiveTab('home');
+              if (isNewUser) {
+                setActiveTab('planos');
+              } else {
+                setActiveTab('home');
+              }
             }}
           />
         );
@@ -296,11 +302,17 @@ export default function App() {
         </div>
       ) : !user ? (
         <LoginScreen
-          onLoginSuccess={(userObj) => {
+          onLoginSuccess={(userObj, isNewUser) => {
             setUser(userObj);
             try {
+              localStorage.setItem('vestibularpro_authenticated', 'true');
               localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
             } catch (e) {}
+            if (isNewUser) {
+              setActiveTab('planos');
+            } else {
+              setActiveTab('home');
+            }
           }}
         />
       ) : (

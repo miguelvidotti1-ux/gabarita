@@ -9,6 +9,7 @@ import PomodoroTimer from './PomodoroTimer';
 import StudyMethodsSection from './StudyMethodsSection';
 import SubjectPerformanceEvolutionChart, { QuizResultDoc } from './SubjectPerformanceEvolutionChart';
 import QuizAccuracyHistoryChart from './QuizAccuracyHistoryChart';
+import RankingDeDesempenho from './RankingDeDesempenho';
 import { GraficosProvider, useGraficos } from './GraficosContext';
 import { SeletorFiltros } from './SeletorFiltros';
 import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
@@ -853,39 +854,13 @@ function DashboardInner({ selectedVestibular }: DashboardProps) {
         </div>
 
         {/* Ranking de Desempenho */}
-        <div className="bg-[var(--bg-card)] text-[var(--text-main)] p-8 rounded-2xl border border-[var(--border-light)] shadow-sm">
-          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6 flex items-center gap-2">
-            <Trophy className="text-amber-500" />
-            Ranking de Desempenho
-          </h3>
-          <div className="space-y-3">
-            {[
-              { name: 'Ana Silva', score: 95, subject: 'Matemática' },
-              { name: 'Você', score: 88, subject: 'Matemática' },
-              { name: 'Carlos Souza', score: 82, subject: 'Matemática' },
-              { name: 'Beatriz Lima', score: 79, subject: 'Matemática' },
-            ].map((user, i) => {
-              const isUser = i === 1;
-              const rankColor = i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-[var(--text-muted)]';
-              return (
-                <div key={i} className={`flex items-center justify-between p-4 rounded-xl transition-colors ${
-                  isUser 
-                    ? 'bg-[var(--primary)] text-white shadow-sm' 
-                    : 'bg-[var(--bg-hover)] dark:bg-[#15181E] border border-[var(--border-light)] text-[var(--text-main)]'
-                }`}>
-                  <div className="flex items-center gap-4 overflow-hidden">
-                    <span className={`font-bold text-lg shrink-0 ${isUser ? 'text-white' : rankColor}`}>#{i + 1}</span>
-                    <span className={`font-medium truncate ${isUser ? 'text-white' : 'text-[var(--text-main)]'}`}>{user.name}</span>
-                  </div>
-                  <div className="flex items-center gap-6 shrink-0 ml-4">
-                    <span className={`text-sm hidden sm:inline truncate max-w-[100px] ${isUser ? 'text-blue-100' : 'text-[var(--text-muted)]'}`}>{user.subject}</span>
-                    <span className={`font-bold ${isUser ? 'text-white' : 'text-[var(--text-main)]'}`}>{user.score}%</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <RankingDeDesempenho
+          currentUserScore={stats.accuracyRate || 88}
+          currentUserResolvedCount={stats.resolvedQuestions || 420}
+          currentUserAccuracy={stats.accuracyRate || 88}
+          currentUserStreak={levelStatus?.global?.streak || 7}
+          currentUserVestibular={selectedVestibular || 'ENEM'}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

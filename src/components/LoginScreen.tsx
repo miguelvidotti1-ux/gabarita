@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
-  OAuthProvider,
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,22 +13,26 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { 
   ArrowRight, 
   Key, 
-  Sparkles,
-  Check,
-  X,
-  Eye,
-  EyeOff,
-  ShieldCheck,
+  Sparkles, 
+  Check, 
+  Eye, 
+  EyeOff, 
+  ShieldCheck, 
+  Mail, 
+  Lock, 
+  User as UserIcon, 
+  AlertCircle,
+  Zap,
   TrendingUp,
-  Mail,
-  Lock,
-  User as UserIcon,
+  Target,
+  Award,
   CheckCircle2,
-  AlertCircle
+  BookOpen
 } from 'lucide-react';
+import { VestibularPro3DMark } from './VestibularProLogo';
 
 interface LoginScreenProps {
-  onLoginSuccess?: (userObj: any) => void;
+  onLoginSuccess?: (userObj: any, isNewUser?: boolean) => void;
 }
 
 type ScreenType = 'login' | 'cadastro' | 'recuperar';
@@ -45,10 +48,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   // Form states - Login
-  const [email, setEmail] = useState(() => localStorage.getItem('vesthub_remember_email') || '');
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem('vesthub_remember_email') || '';
+    } catch {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('vesthub_remember_email'));
+  const [rememberMe, setRememberMe] = useState(() => {
+    try {
+      return !!localStorage.getItem('vesthub_remember_email');
+    } catch {
+      return false;
+    }
+  });
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
@@ -126,12 +141,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       role: 'user'
     };
     try {
+      localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(guestUser));
     } catch (e) {}
     showToast('success', 'Acesso liberado! Bem-vindo ao VestHub.');
     setTimeout(() => {
       if (onLoginSuccess) onLoginSuccess(guestUser);
-    }, 400);
+    }, 350);
   };
 
   // Social login
@@ -151,14 +167,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             displayName: result.user.displayName || 'Miguel Vidotti'
           };
           await handleCreateUserDocument(userObj.uid, userObj.email, userObj.displayName);
+          localStorage.setItem('vestibularpro_authenticated', 'true');
           localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
           showToast('success', 'Login realizado com sucesso!');
           setTimeout(() => {
             if (onLoginSuccess) onLoginSuccess(userObj);
-          }, 600);
+          }, 450);
           return;
         } catch (popupErr: any) {
-          console.warn('Fallback login Google ativo:', popupErr?.message);
+          console.warn('Fallback login Google:', popupErr?.message);
           let fallbackUid = 'google_user_' + Date.now();
           try {
             const anonRes = await signInAnonymously(auth);
@@ -170,11 +187,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             displayName: 'Miguel Vidotti'
           };
           await handleCreateUserDocument(userObj.uid, userObj.email, userObj.displayName);
+          localStorage.setItem('vestibularpro_authenticated', 'true');
           localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
           showToast('success', 'Login com Google concluído!');
           setTimeout(() => {
             if (onLoginSuccess) onLoginSuccess(userObj);
-          }, 600);
+          }, 450);
           return;
         }
       }
@@ -185,11 +203,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         email: `estudante.${providerName}@vesthub.com.br`,
         displayName: `Estudante ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}`
       };
+      localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(mockUser));
       showToast('success', `Login via ${providerName.toUpperCase()} concluído!`);
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(mockUser);
-      }, 600);
+      }, 450);
 
     } catch (err: any) {
       showToast('error', 'Falha na conexão com provedor. Tente novamente.');
@@ -253,12 +272,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         localStorage.removeItem('vesthub_remember_email');
       }
 
+      localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
       showToast('success', 'Login realizado! Entrando na plataforma...');
 
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(userObj);
-      }, 700);
+      }, 500);
 
     } catch (err: any) {
       showToast('error', 'E-mail ou senha incorretos. Tente novamente.');
@@ -308,12 +328,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       }
 
       await handleCreateUserDocument(userObj.uid, userObj.email, userObj.displayName);
+      localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
-      showToast('success', 'Conta criada com sucesso! Bem-vindo.');
+      showToast('success', 'Conta criada com sucesso! Abrindo planos...');
 
       setTimeout(() => {
-        if (onLoginSuccess) onLoginSuccess(userObj);
-      }, 800);
+        if (onLoginSuccess) onLoginSuccess(userObj, true);
+      }, 500);
 
     } catch (err: any) {
       setCadError(err?.message || 'Falha ao criar conta. Tente novamente.');
@@ -352,7 +373,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     }
 
     const regexChave = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
-    const validCodes = ['VIP-2026-VEST', 'VEST-2026-VIP', 'PRO-VEST-2026', 'MEDICINA-2026'];
+    const validCodes = ['VIP-2026-VEST', 'VEST-2026-VIP', 'PRO-VEST-2026', 'MEDICINA-2026', 'ENEM-2026-PASS'];
 
     if (!regexChave.test(key) && !validCodes.includes(key)) {
       setVipError('Formato inválido. Use o padrão: XXXX-XXXX-XXXX');
@@ -373,115 +394,211 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         displayName: 'Estudante VIP',
         role: 'vip'
       };
+      localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(vipUser));
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(vipUser);
-      }, 600);
-    }, 800);
+      }, 500);
+    }, 700);
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#FAFAFA] font-sans antialiased selection:bg-[#1E3A8A] selection:text-white">
-      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+    <div className="relative min-h-screen bg-[#07090E] text-[#FAFAFA] font-sans antialiased selection:bg-blue-600 selection:text-white overflow-hidden flex flex-col justify-center">
+      
+      {/* ATMOSPHERIC BACKGROUND ELEMENTS */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Top-left Blue Aurora Radial Glow */}
+        <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-transparent rounded-full blur-[140px]" />
         
-        {/* ===== COLUNA FORMULÁRIO ===== */}
-        <main className="flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-12 max-w-xl mx-auto w-full">
+        {/* Center-right Sky Glow */}
+        <div className="absolute top-1/3 -right-40 w-[550px] h-[550px] bg-sky-500/10 rounded-full blur-[150px]" />
+        
+        {/* Bottom Ambient Glow */}
+        <div className="absolute -bottom-40 left-1/3 w-[500px] h-[500px] bg-indigo-950/30 rounded-full blur-[130px]" />
+        
+        {/* Geometric High-Tech Grid Texture */}
+        <div 
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
+            backgroundSize: '48px 48px'
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 w-full min-h-screen grid grid-cols-1 lg:grid-cols-12">
+        
+        {/* ========================================================
+            COLUNA FORMULÁRIO (ESQUERDA)
+        ======================================================== */}
+        <main className="lg:col-span-7 xl:col-span-6 flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-12 xl:px-20 py-10 sm:py-16 max-w-2xl mx-auto w-full">
           
-          {/* Logo Row */}
-          <div className="flex items-center gap-2.5 mb-10">
-            <div className="w-9 h-9 bg-[#1E3A8A] rounded-lg flex items-center justify-center text-white font-bold text-[17px] shadow-sm">
-              V
+          {/* HEADER COM LOGO 3D & BRANDING */}
+          <motion.div 
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex items-center justify-between mb-8"
+          >
+            <div className="flex items-center gap-3.5">
+              {/* 3D Black Squircle Badge with Graduation Cap */}
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-[#1E293B] to-[#0A0E17] border border-blue-500/30 shadow-[0_0_24px_rgba(59,130,246,0.3)] flex items-center justify-center p-2.5 relative group">
+                <div className="absolute inset-0 rounded-2xl bg-blue-500/10 blur-sm group-hover:bg-blue-500/20 transition-all" />
+                <VestibularPro3DMark className="w-full h-full relative z-10" />
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold tracking-tight text-[#FAFAFA]">
+                    VestHub
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-400/30 text-[10px] font-bold text-blue-400 tracking-wider">
+                    PRO 2026
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-medium">
+                  Preparação Inteligente para Vestibulares
+                </p>
+              </div>
             </div>
-            <span className="text-[17px] font-bold tracking-tight text-[#FAFAFA]">
-              VestHub
-            </span>
+
+            {/* Chave VIP rápida no topo */}
+            <button
+              type="button"
+              onClick={() => setShowVipModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all cursor-pointer"
+            >
+              <Key size={13} className="text-amber-400" />
+              <span className="hidden sm:inline">Chave VIP</span>
+            </button>
+          </motion.div>
+
+          {/* TAB SWITCHER: ENTRAR / CRIAR CONTA */}
+          <div className="flex items-center p-1 bg-[#121620] border border-white/10 rounded-xl mb-7 relative">
+            <button
+              type="button"
+              onClick={() => setScreen('login')}
+              className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative z-10 ${
+                screen === 'login' 
+                  ? 'text-white shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {screen === 'login' && (
+                <motion.div
+                  layoutId="auth-tab-pill"
+                  className="absolute inset-0 bg-blue-600 rounded-lg -z-10 shadow-lg shadow-blue-600/40"
+                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                />
+              )}
+              Entrar na Conta
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setScreen('cadastro')}
+              className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative z-10 ${
+                screen === 'cadastro' 
+                  ? 'text-white shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {screen === 'cadastro' && (
+                <motion.div
+                  layoutId="auth-tab-pill"
+                  className="absolute inset-0 bg-blue-600 rounded-lg -z-10 shadow-lg shadow-blue-600/40"
+                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                />
+              )}
+              Criar Conta
+            </button>
           </div>
 
           <AnimatePresence mode="wait">
             
-            {/* TELA DE LOGIN */}
+            {/* ================= TELA DE LOGIN ================= */}
             {screen === 'login' && (
               <motion.div
                 key="screen-login"
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
               >
-                <h1 className="text-[26px] font-bold text-[#FAFAFA] mb-1.5 tracking-tight">
-                  Entrar na conta
-                </h1>
-                <p className="text-sm text-[#A3A3A3] mb-7 leading-relaxed">
-                  Acesse seu cronograma, simulados e estatísticas de aprovação.
-                </p>
+                <div className="mb-6">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
+                    Bem-vindo de volta! 👋
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Acesse seu cronograma, simulados e estatísticas de aprovação.
+                  </p>
+                </div>
 
-                {/* Botão Acesso Instantâneo Modo Estudante */}
-                <button
-                  type="button"
-                  onClick={handleInstantGuestAccess}
-                  className="w-full mb-5 py-3 px-4 bg-gradient-to-r from-[#1E3A8A] to-[#2563EB] hover:from-[#1E40AF] hover:to-[#1D4ED8] text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-900/20 active:scale-[0.99] cursor-pointer"
-                >
-                  <Sparkles size={16} className="text-amber-300 animate-pulse" />
-                  <span>Acessar Plataforma Agora (Modo Estudante)</span>
-                  <ArrowRight size={15} />
-                </button>
-
-                {/* Botões sociais */}
-                <div className="flex gap-2.5 mb-5">
+                {/* BOTÕES SOCIAIS */}
+                <div className="grid grid-cols-3 gap-2.5 mb-6">
                   <button 
                     type="button" 
-                    className="flex-1 p-[11px] bg-[#1A1A1A] border border-[#404040] hover:border-[#525252] hover:bg-[#262626] rounded-xl text-[#FAFAFA] cursor-pointer flex items-center justify-center transition-all disabled:opacity-50" 
+                    className="p-3 bg-[#131722] border border-white/10 hover:border-slate-400 hover:bg-[#1A1F2C] rounded-xl text-slate-200 hover:text-white cursor-pointer flex items-center justify-center gap-2 transition-all disabled:opacity-50 group shadow-sm" 
                     aria-label="Entrar com Apple" 
                     onClick={() => loginSocial('apple')}
                     disabled={loading}
+                    title="Entrar com Apple"
                   >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                     </svg>
+                    <span className="text-xs font-semibold hidden sm:inline">Apple</span>
                   </button>
+
                   <button 
                     type="button" 
-                    className="flex-1 p-[11px] bg-[#1A1A1A] border border-[#404040] hover:border-[#525252] hover:bg-[#262626] rounded-xl text-[#FAFAFA] cursor-pointer flex items-center justify-center transition-all disabled:opacity-50" 
+                    className="p-3 bg-[#131722] border border-white/10 hover:border-slate-400 hover:bg-[#1A1F2C] rounded-xl text-slate-200 hover:text-white cursor-pointer flex items-center justify-center gap-2 transition-all disabled:opacity-50 group shadow-sm" 
                     aria-label="Entrar com Google" 
                     onClick={() => loginSocial('google')}
                     disabled={loading}
+                    title="Entrar com Google"
                   >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                       <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.96 10.96 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/>
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                     </svg>
+                    <span className="text-xs font-semibold hidden sm:inline">Google</span>
                   </button>
+
                   <button 
                     type="button" 
-                    className="flex-1 p-[11px] bg-[#1A1A1A] border border-[#404040] hover:border-[#525252] hover:bg-[#262626] rounded-xl text-[#FAFAFA] cursor-pointer flex items-center justify-center transition-all disabled:opacity-50" 
+                    className="p-3 bg-[#131722] border border-white/10 hover:border-slate-400 hover:bg-[#1A1F2C] rounded-xl text-slate-200 hover:text-white cursor-pointer flex items-center justify-center gap-2 transition-all disabled:opacity-50 group shadow-sm" 
                     aria-label="Entrar com Microsoft" 
                     onClick={() => loginSocial('microsoft')}
                     disabled={loading}
+                    title="Entrar com Microsoft"
                   >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                       <path fill="#F25022" d="M1 1h10.5v10.5H1z"/>
                       <path fill="#7FBA00" d="M12.5 1H23v10.5H12.5z"/>
                       <path fill="#00A4EF" d="M1 12.5h10.5V23H1z"/>
                       <path fill="#FFB900" d="M12.5 12.5H23V23H12.5z"/>
                     </svg>
+                    <span className="text-xs font-semibold hidden sm:inline">Microsoft</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3 text-[#737373] text-xs mb-5" role="separator">
-                  <div className="flex-1 h-[1px] bg-[#262626]" />
-                  <span>ou com e-mail</span>
-                  <div className="flex-1 h-[1px] bg-[#262626]" />
+                <div className="flex items-center gap-3 text-slate-500 text-xs mb-6" role="separator">
+                  <div className="flex-1 h-[1px] bg-white/10" />
+                  <span>ou continue com e-mail</span>
+                  <div className="flex-1 h-[1px] bg-white/10" />
                 </div>
 
-                {/* Formulário com validação */}
+                {/* FORMULÁRIO DE LOGIN */}
                 <form onSubmit={handleLogin} noValidate className="space-y-4">
                   <div>
-                    <label htmlFor="email" className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                      Seu e-mail
+                    <label htmlFor="email" className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                      Seu E-mail
                     </label>
                     <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
                       <input 
                         type="email" 
                         id="email" 
@@ -498,17 +615,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                             setEmailError('Digite um e-mail válido.');
                           }
                         }}
-                        placeholder="nome@exemplo.com" 
+                        placeholder="estudante@exemplo.com" 
                         required
-                        className={`w-full py-3 px-3.5 bg-[#1A1A1A] border rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373] ${
+                        className={`w-full py-3 pl-10 pr-4 bg-[#111520] border rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600 ${
                           emailError 
-                            ? 'border-[#DC2626] shadow-[0_0_0_3px_rgba(220,38,38,0.12)]' 
-                            : 'border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)]'
+                            ? 'border-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.15)]' 
+                            : 'border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)]'
                         }`}
                       />
                     </div>
                     {emailError && (
-                      <div className="text-xs text-[#DC2626] mt-1.5 flex items-center gap-1 font-medium" role="alert">
+                      <div className="text-xs text-red-400 mt-1.5 flex items-center gap-1 font-medium" role="alert">
                         <AlertCircle size={13} />
                         <span>{emailError}</span>
                       </div>
@@ -517,18 +634,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label htmlFor="password" className="block text-[13px] font-semibold text-[#FAFAFA]">
-                        Sua senha
+                      <label htmlFor="password" className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Sua Senha
                       </label>
                       <button
                         type="button"
                         onClick={() => setScreen('recuperar')}
-                        className="text-xs text-[#A3A3A3] hover:text-[#FAFAFA] underline cursor-pointer transition-colors"
+                        className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer transition-colors"
                       >
                         Esqueci minha senha
                       </button>
                     </div>
                     <div className="relative">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
                       <input 
                         type={showPassword ? 'text' : 'password'} 
                         id="password" 
@@ -541,273 +659,286 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                         }}
                         placeholder="••••••••"
                         required
-                        className={`w-full py-3 pl-3.5 pr-11 bg-[#1A1A1A] border rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373] ${
+                        className={`w-full py-3 pl-10 pr-11 bg-[#111520] border rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600 ${
                           passwordError 
-                            ? 'border-[#DC2626] shadow-[0_0_0_3px_rgba(220,38,38,0.12)]' 
-                            : 'border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)]'
+                            ? 'border-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.15)]' 
+                            : 'border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)]'
                         }`}
                       />
                       <button 
                         type="button" 
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#FAFAFA] p-1.5 rounded-md hover:bg-[#262626] transition-colors cursor-pointer" 
-                        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                         onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-500 hover:text-slate-300 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+                        aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                     {passwordError && (
-                      <div className="text-xs text-[#DC2626] mt-1.5 flex items-center gap-1 font-medium" role="alert">
+                      <div className="text-xs text-red-400 mt-1.5 flex items-center gap-1 font-medium" role="alert">
                         <AlertCircle size={13} />
                         <span>{passwordError}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 my-2 text-sm text-[#A3A3A3]">
-                    <input 
-                      type="checkbox" 
-                      id="remember" 
-                      name="remember"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-[#404040] bg-[#1A1A1A] accent-[#1E3A8A] cursor-pointer"
-                    />
-                    <label htmlFor="remember" className="cursor-pointer select-none text-[13px]">
-                      Lembrar meus dados de acesso
+                  <div className="flex items-center justify-between py-1">
+                    <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 rounded border-white/10 bg-[#111520] text-blue-600 focus:ring-blue-500/30 accent-blue-600 cursor-pointer"
+                      />
+                      <span>Lembrar meus dados de acesso</span>
                     </label>
                   </div>
 
                   <button 
                     type="submit" 
-                    className="w-full py-3.5 px-4 bg-[#1E3A8A] hover:bg-[#1E40AF] text-white rounded-xl text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
                     disabled={loading}
+                    className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading ? (
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
-                      <span>Entrar na Plataforma</span>
+                      <>
+                        <span>Entrar na Plataforma</span>
+                        <ArrowRight size={16} />
+                      </>
                     )}
                   </button>
                 </form>
 
-                <div className="mt-6 text-center text-[13px] text-[#A3A3A3]">
-                  Novo por aqui?{' '}
-                  <button 
-                    type="button" 
-                    onClick={() => setScreen('cadastro')}
-                    className="text-[#FAFAFA] font-semibold hover:underline cursor-pointer ml-1"
-                  >
-                    Cadastre-se gratuitamente
-                  </button>
+                {/* FOOTER DO FORMULÁRIO */}
+                <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-slate-400 flex flex-col items-center gap-3">
+                  <p>
+                    Ainda não possui uma conta?{' '}
+                    <button 
+                      type="button" 
+                      onClick={() => setScreen('cadastro')}
+                      className="text-blue-400 font-semibold hover:text-blue-300 underline cursor-pointer"
+                    >
+                      Criar Conta
+                    </button>
+                  </p>
+
+                  <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                    <ShieldCheck size={14} className="text-emerald-400" />
+                    <span>Ambiente Criptografado SSL • Dados Protegidos pela LGPD</span>
+                  </div>
                 </div>
 
-                <div className="mt-3 text-center">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowVipModal(true)}
-                    className="text-[#737373] hover:text-[#A3A3A3] text-xs underline cursor-pointer transition-colors"
-                  >
-                    Resgatar chave de acesso VIP
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-center gap-1.5 mt-7 text-[11px] text-[#737373]">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
-                  <span>Ambiente seguro — seus dados são protegidos</span>
-                </div>
               </motion.div>
             )}
 
-            {/* TELA DE CADASTRO */}
+            {/* ================= TELA DE CADASTRO ================= */}
             {screen === 'cadastro' && (
               <motion.div
                 key="screen-cadastro"
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
               >
-                <h1 className="text-[26px] font-bold text-[#FAFAFA] mb-1.5 tracking-tight">
-                  Criar sua conta
-                </h1>
-                <p className="text-sm text-[#A3A3A3] mb-6 leading-relaxed">
-                  Junte-se a milhares de vestibulandos rumo à aprovação.
-                </p>
+                <div className="mb-6">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
+                    Criar sua conta
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Feito para vestibulandos de ENEM, FUVEST e UNICAMP.
+                  </p>
+                </div>
 
                 {cadError && (
-                  <div className="mb-4 p-3 bg-red-950/40 border border-red-800/60 rounded-xl text-xs text-red-300 flex items-center gap-2 font-medium">
-                    <AlertCircle size={14} className="shrink-0 text-red-400" />
+                  <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs mb-5 flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
                     <span>{cadError}</span>
                   </div>
                 )}
 
-                <form onSubmit={handleCadastro} className="space-y-4">
+                <form onSubmit={handleCadastro} noValidate className="space-y-4">
                   <div>
-                    <label className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                      Nome completo
-                    </label>
-                    <input 
-                      type="text" 
-                      value={cadNome}
-                      onChange={(e) => setCadNome(e.target.value)}
-                      placeholder="Ex: Carlos Oliveira" 
-                      required
-                      className="w-full py-3 px-3.5 bg-[#1A1A1A] border border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)] rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                      E-mail
-                    </label>
-                    <input 
-                      type="email" 
-                      value={cadEmail}
-                      onChange={(e) => setCadEmail(e.target.value)}
-                      placeholder="nome@exemplo.com" 
-                      required
-                      className="w-full py-3 px-3.5 bg-[#1A1A1A] border border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)] rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                      Senha (mínimo 6 caracteres)
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                      Nome Completo
                     </label>
                     <div className="relative">
+                      <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
                       <input 
-                        type={showCadSenha ? 'text' : 'password'} 
-                        value={cadSenha}
-                        onChange={(e) => setCadSenha(e.target.value)}
-                        placeholder="••••••••"
+                        type="text" 
+                        value={cadNome}
+                        onChange={(e) => setCadNome(e.target.value)}
+                        placeholder="Seu nome"
                         required
-                        className="w-full py-3 pl-3.5 pr-11 bg-[#1A1A1A] border border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)] rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373]"
+                        className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
                       />
-                      <button 
-                        type="button" 
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#FAFAFA] p-1.5 rounded-md hover:bg-[#262626] transition-colors cursor-pointer" 
-                        onClick={() => setShowCadSenha(!showCadSenha)}
-                      >
-                        {showCadSenha ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                      Confirme sua senha
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                      E-mail de Estudos
                     </label>
-                    <input 
-                      type="password" 
-                      value={cadConfirmaSenha}
-                      onChange={(e) => setCadConfirmaSenha(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="w-full py-3 px-3.5 bg-[#1A1A1A] border border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)] rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373]"
-                    />
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
+                      <input 
+                        type="email" 
+                        value={cadEmail}
+                        onChange={(e) => setCadEmail(e.target.value)}
+                        placeholder="nome@exemplo.com"
+                        required
+                        className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Criar Senha
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
+                        <input 
+                          type={showCadSenha ? 'text' : 'password'} 
+                          value={cadSenha}
+                          onChange={(e) => setCadSenha(e.target.value)}
+                          placeholder="Mínimo 6 dígitos"
+                          required
+                          className="w-full py-3 pl-10 pr-10 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowCadSenha(!showCadSenha)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-300"
+                        >
+                          {showCadSenha ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Confirmar Senha
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
+                        <input 
+                          type="password" 
+                          value={cadConfirmaSenha}
+                          onChange={(e) => setCadConfirmaSenha(e.target.value)}
+                          placeholder="Repita a senha"
+                          required
+                          className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <button 
                     type="submit" 
-                    className="w-full py-3.5 px-4 bg-[#1E3A8A] hover:bg-[#1E40AF] text-white rounded-xl text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-60"
                     disabled={loading}
+                    className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 cursor-pointer disabled:opacity-60"
                   >
                     {loading ? (
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
-                      <span>Cadastrar Gratuitamente</span>
+                      <>
+                        <span>Criar Conta</span>
+                        <ArrowRight size={16} />
+                      </>
                     )}
                   </button>
                 </form>
 
-                <div className="mt-6 text-center text-[13px] text-[#A3A3A3]">
+                <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-slate-400">
                   Já possui uma conta?{' '}
                   <button 
                     type="button" 
                     onClick={() => setScreen('login')}
-                    className="text-[#FAFAFA] font-semibold hover:underline cursor-pointer ml-1"
+                    className="text-blue-400 font-semibold hover:text-blue-300 underline cursor-pointer"
                   >
-                    Fazer Login
+                    Acesse seu login
                   </button>
                 </div>
               </motion.div>
             )}
 
-            {/* TELA DE RECUPERAR SENHA */}
+            {/* ================= TELA DE RECUPERAÇÃO ================= */}
             {screen === 'recuperar' && (
               <motion.div
                 key="screen-recuperar"
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
               >
-                <h1 className="text-[26px] font-bold text-[#FAFAFA] mb-1.5 tracking-tight">
-                  Recuperar senha
-                </h1>
-                <p className="text-sm text-[#A3A3A3] mb-6 leading-relaxed">
-                  Digite seu e-mail cadastrado e enviaremos um link com instruções para redefinição.
-                </p>
-
-                {recError && (
-                  <div className="mb-4 p-3 bg-red-950/40 border border-red-800/60 rounded-xl text-xs text-red-300 flex items-center gap-2 font-medium">
-                    <AlertCircle size={14} className="shrink-0 text-red-400" />
-                    <span>{recError}</span>
-                  </div>
-                )}
+                <div className="mb-6">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
+                    Recuperar senha
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Informe seu e-mail para receber as instruções de redefinição de acesso.
+                  </p>
+                </div>
 
                 {recSent ? (
-                  <div className="p-4 bg-emerald-950/40 border border-emerald-800/60 rounded-xl text-emerald-300 space-y-2 mb-6">
-                    <div className="flex items-center gap-2 font-bold text-sm">
-                      <CheckCircle2 size={18} className="text-emerald-400" />
-                      <span>E-mail de recuperação enviado!</span>
+                  <div className="p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-center space-y-3">
+                    <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                      <CheckCircle2 size={24} />
                     </div>
-                    <p className="text-xs text-emerald-200/80 leading-relaxed">
-                      Verifique sua caixa de entrada e a pasta de spam. Siga o link enviado para cadastrar uma nova senha.
+                    <h3 className="font-bold text-sm text-white">Instruções enviadas!</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Verifique sua caixa de entrada e pasta de spam para redefinir sua senha com segurança.
                     </p>
                   </div>
                 ) : (
-                  <form onSubmit={handleRecuperar} className="space-y-4">
+                  <form onSubmit={handleRecuperar} noValidate className="space-y-4">
                     <div>
-                      <label className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                        Seu e-mail
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        E-mail cadastrado
                       </label>
-                      <input 
-                        type="email" 
-                        value={recEmail}
-                        onChange={(e) => setRecEmail(e.target.value)}
-                        placeholder="nome@exemplo.com" 
-                        required
-                        className="w-full py-3 px-3.5 bg-[#1A1A1A] border border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)] rounded-xl text-[#FAFAFA] text-sm outline-none transition-all placeholder:text-[#737373]"
-                      />
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
+                        <input 
+                          type="email" 
+                          value={recEmail || email}
+                          onChange={(e) => setRecEmail(e.target.value)}
+                          placeholder="estudante@exemplo.com"
+                          required
+                          className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
+                        />
+                      </div>
+                      {recError && (
+                        <p className="text-xs text-red-400 mt-1.5 flex items-center gap-1">
+                          <AlertCircle size={13} />
+                          <span>{recError}</span>
+                        </p>
+                      )}
                     </div>
 
                     <button 
                       type="submit" 
-                      className="w-full py-3.5 px-4 bg-[#1E3A8A] hover:bg-[#1E40AF] text-white rounded-xl text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-60"
                       disabled={loading}
+                      className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 cursor-pointer disabled:opacity-60"
                     >
                       {loading ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
-                        <span>Enviar Instruções</span>
+                        <span>Enviar Link de Recuperação</span>
                       )}
                     </button>
                   </form>
                 )}
 
-                <div className="mt-6 text-center text-[13px] text-[#A3A3A3]">
+                <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-slate-400">
                   <button 
                     type="button" 
                     onClick={() => {
                       setScreen('login');
                       setRecSent(false);
                     }}
-                    className="text-[#FAFAFA] font-semibold hover:underline cursor-pointer"
+                    className="text-slate-300 font-semibold hover:text-white underline cursor-pointer"
                   >
                     ← Voltar para o login
                   </button>
@@ -819,144 +950,206 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
         </main>
 
-        {/* ===== COLUNA DE MARKETING (PROMO PANEL) ===== */}
-        <aside className="hidden lg:flex flex-col justify-center px-8 lg:px-14 xl:px-20 py-12 bg-[#141414] border-l border-[#262626] relative overflow-hidden">
+        {/* ========================================================
+            COLUNA DE MARKETING & COCKPIT VISUAL (DIREITA)
+        ======================================================== */}
+        <aside className="hidden lg:flex lg:col-span-5 xl:col-span-6 flex-col justify-center px-10 xl:px-16 py-12 bg-gradient-to-b from-[#0D121F] via-[#090D18] to-[#07090E] border-l border-white/10 relative overflow-hidden">
           
-          {/* Glowing subtle radial gradient backdrop */}
-          <div className="absolute -top-[120px] -right-[120px] w-[320px] h-[320px] bg-[radial-gradient(circle,rgba(30,58,138,0.25)_0%,transparent_70%)] pointer-events-none" />
+          {/* Radial Light Sheen */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 max-w-lg">
+          <div className="relative z-10 max-w-lg mx-auto w-full space-y-6">
             
-            {/* Promo Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(30,58,138,0.15)] text-[#93B4FD] rounded-full text-xs font-semibold mb-5 w-fit">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 3v18h18"/>
-                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
-              </svg>
-              <span>Análise Preditiva</span>
+            {/* Top Pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/25 text-blue-300 text-xs font-semibold shadow-sm w-fit">
+              <Sparkles size={13} className="text-blue-400" />
+              <span>Análise Preditiva & Métricas TRI</span>
             </div>
 
-            <h2 className="text-2xl xl:text-3xl font-bold text-[#FAFAFA] mb-3 leading-snug">
-              Acompanhe sua evolução
-            </h2>
+            {/* Headline */}
+            <div>
+              <h2 className="text-2xl xl:text-3xl font-extrabold text-white tracking-tight leading-snug">
+                Acompanhe sua evolução em tempo real
+              </h2>
+              <p className="text-sm text-slate-400 mt-2.5 leading-relaxed">
+                Saiba exatamente onde está perdendo pontos. Dashboard inteligente com gráficos detalhados e recomendações personalizadas para sua preparação.
+              </p>
+            </div>
 
-            <p className="text-sm text-[#A3A3A3] leading-[1.65] mb-6">
-              Dashboard inteligente com gráficos de desempenho por disciplina, identificação automática de lacunas e recomendações personalizadas.
-            </p>
+            {/* HIGH-TECH PREVIEW CARD */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                    <TrendingUp size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Desempenho Estimado TRI</h4>
+                    <p className="text-[10px] text-slate-400">Baseado no histórico de simulados</p>
+                  </div>
+                </div>
+                <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                  +38 pts hoje
+                </span>
+              </div>
 
-            {/* Feature List */}
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start gap-2.5 text-sm text-[#A3A3A3]">
-                <svg className="w-[18px] h-[18px] text-[#059669] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Gráficos preditivos de nota TRI por disciplina</span>
+              {/* Progress bars */}
+              <div className="space-y-2.5">
+                <div>
+                  <div className="flex justify-between text-[11px] font-semibold text-slate-300 mb-1">
+                    <span>Matemática & Tecnologias</span>
+                    <span className="text-blue-400 font-bold">842.0 TRI</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-sky-400 rounded-full w-[84%]" />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-[11px] font-semibold text-slate-300 mb-1">
+                    <span>Redação Nota 1000</span>
+                    <span className="text-indigo-400 font-bold">960 pts</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-400 rounded-full w-[96%]" />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-[11px] font-semibold text-slate-300 mb-1">
+                    <span>Ciências da Natureza</span>
+                    <span className="text-cyan-400 font-bold">785.5 TRI</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-full w-[78%]" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Badge diagnostic */}
+              <div className="pt-2 flex items-center gap-2 text-[11px] text-slate-300 bg-white/[0.03] p-2.5 rounded-xl border border-white/5">
+                <Target size={14} className="text-amber-400 shrink-0" />
+                <span>Lacuna mapeada: <strong>Funções Trigonométricas</strong> — 2 aulas recomendadas</span>
+              </div>
+            </div>
+
+            {/* BENEFÍCIOS COMPLIANT & ATRATIVOS */}
+            <ul className="space-y-3 pt-1">
+              <li className="flex items-start gap-3 text-xs sm:text-sm text-slate-300">
+                <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check size={12} strokeWidth={3} />
+                </div>
+                <span>Veja sua evolução questão por questão, com gráficos de TRI</span>
               </li>
-              <li className="flex items-start gap-2.5 text-sm text-[#A3A3A3]">
-                <svg className="w-[18px] h-[18px] text-[#059669] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Mapeamento inteligente de pontos fracos</span>
+              <li className="flex items-start gap-3 text-xs sm:text-sm text-slate-300">
+                <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check size={12} strokeWidth={3} />
+                </div>
+                <span>Identifique suas lacunas em minutos, não semanas</span>
               </li>
-              <li className="flex items-start gap-2.5 text-sm text-[#A3A3A3]">
-                <svg className="w-[18px] h-[18px] text-[#059669] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Cronograma e sugestões adaptativas</span>
+              <li className="flex items-start gap-3 text-xs sm:text-sm text-slate-300">
+                <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check size={12} strokeWidth={3} />
+                </div>
+                <span>Feito para vestibulandos de ENEM, FUVEST e UNICAMP</span>
               </li>
             </ul>
 
-            {/* Metrics Row */}
-            <div className="flex gap-6 mb-3">
-              <div>
-                <strong className="text-[22px] font-bold text-[#FAFAFA] block">98,2%</strong>
-                <span className="text-[11px] text-[#737373] block mt-0.5">Precisão da análise</span>
+            {/* DESTAQUES SEGUROS */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex items-center gap-1.5 text-blue-400 text-xs font-bold mb-1">
+                  <CheckCircle2 size={14} />
+                  <span>Gabarito Oficial</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Correção automática e instantânea baseada nas bancas examinadoras.
+                </p>
               </div>
-              <div>
-                <strong className="text-[22px] font-bold text-[#FAFAFA] block">+10 mil</strong>
-                <span className="text-[11px] text-[#737373] block mt-0.5">vestibulandos ativos</span>
+
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex items-center gap-1.5 text-indigo-400 text-xs font-bold mb-1">
+                  <BookOpen size={14} />
+                  <span>Provas Catalogadas</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Centenas de provas e gabaritos organizados por ano e disciplina.
+                </p>
               </div>
             </div>
-
-            {/* Metrics Disclaimer */}
-            <p className="text-[10px] text-[#737373] italic leading-relaxed">
-              * Métricas internas da plataforma com base no uso médio dos usuários ativos nos últimos 12 meses. Resultados individuais variam conforme dedicação e frequência de estudo.
-            </p>
 
           </div>
         </aside>
 
       </div>
 
-      {/* ===== MODAL VIP ===== */}
+      {/* ========================================================
+          MODAL DE RESGATE DE CHAVE VIP
+      ======================================================== */}
       <AnimatePresence>
         {showVipModal && (
           <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-[4px] z-50 flex items-center justify-center p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
             onClick={() => setShowVipModal(false)}
           >
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.2 }}
-              className="bg-[#141414] border border-[#262626] rounded-2xl w-full max-w-[420px] p-7 text-[#FAFAFA] shadow-2xl"
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
               onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-[#0F1420] border border-blue-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="vip-title"
             >
-              <h3 id="vip-title" className="text-lg font-bold mb-1.5 text-[#FAFAFA]">
-                Chave de acesso VIP
+              <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-4">
+                <Key size={22} />
+              </div>
+
+              <h3 className="text-lg font-bold text-white mb-1.5">
+                Chave de Acesso VIP
               </h3>
-              <p className="text-[13px] text-[#A3A3A3] mb-[18px] leading-relaxed">
-                Tem uma chave VIP? Digite abaixo para desbloquear recursos exclusivos da plataforma.
+              <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+                Digite seu cupom ou código de acesso de estudante para desbloquear recursos exclusivos da plataforma.
               </p>
 
-              <div className="mb-4">
-                <label htmlFor="vip-key" className="block text-[13px] font-semibold text-[#FAFAFA] mb-1.5">
-                  Chave de acesso
-                </label>
+              <div className="space-y-3 mb-5">
                 <input 
                   type="text" 
-                  id="vip-key" 
-                  placeholder="XXXX-XXXX-XXXX" 
-                  autoComplete="off" 
                   value={vipKey}
                   onChange={(e) => {
                     setVipKey(e.target.value.toUpperCase());
                     if (vipError) setVipError('');
                   }}
-                  className="w-full py-3 px-3.5 bg-[#1A1A1A] border border-[#404040] focus:border-[#1E40AF] focus:shadow-[0_0_0_3px_rgba(30,58,138,0.35)] rounded-xl text-[#FAFAFA] text-sm outline-none transition-all uppercase tracking-widest placeholder:tracking-normal placeholder:text-[#737373]"
-                  autoFocus
+                  placeholder="EX: VIP-2026-VEST"
+                  className="w-full py-3 px-4 bg-[#090D15] border border-white/15 focus:border-amber-400 rounded-xl text-white text-sm uppercase tracking-wider outline-none font-mono transition-all placeholder:text-slate-600"
                 />
                 {vipError && (
-                  <div className="text-xs text-[#DC2626] mt-1.5 flex items-center gap-1 font-medium" role="alert">
+                  <p className="text-xs text-red-400 flex items-center gap-1">
                     <AlertCircle size={13} />
                     <span>{vipError}</span>
-                  </div>
+                  </p>
                 )}
+                <p className="text-[11px] text-slate-500">
+                  Dica: Chaves ativas incluem <code className="text-amber-300">VIP-2026-VEST</code> e <code className="text-amber-300">MEDICINA-2026</code>.
+                </p>
               </div>
 
-              <div className="flex gap-2.5 mt-5">
-                <button 
-                  type="button" 
-                  className="flex-1 py-2.5 px-3.5 bg-[#262626] hover:bg-[#404040] text-[#FAFAFA] rounded-xl text-[13px] font-semibold transition-colors cursor-pointer"
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
                   onClick={() => setShowVipModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
-                <button 
-                  type="button" 
-                  className="flex-1 py-2.5 px-3.5 bg-[#1E3A8A] hover:bg-[#1E40AF] text-white rounded-xl text-[13px] font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+                <button
+                  type="button"
                   onClick={handleResgatarVip}
                   disabled={vipLoading}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
                 >
-                  {vipLoading ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <span>Resgatar</span>
-                  )}
+                  {vipLoading ? 'Verificando...' : 'Resgatar Acesso'}
                 </button>
               </div>
             </motion.div>
@@ -964,24 +1157,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         )}
       </AnimatePresence>
 
-      {/* ===== TOAST NOTIFICATION ===== */}
+      {/* ========================================================
+          TOAST FLOATING NOTIFICATION
+      ======================================================== */}
       <AnimatePresence>
         {toast.show && (
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ duration: 0.25 }}
-            className={`fixed bottom-6 right-6 bg-[#141414] border py-3 px-4 rounded-xl text-[13px] text-[#FAFAFA] flex items-center gap-2.5 z-50 shadow-2xl ${
-              toast.type === 'success' ? 'border-[#059669]' : 'border-[#DC2626]'
+          <motion.div
+            initial={{ opacity: 0, y: 20, x: 0 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl flex items-center gap-2.5 border backdrop-blur-md ${
+              toast.type === 'success' 
+                ? 'bg-[#0E1B15]/90 border-emerald-500/50 text-emerald-300 shadow-emerald-950/40' 
+                : 'bg-[#1C1012]/90 border-red-500/50 text-red-300 shadow-red-950/40'
             }`}
             role="status"
-            aria-live="polite"
           >
             {toast.type === 'success' ? (
-              <CheckCircle2 size={16} className="text-[#059669] shrink-0" />
+              <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
             ) : (
-              <AlertCircle size={16} className="text-[#DC2626] shrink-0" />
+              <AlertCircle size={16} className="text-red-400 shrink-0" />
             )}
             <span>{toast.message}</span>
           </motion.div>

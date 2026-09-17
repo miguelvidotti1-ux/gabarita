@@ -173,6 +173,12 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   const [isLoadingEstiloTracks, setIsLoadingEstiloTracks] = useState(false);
   const [isCreatingEstiloPlaylist, setIsCreatingEstiloPlaylist] = useState(false);
 
+  // Playlists do Usuário states
+  const [selectedUserPlaylistId, setSelectedUserPlaylistId] = useState<string | null>(null);
+  const [selectedUserPlaylistName, setSelectedUserPlaylistName] = useState<string>('');
+  const [userPlaylistTracks, setUserPlaylistTracks] = useState<any[]>([]);
+  const [isLoadingUserPlaylistTracks, setIsLoadingUserPlaylistTracks] = useState(false);
+
   // Helper para requisições autenticadas com tokens locais e renovação automática
   const spotifyFetch = useCallback(async (url: string, options: RequestInit = {}) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('spotify_access_token') : null;
@@ -572,12 +578,51 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
     }
   };
 
+  // Carregar faixas de uma playlist do usuário (incluindo playlists antigas/salvas)
+  const carregarMusicasPlaylist = useCallback(async (playlistId: string, playlistName?: string) => {
+    if (!playlistId) return;
+    setSelectedUserPlaylistId(playlistId);
+    if (playlistName) setSelectedUserPlaylistName(playlistName);
+    setIsLoadingUserPlaylistTracks(true);
+
+    try {
+      const cleanId = playlistId.replace(/^spotify:playlist:/i, '').replace(/^https?:\/\/open\.spotify\.com\/playlist\//i, '').split('?')[0].trim();
+      const res = await spotifyFetch(`/api/spotify/playlist-tracks?playlist_id=${encodeURIComponent(cleanId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserPlaylistTracks(data.musicas || []);
+        if (playlistName && onToast) {
+          onToast('success', `${data.total || (data.musicas?.length || 0)} músicas carregadas de "${playlistName}"`);
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        if (onToast) onToast('error', errData.error || 'Erro ao carregar faixas da playlist.');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar faixas da playlist:', err);
+      if (onToast) onToast('error', 'Erro ao carregar faixas da playlist.');
+    } finally {
+      setIsLoadingUserPlaylistTracks(false);
+    }
+  }, [spotifyFetch, onToast]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).carregarMusicasPlaylist = (id: string, name?: string) => {
+        carregarMusicasPlaylist(id, name);
+      };
+    }
+  }, [carregarMusicasPlaylist]);
+
   const handleSelectPlaylist = (playlist: PlaylistOption) => {
-    if (playlist.id === selectedPlaylist.id) return;
-    
     setIsLoading(true);
     setSelectedPlaylist(playlist);
     localStorage.setItem('vesthub_spotify_playlist', playlist.id);
+
+    // Carrega automaticamente as faixas caso seja uma playlist
+    if (playlist.id) {
+      carregarMusicasPlaylist(playlist.id, playlist.name);
+    }
 
     if (onToast) {
       onToast('success', `Playlist alterada: ${playlist.name}`);
@@ -585,7 +630,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
 
     setTimeout(() => {
       setIsLoading(false);
-    }, 800);
+    }, 500);
   };
 
   const renderIcon = (type: PlaylistOption['iconType']) => {
@@ -915,7 +960,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
       )}
 
       {activeTab === 'my_playlists' && (
-        <div className="space-y-2 mb-4">
+        <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-2">
             <span>Suas playlists salvas no Spotify:</span>
             <button onClick={loadUserPlaylists} className="text-[#1DB954] hover:underline flex items-center gap-1 cursor-pointer">
@@ -932,7 +977,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                 <div
                   key={pl.id}
                   className={`p-2 rounded-xl text-left border text-xs transition-all flex items-center justify-between gap-2 ${
-                    selectedPlaylist.id === pl.id
+                    selectedPlaylist.id === pl.id || selectedUserPlaylistId === pl.id
                       ? 'bg-[#1DB954]/15 border-[#1DB954] text-[#1DB954]'
                       : 'bg-[var(--bg-hover)] border-[var(--border-light)] text-[var(--text-main)] hover:border-[#1DB954]/40'
                   }`}
@@ -946,6 +991,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                         description: `${pl.tracks_total} músicas • ${pl.owner}`,
                         iconType: 'custom'
                       });
+                      carregarMusicasPlaylist(pl.id, pl.name);
                     }}
                     className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
                   >
@@ -965,9 +1011,14 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (typeof window !== 'undefined' && (window as any).carregarMusicasPlaylist) {
-                        (window as any).carregarMusicasPlaylist(pl.id, pl.name);
-                      }
+                      handleSelectPlaylist({
+                        id: pl.id,
+                        name: pl.name,
+                        category: 'Minha Playlist',
+                        description: `${pl.tracks_total} músicas • ${pl.owner}`,
+                        iconType: 'custom'
+                      });
+                      carregarMusicasPlaylist(pl.id, pl.name);
                     }}
                     className="p-1.5 rounded-lg hover:bg-[#1DB954]/20 text-[var(--text-muted)] hover:text-[#1DB954] transition-colors cursor-pointer shrink-0"
                     title="Ver músicas da playlist"
@@ -976,6 +1027,91 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Banner da Playlist Selecionada e Lista de Faixas */}
+          {selectedUserPlaylistId && (
+            <div className="pt-2 border-t border-[var(--border-light)] space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-light)]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ListMusic size={16} className="text-[#1DB954] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-bold text-xs sm:text-sm text-[var(--text-main)] truncate">
+                      {selectedUserPlaylistName || userPlaylists.find(p => p.id === selectedUserPlaylistId)?.name || 'Playlist Selecionada'}
+                    </p>
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      {userPlaylistTracks.length} faixas encontradas
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      const cleanId = selectedUserPlaylistId.replace(/^spotify:playlist:/i, '').split('?')[0].trim();
+                      handlePlaybackControl('play', `spotify:playlist:${cleanId}`);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1DB954] text-black text-xs font-bold hover:bg-[#1ed760] transition-colors cursor-pointer shrink-0"
+                    title="Reproduzir playlist completa no Spotify"
+                  >
+                    <Play size={13} />
+                    <span>Tocar Playlist</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista de Músicas da Playlist */}
+              {isLoadingUserPlaylistTracks ? (
+                <div className="p-4 rounded-xl bg-[var(--bg-hover)] text-center text-xs text-[var(--text-muted)] border border-[var(--border-light)]">
+                  Carregando faixas da sua playlist no Spotify...
+                </div>
+              ) : userPlaylistTracks.length > 0 ? (
+                <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+                  {userPlaylistTracks.map((track, idx) => (
+                    <div
+                      key={track.id || idx}
+                      className="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-hover)] border border-[var(--border-light)] hover:border-[#1DB954]/40 transition-all text-xs group"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="w-5 text-center text-[10px] text-[var(--text-muted)] shrink-0">
+                          {idx + 1}
+                        </span>
+                        {track.image ? (
+                          <img src={track.image} alt={track.name} className="w-7 h-7 rounded object-cover shrink-0" />
+                        ) : (
+                          <div className="w-7 h-7 rounded bg-[var(--border-light)] flex items-center justify-center shrink-0">
+                            <Music size={12} />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[var(--text-main)] truncate">{track.name}</p>
+                          <p className="text-[10px] text-[var(--text-muted)] truncate">{track.artist} • {track.album}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {track.duration_ms && (
+                          <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">
+                            {Math.floor(track.duration_ms / 60000)}:{String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handlePlaybackControl('play', track.uri || `spotify:track:${track.id}`)}
+                          className="p-1.5 rounded-md bg-[#1DB954]/15 hover:bg-[#1DB954] text-[#1DB954] hover:text-black transition-colors cursor-pointer"
+                          title="Tocar no Spotify"
+                        >
+                          <Play size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-[var(--bg-hover)] text-center text-xs text-[var(--text-muted)] border border-[var(--border-light)]">
+                  Nenhuma música encontrada nesta playlist.
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1043,16 +1179,21 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <iframe
-                id="spotify-embed"
-                key={selectedPlaylist.id}
-                className="w-full border-none block"
-                style={{ height: '152px' }}
-                src={`https://open.spotify.com/embed/playlist/${selectedPlaylist.id}?utm_source=generator&theme=0`}
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-                title={`Spotify Playlist - ${selectedPlaylist.name}`}
-              />
+              {(() => {
+                const embedId = (selectedPlaylist.id || '').replace(/^spotify:playlist:/i, '').split('?')[0].trim();
+                return (
+                  <iframe
+                    id="spotify-embed"
+                    key={embedId}
+                    className="w-full border-none block"
+                    style={{ height: '152px' }}
+                    src={`https://open.spotify.com/embed/playlist/${embedId}?utm_source=generator&theme=0`}
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    title={`Spotify Playlist - ${selectedPlaylist.name}`}
+                  />
+                );
+              })()}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1094,7 +1235,11 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                   </button>
                 ) : (
                   <button
-                    onClick={() => handlePlaybackControl('play')}
+                    onClick={() => {
+                      const cleanId = (selectedPlaylist.id || '').replace(/^spotify:playlist:/i, '').split('?')[0].trim();
+                      const targetUri = cleanId ? `spotify:playlist:${cleanId}` : undefined;
+                      handlePlaybackControl('play', targetUri);
+                    }}
                     className="p-1.5 rounded text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
                     title="Reproduzir"
                   >

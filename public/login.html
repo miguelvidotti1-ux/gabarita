@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar — VestHub | Preparação para Vestibulares</title>
+    <meta name="description" content="Acesse cronograma de estudos, simulados e estatísticas de aprovação. Prepare-se para ENEM, FUVEST e UNICAMP com análise de desempenho inteligente.">
+    <meta property="og:title" content="VestHub — Preparação para Vestibulares">
+    <meta property="og:description" content="Cronograma, simulados e análise de desempenho para ENEM, FUVEST e UNICAMP.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0A0A0A">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+        :root {
+            --bg-main: #0A0A0A;
+            --bg-card: #141414;
+            --bg-input: #1A1A1A;
+            --bg-hover: #262626;
+            --primary: #1E3A8A;
+            --primary-hover: #1E40AF;
+            --text-main: #FAFAFA;
+            --text-muted: #A3A3A3;
+            --text-label: #737373;
+            --border: #262626;
+            --border-strong: #404040;
+            --error: #DC2626;
+            --error-light: rgba(220, 38, 38, 0.12);
+            --success: #059669;
+            --focus-ring: rgba(30, 58, 138, 0.35);
+        }
+
+        body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; }
+
+        .auth-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 100vh;
+        }
+
+        /* ===== COLUNA FORMULÁRIO ===== */
+        .auth-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px clamp(24px, 6vw, 80px);
+        }
+
+        .logo-row {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: var(--primary); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: #FFF; font-weight: 700; font-size: 17px;
+        }
+
+        .logo-text { font-size: 17px; font-weight: 700; }
+
+        h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .auth-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+
+        /* ===== BOTÕES SOCIAIS ===== */
+        .social-row { display: flex; gap: 10px; margin-bottom: 20px; }
+
+        .btn-social {
+            flex: 1;
+            padding: 11px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .btn-social:hover { background: var(--bg-hover); border-color: #525252; }
+        .btn-social svg { width: 20px; height: 20px; }
+
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-label); font-size: 12px;
+            margin-bottom: 20px;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        /* ===== FORMULÁRIO ===== */
+        .field { margin-bottom: 16px; }
+
+        .field label {
+            display: block;
+            font-size: 13px; font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .field-hint { font-size: 12px; color: var(--text-label); margin-top: 4px; }
+        .field-hint a { color: var(--text-muted); text-decoration: underline; }
+        .field-hint a:hover { color: var(--text-main); }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 12px 44px 12px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--primary-hover);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .input-wrap input.invalid {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px var(--error-light);
+        }
+
+        .input-wrap input::placeholder { color: var(--text-label); }
+
+        .error-msg {
+            display: none;
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 5px;
+        }
+        .error-msg.show { display: block; }
+
+        .toggle-pass {
+            position: absolute; right: 8px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: var(--text-label);
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            border-radius: 6px;
+        }
+        .toggle-pass:hover { color: var(--text-main); background: var(--bg-hover); }
+        .toggle-pass svg { width: 18px; height: 18px; }
+
+        .remember-row {
+            display: flex; align-items: center; gap: 8px;
+            margin: 4px 0 20px;
+            font-size: 13px; color: var(--text-muted);
+        }
+
+        .remember-row input[type="checkbox"] {
+            width: 16px; height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .btn-instant {
+            width: 100%;
+            padding: 13px 16px;
+            background: linear-gradient(90deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%);
+            color: #FFF;
+            border: 1px solid rgba(147, 197, 253, 0.3);
+            border-radius: 10px;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+            transition: all 0.2s;
+        }
+        .btn-instant:hover {
+            background: linear-gradient(90deg, #1D4ED8 0%, #1E40AF 100%);
+            transform: translateY(-1px);
+        }
+        .btn-instant svg { width: 16px; height: 16px; color: #FDE047; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: var(--primary);
+            color: #FFF;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-submit:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #FFF;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: none;
+        }
+        .btn-submit.loading .spinner { display: block; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .auth-footer {
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .auth-footer a { color: var(--text-main); font-weight: 600; text-decoration: none; }
+        .auth-footer a:hover { text-decoration: underline; }
+
+        .vip-link {
+            margin-top: 14px;
+            text-align: center;
+        }
+
+        .vip-link button {
+            background: none;
+            border: none;
+            color: var(--text-label);
+            font-size: 12px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .vip-link button:hover { color: var(--text-muted); }
+
+        .secure-badge {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin-top: 28px;
+            font-size: 11px; color: var(--text-label);
+        }
+        .secure-badge svg { width: 13px; height: 13px; }
+
+        /* ===== COLUNA MARKETING ===== */
+        .promo-panel {
+            background: var(--bg-card);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px clamp(24px, 5vw, 72px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .promo-panel::before {
+            content: '';
+            position: absolute;
+            top: -120px; right: -120px;
+            width: 320px; height: 320px;
+            background: radial-gradient(circle, rgba(30,58,138,0.25) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .promo-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px;
+            background: rgba(30, 58, 138, 0.15);
+            color: #93B4FD;
+            border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            width: fit-content;
+            margin-bottom: 20px;
+        }
+
+        .promo-badge svg { width: 14px; height: 14px; }
+
+        .promo-panel h2 { font-size: 24px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+
+        .promo-panel > p {
+            font-size: 14px; color: var(--text-muted);
+            line-height: 1.65;
+            margin-bottom: 24px;
+        }
+
+        .feature-list { list-style: none; margin-bottom: 32px; }
+
+        .feature-list li {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 14px; color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .feature-list svg {
+            width: 18px; height: 18px;
+            color: var(--success);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Destaques seguros e atrativos */
+        .highlights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .highlight-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .highlight-item strong {
+            font-size: 12px; font-weight: 700; color: var(--text-main);
+            display: block; margin-bottom: 4px; line-height: 1.3;
+        }
+
+        .highlight-item span {
+            font-size: 11px; color: var(--text-label);
+            display: block; line-height: 1.4;
+        }
+
+        .metrics-disclaimer {
+            font-size: 11px; color: var(--text-label);
+            line-height: 1.5;
+        }
+
+        /* ===== MODAL VIP ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center; justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 420px; max-width: 100%;
+            padding: 28px;
+        }
+
+        .modal h3 { font-size: 18px; margin-bottom: 6px; }
+        .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+
+        .modal-actions {
+            display: flex; gap: 10px; margin-top: 18px;
+        }
+
+        .modal-actions button {
+            flex: 1; padding: 11px;
+            border-radius: 10px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-ghost { background: var(--bg-hover); color: var(--text-main); }
+        .btn-ghost:hover { background: var(--border-strong); }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            color: var(--text-main);
+            padding: 13px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            align-items: center; gap: 8px;
+            z-index: 2000;
+        }
+        .toast.show { display: flex; animation: slideIn 0.3s ease; }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--error); }
+
+        @keyframes slideIn {
+            from { transform: translateX(80px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 900px) {
+            .auth-layout { grid-template-columns: 1fr; }
+            .promo-panel { display: none; }
+        }
+
+        /* Foco visível para acessibilidade de teclado */
+        :is(a, button, input):focus-visible {
+            outline: 2px solid #93B4FD;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-layout">
+        <!-- ===== COLUNA DE LOGIN ===== -->
+        <main class="auth-panel">
+            <div class="logo-row">
+                <div class="logo-icon">V</div>
+                <span class="logo-text">VestHub</span>
+            </div>
+
+            <h1>Entrar na conta</h1>
+            <p class="auth-sub">Acesse seu cronograma, simulados e estatísticas de aprovação.</p>
+
+            <!-- Botões sociais com aria-label -->
+            <div class="social-row">
+                <button type="button" class="btn-social" aria-label="Entrar com Apple" onclick="loginSocial('apple')">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                </button>
+                <button type="button" class="btn-social" aria-label="Entrar com Google" onclick="loginSocial('google')">
+                    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.96 10.96 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                </button>
+                <button type="button" class="btn-social" aria-label="Entrar com Microsoft" onclick="loginSocial('microsoft')">
+                    <svg viewBox="0 0 24 24"><path fill="#F25022" d="M1 1h10.5v10.5H1z"/><path fill="#7FBA00" d="M12.5 1H23v10.5H12.5z"/><path fill="#00A4EF" d="M1 12.5h10.5V23H1z"/><path fill="#FFB900" d="M12.5 12.5H23V23H12.5z"/></svg>
+                </button>
+            </div>
+
+            <div class="divider" role="separator">ou com e-mail</div>
+
+            <!-- Formulário semântico com autocomplete -->
+            <form id="login-form" novalidate>
+                <div class="field">
+                    <label for="email">Seu e-mail</label>
+                    <div class="input-wrap">
+                        <input type="email" id="email" name="email"
+                               autocomplete="email" inputmode="email"
+                               placeholder="nome@exemplo.com" required
+                               aria-describedby="email-error">
+                    </div>
+                    <div class="error-msg" id="email-error" role="alert"></div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Sua senha</label>
+                    <div class="input-wrap">
+                        <input type="password" id="password" name="password"
+                               autocomplete="current-password" required
+                               aria-describedby="password-error password-hint">
+                        <button type="button" class="toggle-pass" aria-label="Mostrar senha" onclick="toggleSenha()">
+                            <svg id="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg id="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                    <div class="error-msg" id="password-error" role="alert"></div>
+                    <div class="field-hint" id="password-hint"><a href="#" onclick="recuperarSenha(event)">Esqueci minha senha</a></div>
+                </div>
+
+                <div class="remember-row">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Lembrar meus dados de acesso</label>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-login">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Entrar na Plataforma</span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Novo por aqui? <a href="#" onclick="irCadastro(event)">Criar Conta</a>
+            </div>
+
+            <div class="vip-link">
+                <button type="button" onclick="abrirModalVip()">Resgatar chave de acesso VIP</button>
+            </div>
+
+            <div class="secure-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Ambiente seguro — seus dados são protegidos
+            </div>
+        </main>
+
+        <!-- ===== COLUNA DE MARKETING ===== -->
+        <aside class="promo-panel">
+            <div class="promo-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                Análise Preditiva
+            </div>
+
+            <h2>Acompanhe sua evolução</h2>
+            <p>Saiba exatamente onde está perdendo pontos. Dashboard inteligente com gráficos detalhados e recomendações personalizadas para sua preparação.</p>
+
+            <ul class="feature-list">
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                    Veja sua evolução questão por questão, com gráficos de TRI
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                    Identifique suas lacunas em minutos, não semanas
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                    Feito para vestibulandos de ENEM, FUVEST e UNICAMP
+                </li>
+            </ul>
+
+            <div class="highlights-grid">
+                <div class="highlight-item">
+                    <strong>Correção automática com gabarito oficial</strong>
+                    <span>Correção ágil e confiável baseada nos padrões das bancas examinadoras.</span>
+                </div>
+                <div class="highlight-item">
+                    <strong>Centenas de gabaritos oficiais catalogados</strong>
+                    <span>Histórico completo de provas anteriores organizadas por disciplina.</span>
+                </div>
+            </div>
+
+            <p class="metrics-disclaimer">
+                Plataforma desenvolvida para potencializar a rotina de estudos com métricas claras e diagnóstico em tempo real.
+            </p>
+        </aside>
+    </div>
+
+    <!-- ===== MODAL VIP ===== -->
+    <div class="modal-overlay" id="modal-vip" onclick="fecharModalVip(event)">
+        <div class="modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="vip-title">
+            <h3 id="vip-title">Chave de acesso VIP</h3>
+            <p>Tem uma chave VIP? Digite abaixo para desbloquear recursos exclusivos da plataforma.</p>
+
+            <div class="field">
+                <label for="vip-key">Chave de acesso</label>
+                <div class="input-wrap">
+                    <input type="text" id="vip-key" placeholder="XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;">
+                </div>
+                <div class="error-msg" id="vip-error" role="alert"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" onclick="fecharModalVip()">Cancelar</button>
+                <button type="button" class="btn-submit" style="margin:0;" onclick="resgatarVip()">Resgatar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        // ========== VALIDAÇÃO DE FORMULÁRIO ==========
+        var form = document.getElementById('login-form');
+        var emailInput = document.getElementById('email');
+        var passInput = document.getElementById('password');
+
+        function validarEmail(valor) {
+            var regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            return regex.test(valor);
+        }
+
+        function mostrarErro(input, errorId, mensagem) {
+            var errorEl = document.getElementById(errorId);
+            if (mensagem) {
+                input.classList.add('invalid');
+                errorEl.textContent = mensagem;
+                errorEl.classList.add('show');
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorEl.classList.remove('show');
+            return true;
+        }
+
+        // Validação em tempo real (ao sair do campo)
+        emailInput.addEventListener('blur', function() {
+            if (this.value && !validarEmail(this.value)) {
+                mostrarErro(this, 'email-error', 'Digite um e-mail válido.');
+            } else {
+                mostrarErro(this, 'email-error', '');
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var emailOk = mostrarErro(emailInput, 'email-error',
+                !emailInput.value ? 'Digite seu e-mail.' :
+                !validarEmail(emailInput.value) ? 'Digite um e-mail válido.' : '');
+
+            var passOk = mostrarErro(passInput, 'password-error',
+                !passInput.value ? 'Digite sua senha.' :
+                passInput.value.length < 6 ? 'A senha deve ter pelo menos 6 caracteres.' : '');
+
+            if (!emailOk || !passOk) {
+                (emailOk ? passInput : emailInput).focus();
+                return;
+            }
+
+            fazerLogin(emailInput.value, passInput.value);
+        });
+
+        // ========== LOGIN ==========
+        function fazerLogin(email, senha) {
+            var btn = document.getElementById('btn-login');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    senha: senha,
+                    lembrar: document.getElementById('remember').checked
+                })
+            })
+            .then(function(r) {
+                if (!r.ok) throw new Error('Credenciais inválidas');
+                return r.json();
+            })
+            .then(function(data) {
+                if (data.token) {
+                    sessionStorage.setItem('auth_token', data.token);
+                }
+                if (data.user) {
+                    localStorage.setItem('vestibularpro_session_user', JSON.stringify(data.user));
+                }
+                mostrarToast('success', 'Login realizado! Redirecionando...');
+                setTimeout(function() {
+                    window.location.href = '/';
+                }, 800);
+            })
+            .catch(function(err) {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                mostrarToast('error', err.message === 'Credenciais inválidas'
+                    ? 'E-mail ou senha incorretos. Tente novamente.'
+                    : 'Erro de conexão. Tente novamente.');
+            });
+        }
+
+        // ========== TOGGLE SENHA ==========
+        function toggleSenha() {
+            var input = passInput;
+            var isOpen = input.type === 'password';
+            input.type = isOpen ? 'text' : 'password';
+            document.getElementById('eye-open').style.display = isOpen ? 'none' : 'block';
+            document.getElementById('eye-closed').style.display = isOpen ? 'block' : 'none';
+            document.querySelector('.toggle-pass').setAttribute('aria-label',
+                isOpen ? 'Ocultar senha' : 'Mostrar senha');
+        }
+
+        // ========== NAVEGAÇÕES ==========
+        function loginSocial(provedor) {
+            mostrarToast('success', 'Redirecionando para autenticação com ' + provedor + '...');
+            var mockUser = {
+                uid: provedor + '_' + Date.now(),
+                email: 'estudante.' + provedor + '@vesthub.com.br',
+                displayName: 'Estudante ' + (provedor.charAt(0).toUpperCase() + provedor.slice(1))
+            };
+            localStorage.setItem('vestibularpro_session_user', JSON.stringify(mockUser));
+            setTimeout(function() {
+                window.location.href = '/';
+            }, 600);
+        }
+
+        function recuperarSenha(e) {
+            e.preventDefault();
+            var email = emailInput.value;
+            if (!email || !validarEmail(email)) {
+                mostrarErro(emailInput, 'email-error', 'Digite seu e-mail acima para recuperar a senha.');
+                emailInput.focus();
+                return;
+            }
+            mostrarToast('success', 'Instruções enviadas para ' + email);
+        }
+
+        function irCadastro(e) {
+            e.preventDefault();
+            mostrarToast('success', 'Acessando plataforma no modo estudante...');
+            var studentUser = {
+                uid: 'estudante_' + Date.now(),
+                email: 'estudante@vesthub.com.br',
+                displayName: 'Novo Estudante'
+            };
+            localStorage.setItem('vestibularpro_session_user', JSON.stringify(studentUser));
+            setTimeout(function() {
+                window.location.href = '/';
+            }, 600);
+        }
+
+        // ========== MODAL VIP ==========
+        function abrirModalVip() {
+            document.getElementById('modal-vip').classList.add('show');
+            setTimeout(function() { document.getElementById('vip-key').focus(); }, 100);
+        }
+
+        function fecharModalVip(event) {
+            if (event && event.target !== document.getElementById('modal-vip')) return;
+            document.getElementById('modal-vip').classList.remove('show');
+        }
+
+        function resgatarVip() {
+            var chave = document.getElementById('vip-key').value.trim().toUpperCase();
+            var errorEl = document.getElementById('vip-error');
+
+            if (!chave) {
+                errorEl.textContent = 'Digite a chave de acesso.';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            var regexChave = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+            var chavesValidas = ['VIP-2026-VEST', 'VEST-2026-VIP', 'PRO-VEST-2026', 'MEDICINA-2026'];
+            if (!regexChave.test(chave) && chavesValidas.indexOf(chave) === -1) {
+                errorEl.textContent = 'Formato inválido. Use: XXXX-XXXX-XXXX';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            errorEl.classList.remove('show');
+            fetch('/api/vip/resgatar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chave: chave })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    fecharModalVip();
+                    mostrarToast('success', 'Chave VIP resgatada com sucesso!');
+                    var vipUser = {
+                        uid: 'vip_' + Date.now(),
+                        email: 'vip.estudante@vesthub.com.br',
+                        displayName: 'Estudante VIP Pro',
+                        role: 'vip'
+                    };
+                    localStorage.setItem('vestibularpro_session_user', JSON.stringify(vipUser));
+                    setTimeout(function() {
+                        window.location.href = '/';
+                    }, 800);
+                } else {
+                    errorEl.textContent = data.mensagem || 'Chave inválida ou já utilizada.';
+                    errorEl.classList.add('show');
+                }
+            })
+            .catch(function() {
+                errorEl.textContent = 'Erro de conexão. Tente novamente.';
+                errorEl.classList.add('show');
+            });
+        }
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') fecharModalVip();
+        });
+
+        // ========== TOAST ==========
+        function mostrarToast(tipo, mensagem) {
+            var toast = document.getElementById('toast');
+            toast.className = 'toast show ' + tipo;
+            toast.textContent = mensagem;
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

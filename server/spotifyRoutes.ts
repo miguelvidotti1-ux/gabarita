@@ -1039,12 +1039,20 @@ spotifyRouter.put('/play', async (req: Request, res: Response) => {
 
   const body: any = {};
   if (contextUri) {
-    body.context_uri = contextUri;
+    body.context_uri = contextUri.startsWith('spotify:') ? contextUri : `spotify:playlist:${contextUri}`;
   } else if (rawUri) {
     if (rawUri.includes(':playlist:') || rawUri.includes(':album:') || rawUri.includes(':artist:') || rawUri.includes(':show:')) {
       body.context_uri = rawUri;
-    } else {
+    } else if (rawUri.startsWith('spotify:track:') || rawUri.startsWith('spotify:episode:')) {
       body.uris = [rawUri];
+    } else if (rawUri.length === 22 && !rawUri.includes(':')) {
+      if (req.query.type === 'track' || req.body?.type === 'track') {
+        body.uris = [`spotify:track:${rawUri}`];
+      } else {
+        body.context_uri = `spotify:playlist:${rawUri}`;
+      }
+    } else {
+      body.uris = [rawUri.startsWith('spotify:') ? rawUri : `spotify:track:${rawUri}`];
     }
   }
 
@@ -1530,17 +1538,17 @@ spotifyRouter.get(['/playlists', '/minhas-playlists'], async (req: Request, res:
       return res.status(response.status).json({ error: 'Erro ao buscar playlists: ' + (data?.error?.message || JSON.stringify(data)) });
     }
 
-    const playlists = (data.items || []).map((item: any) => ({
-      id: item.id,
-      name: item.name,
+    const playlists = (data.items || []).filter(Boolean).map((item: any) => ({
+      id: item.id || '',
+      name: item.name || 'Playlist sem nome',
       description: item.description || '',
       image: item.images?.[0]?.url || '',
       tracks_total: item.tracks?.total || 0,
       owner: item.owner?.display_name || '',
-      uri: item.uri || `spotify:playlist:${item.id}`,
+      uri: item.uri || (item.id ? `spotify:playlist:${item.id}` : ''),
       url: item.external_urls?.spotify || '',
       spotify_url: item.external_urls?.spotify || '',
-    }));
+    })).filter((pl: any) => Boolean(pl.id));
 
     return res.json({ playlists, total: data.total || playlists.length });
   } catch (err: any) {
@@ -1554,12 +1562,20 @@ spotifyRouter.get(['/playlists', '/minhas-playlists'], async (req: Request, res:
 // Endpoint: GET /api/spotify/playlist-tracks?playlist_id={id}
 // ============================================================
 spotifyRouter.get('/playlist-tracks', async (req: Request, res: Response) => {
-  const playlistId = (req.query.playlist_id as string)?.trim();
+  const rawPlaylistId = (req.query.playlist_id as string)?.trim() || '';
   const token = await getValidSpotifyToken(req, res, true);
 
-  if (!playlistId) {
+  if (!rawPlaylistId) {
     return res.status(400).json({ error: 'playlist_id ausente' });
   }
+
+  // Sanitizar playlist_id caso venha como URI spotify:playlist:xxx ou URL aberta
+  const playlistId = rawPlaylistId
+    .replace(/^spotify:playlist:/i, '')
+    .replace(/^https?:\/\/open\.spotify\.com\/playlist\//i, '')
+    .split('?')[0]
+    .trim();
+
   if (!token) {
     return res.json({ playlist_id: playlistId, total: 0, musicas: [] });
   }
@@ -1577,10 +1593,11 @@ spotifyRouter.get('/playlist-tracks', async (req: Request, res: Response) => {
 
   let offset = 0;
   const limit = 100;
+  const maxTracks = 500; // Limite de segurança
 
   try {
-    while (true) {
-      const url = `${SPOTIFY_API_BASE}/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}&fields=items(track(id,uri,name,duration_ms,preview_url,artists(name),album(name,images(url))))`;
+    while (todasMusicas.length < maxTracks) {
+      const url = `${SPOTIFY_API_BASE}/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}`;
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1591,7 +1608,7 @@ spotifyRouter.get('/playlist-tracks', async (req: Request, res: Response) => {
       }
 
       const data = (await response.json()) as any;
-      const items = data.items || [];
+      const items = (data.items || []).filter(Boolean);
 
       if (!items.length) {
         break;
@@ -1599,7 +1616,11 @@ spotifyRouter.get('/playlist-tracks', async (req: Request, res: Response) => {
 
       for (const item of items) {
         const track = item.track;
-        if (!track || !track.id) continue;
+        if (!track) continue;
+
+        const trackUri = track.uri || (track.id ? `spotify:track:${track.id}` : '');
+        const trackId = track.id || (trackUri ? trackUri.replace(/^spotify:track:/, '') : `track_${todasMusicas.length}`);
+        if (!trackUri && !trackId) continue;
 
         const artistas = track.artists || [];
         const artistaNome = artistas[0]?.name || 'Desconhecido';
@@ -1607,9 +1628,9 @@ spotifyRouter.get('/playlist-tracks', async (req: Request, res: Response) => {
         const imagens = album.images || [];
 
         todasMusicas.push({
-          id: track.id,
-          uri: track.uri,
-          name: track.name,
+          id: trackId,
+          uri: trackUri,
+          name: track.name || 'Faixa sem título',
           artist: artistaNome,
           album: album.name || '',
           duration_ms: track.duration_ms || 0,

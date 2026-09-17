@@ -717,6 +717,63 @@ Retorne exclusivamente um JSON com este formato:
     }
   });
 
+  // ========== ROTAS DE AUTENTICAÇÃO E VIP (LOGIN OTIMIZADO) ==========
+  app.post("/api/auth/login", (req, res) => {
+    const { email, senha, lembrar } = req.body || {};
+
+    if (!email || !senha) {
+      return res.status(400).json({ error: "E-mail e senha são obrigatórios." });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "E-mail inválido." });
+    }
+
+    if (typeof senha !== "string" || senha.length < 6) {
+      return res.status(400).json({ error: "A senha deve ter pelo menos 6 caracteres." });
+    }
+
+    const username = email.split("@")[0];
+    const displayName = username.charAt(0).toUpperCase() + username.slice(1);
+    const token = "auth_vesthub_" + Buffer.from(`${email}:${Date.now()}`).toString("base64");
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        uid: "user_" + Math.random().toString(36).substring(2, 10),
+        email,
+        displayName,
+        lembrar: Boolean(lembrar),
+      },
+    });
+  });
+
+  app.post("/api/vip/resgatar", (req, res) => {
+    const chave = (req.body?.chave || "").trim().toUpperCase();
+
+    if (!chave) {
+      return res.status(400).json({ success: false, mensagem: "Digite a chave de acesso." });
+    }
+
+    const regexChave = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+    const chavesValidas = ["VIP-2026-VEST", "VEST-2026-VIP", "PRO-VEST-2026", "MEDICINA-2026", "ENEM-2026-PASS"];
+
+    if (!regexChave.test(chave) && !chavesValidas.includes(chave)) {
+      return res.status(400).json({
+        success: false,
+        mensagem: "Formato inválido. Use o padrão: XXXX-XXXX-XXXX",
+      });
+    }
+
+    return res.json({
+      success: true,
+      mensagem: "Chave VIP resgatada com sucesso! Acesso Pro ativado.",
+      nivel: "vip_pro",
+    });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
