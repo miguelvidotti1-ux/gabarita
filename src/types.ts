@@ -64,6 +64,7 @@ export interface GabaritoOficial {
   ano: number;
   dia: number;
   caderno: string;
+  pdfUrl?: string;
   questoes: {
     numero: number;
     resposta: string;

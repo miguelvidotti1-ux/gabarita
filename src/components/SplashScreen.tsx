@@ -46,6 +46,13 @@ export default function SplashScreen({ onFinish, videoSrc }: SplashScreenProps) 
     const t6 = setTimeout(() => setPhase(6), 6600);
     const autoExit = setTimeout(() => triggerExit(), 8500);
 
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+        triggerExit();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -54,6 +61,7 @@ export default function SplashScreen({ onFinish, videoSrc }: SplashScreenProps) 
       clearTimeout(t5);
       clearTimeout(t6);
       clearTimeout(autoExit);
+      window.removeEventListener('keydown', handleKey);
     };
   }, []);
 

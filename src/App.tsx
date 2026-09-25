@@ -37,6 +37,7 @@ import SplashScreen from './components/SplashScreen';
 import SpotifyStudyHub from './components/SpotifyStudyHub';
 import PomodoroTimer from './components/PomodoroTimer';
 import AudioTranscriberView from './components/AudioTranscriberView';
+import FloatingSupport from './components/FloatingSupport';
 
 export default function App() {
   const isOnline = useOnlineStatus();
@@ -301,20 +302,22 @@ export default function App() {
           </div>
         </div>
       ) : !user ? (
-        <LoginScreen
-          onLoginSuccess={(userObj, isNewUser) => {
-            setUser(userObj);
-            try {
-              localStorage.setItem('vestibularpro_authenticated', 'true');
-              localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
-            } catch (e) {}
-            if (isNewUser) {
-              setActiveTab('planos');
-            } else {
-              setActiveTab('home');
-            }
-          }}
-        />
+        <ErrorBoundary>
+          <LoginScreen
+            onLoginSuccess={(userObj, isNewUser) => {
+              setUser(userObj);
+              try {
+                localStorage.setItem('vestibularpro_authenticated', 'true');
+                localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
+              } catch (e) {}
+              if (isNewUser) {
+                setActiveTab('planos');
+              } else {
+                setActiveTab('home');
+              }
+            }}
+          />
+        </ErrorBoundary>
       ) : (
         <ErrorBoundary>
           <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={handleLogout}>
@@ -322,6 +325,7 @@ export default function App() {
           </Layout>
         </ErrorBoundary>
       )}
+      {!showSplash && <FloatingSupport />}
     </>
   );
 }

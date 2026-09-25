@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import LigacoesQuimicasMindMap from './LigacoesQuimicasMindMap';
+import ChemistryVideoModal from './ChemistryVideoModal';
 
 const SUBJECT_COLORS: Record<string, { bg: string; text: string; border: string; btn: string; chartColors: string[] }> = {
   'Matemática': { 
@@ -214,6 +215,7 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
   const [loadingQuizTopic, setLoadingQuizTopic] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [totalTimeLimit, setTotalTimeLimit] = useState(0);
+  const [showChemistryVideoModal, setShowChemistryVideoModal] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleGenerateRecommendation = async () => {
@@ -696,6 +698,28 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
                       </div>
 
                       <div className="space-y-4">
+                        {(item.staticMindMapUrl === 'custom_ligacoes_quimicas' || item.topicName.toLowerCase().includes('ligações') || item.topicName.toLowerCase().includes('ligacoes')) && (
+                          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-sky-600/20 border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                                <Sparkles size={20} />
+                              </div>
+                              <div>
+                                <h5 className="text-sm font-black text-slate-800 dark:text-white">Vídeo-Aula Exclusiva: Ligações Químicas</h5>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Assista à aula interativa com slides explicativos e regra do octeto.</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowChemistryVideoModal(true)}
+                              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                            >
+                              <span>Assistir Vídeo-Aula</span>
+                              <ArrowRight size={14} />
+                            </button>
+                          </div>
+                        )}
+
                         <h4 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-white flex items-center gap-2">
                           <Share2 className="text-blue-600 dark:text-blue-400" size={16} />
                           <span>Mapa Mental Explicativo</span>
@@ -824,6 +848,17 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
           </button>
         </div>
       </div>
+
+      {showChemistryVideoModal && (
+        <ChemistryVideoModal
+          onClose={() => setShowChemistryVideoModal(false)}
+          onCompleted={() => {
+            if (auth.currentUser) {
+              achievementService.trackActivity(auth.currentUser.uid, 'aulas', 1);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

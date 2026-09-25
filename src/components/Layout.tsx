@@ -340,7 +340,10 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto bg-[var(--bg-main)]">
+      <main 
+        className="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto bg-[var(--bg-main)]"
+        style={{ backgroundColor: '#000000' }}
+      >
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 4 }}

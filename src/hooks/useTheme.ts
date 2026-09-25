@@ -9,8 +9,10 @@ export function useTheme() {
     root.setAttribute('data-theme', 'dark');
     root.style.setProperty('--bg-color', '#0A0A0A');
     root.style.setProperty('--text-color', '#FAFAFA');
-    localStorage.setItem('theme', 'dark');
-    localStorage.setItem('vestibular-theme', 'dark');
+    try {
+      localStorage.setItem('theme', 'dark');
+      localStorage.setItem('vestibular-theme', 'dark');
+    } catch (e) {}
   }, []);
 
   const toggleTheme = () => {

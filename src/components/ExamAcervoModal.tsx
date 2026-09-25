@@ -20,10 +20,17 @@ const DATABASE: Record<string, { year: string; size: string }[]> = {
 
 export const getItaExamLink = (
   year: string,
-  fase?: '1' | '2' | 'unica',
+  fase?: '1' | '2' | 'unica' | 'gabarito',
   materia?: string
 ): string => {
   const y = parseInt(year, 10);
+  if (fase === 'gabarito' || materia?.toLowerCase() === 'gabarito') {
+    const keyGab = `ITA_${year}_Gabarito`;
+    if (PROVAS_LINKS[keyGab]) return PROVAS_LINKS[keyGab];
+    const keyUnicaGab = `ITA_${year}_unica_Gabarito`;
+    if (PROVAS_LINKS[keyUnicaGab]) return PROVAS_LINKS[keyUnicaGab];
+    return `https://www.vestibular.ita.br/provas/gabarito_${year}.pdf`;
+  }
   if (materia) {
     const key2 = `ITA_${year}_2_${materia}`;
     if (PROVAS_LINKS[key2]) return PROVAS_LINKS[key2];
@@ -331,7 +338,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                 <div className="flex flex-col items-start">
                                   <span className="text-sm font-black">{vest} {item.year}</span>
                                   <span className={`text-[10px] font-bold ${isItaExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
-                                    {is2Fases ? 'Ver opções de fases' : 'Ver caderno integral'}
+                                    {is2Fases ? 'Ver opções de fases' : (['2018', '2017', '2016', '2015', '2014', '2013', '2012'].includes(item.year) ? 'Ver cadernos por matéria' : 'Ver caderno integral')}
                                   </span>
                                 </div>
                               </div>
@@ -404,6 +411,64 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                         </div>
                                       </div>
                                     </>
+                                  ) : (['2018', '2017', '2016', '2015', '2014', '2013', '2012'].includes(item.year)) ? (
+                                    <div className="space-y-3 text-left">
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                                          <span className="text-[10px] font-black uppercase text-cyan-500 tracking-wider">
+                                            PROVAS POR MATÉRIA ({item.year})
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          {[
+                                            { name: 'Física', dot: 'bg-sky-500', hover: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500' },
+                                            { name: 'Português', dot: 'bg-purple-500', hover: 'hover:bg-purple-50 dark:hover:bg-purple-950/20 hover:border-purple-500' },
+                                            { name: 'Inglês', dot: 'bg-rose-500', hover: 'hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:border-rose-500' },
+                                            { name: 'Matemática', dot: 'bg-amber-400', hover: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500' },
+                                            { name: 'Química', dot: 'bg-emerald-500', hover: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500' },
+                                          ].map((m) => (
+                                            <a
+                                              key={`ita-${item.year}-${m.name}`}
+                                              href={getItaExamLink(item.year, 'unica', m.name)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className={`flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] ${m.hover} text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn`}
+                                            >
+                                              <div className="flex items-center gap-2 truncate">
+                                                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${m.dot}`} />
+                                                <span className="truncate">Caderno {m.name}</span>
+                                              </div>
+                                              <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity shrink-0 ml-1" />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Gabarito Oficial */}
+                                      {['2017', '2016', '2015', '2014', '2013', '2012'].includes(item.year) && (
+                                        <div className="space-y-1.5 pt-2 border-t border-[var(--card-border)]">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">
+                                              GABARITO OFICIAL ({item.year})
+                                            </span>
+                                          </div>
+                                          <a
+                                            href={getItaExamLink(item.year, 'gabarito')}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
+                                          >
+                                            <div className="flex items-center gap-2 truncate">
+                                              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                              <span className="truncate font-black">Gabarito Oficial ITA {item.year} (PDF)</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 transition-opacity shrink-0 ml-1" />
+                                          </a>
+                                        </div>
+                                      )}
+                                    </div>
                                   ) : (
                                     <div className="space-y-1.5 text-left">
                                       <div className="flex items-center gap-1.5">

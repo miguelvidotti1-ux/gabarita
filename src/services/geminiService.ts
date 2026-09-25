@@ -72,25 +72,54 @@ async function generateQuestionsInternal(
 
 export async function generateEssayTheme(
   vestibular: Vestibular,
-  previousThemes: { year: number; theme: string }[]
+  previousThemes: { year: number | string; theme: string }[]
 ): Promise<string> {
   const themesContext = previousThemes
     .map((t) => `${t.year}: ${t.theme}`)
     .join("\n");
 
-  const res = await fetch('/api/gemini/essay-theme', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ vestibular, themesContext }),
-  });
+  try {
+    const res = await fetch('/api/gemini/essay-theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vestibular, themesContext }),
+    });
 
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || `Falha ao gerar tema de redação: HTTP ${res.status}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.theme) {
+        return data.theme;
+      }
+    } else {
+      console.warn(`[Tema Redação] Status ${res.status} ao contactar API.`);
+    }
+  } catch (err) {
+    console.warn("[Tema Redação] Erro de rede ou servidor:", err);
   }
 
-  const data = await res.json();
-  return data.theme;
+  // Backup seguro para garantir que o aluno nunca receba erro ou fique sem proposta
+  const fallbackThemes: Record<string, string[]> = {
+    [Vestibular.ENEM]: [
+      "Perspectivas para a inclusão produtiva e dignidade da população idosa no Brasil",
+      "Desafios para a preservação hídrica e a segurança alimentar no Brasil",
+      "A proteção dos direitos das crianças na era dos influenciadores digitais",
+      "Caminhos para combater a evasão escolar e democratizar o ensino técnico no Brasil",
+      "O impacto da inteligência artificial na empregabilidade e direitos trabalhistas no Brasil",
+      "Desafios para a valorização dos profissionais da educação básica no Brasil"
+    ],
+    [Vestibular.FUVEST]: [
+      "O papel da dúvida na construção do conhecimento científico contemporâneo",
+      "A mercantilização do tempo e do afeto nas sociedades conectadas",
+      "Utopia e distopia: os rumos da imaginação humana no século XXI"
+    ],
+    [Vestibular.UNICAMP]: [
+      "A linguagem como instrumento de poder e exclusão social no Brasil",
+      "A cultura do cancelamento e os limites do debate público na internet"
+    ]
+  };
+
+  const pool = fallbackThemes[vestibular] || fallbackThemes[Vestibular.ENEM];
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 export interface StudyMaterial {
@@ -164,17 +193,131 @@ export async function generateStudyPlan(
 }
 
 export interface Competency {
+  id?: number;
   name: string;
   score: number;
   strengths: string;
   weaknesses: string;
   improvementExample: string;
+  // CorrigeBot extended fields
+  nome?: string;
+  nota?: number;
+  nota_max?: number;
+  conceito?: string;
+  comentario?: string;
+}
+
+export interface CorrigeBotSugestaoIntervencao {
+  agente?: string;
+  acao?: string;
+  meio?: string;
+  finalidade?: string;
+  detalhamento?: string;
 }
 
 export interface EssayAnalysis {
   grade: number;
   competencies: Competency[];
   generalCorrection: string;
+  // CorrigeBot official rubric extensions
+  zerada?: boolean;
+  motivo_zeramento?: string | null;
+  nota_final?: number;
+  conceito_geral?: string;
+  pontos_fortes?: string[];
+  pontos_melhoria?: string[];
+  sugestao_proposta_intervencao?: CorrigeBotSugestaoIntervencao;
+  parecer_geral?: string;
+  banca?: string;
+  banca_nome?: string;
+  linhas_estimadas?: number;
+  redacao_id?: string;
+}
+
+export interface CorrigeBotBancaInfo {
+  id: string;
+  nome: string;
+  tipo_texto: string;
+  nota_maxima: number | null;
+  exige_proposta_intervencao: boolean;
+  limite_linhas: number | null;
+  num_competencias: number;
+  observacao?: string | null;
+}
+
+export async function getCorrigeBotBancas(): Promise<CorrigeBotBancaInfo[]> {
+  try {
+    const res = await fetch('/api/redacao/bancas');
+    if (!res.ok) throw new Error('Falha ao carregar bancas');
+    const data = await res.json();
+    return data.bancas || [];
+  } catch (err) {
+    console.warn('Erro ao carregar bancas de redação:', err);
+    return [];
+  }
+}
+
+export async function corrigirRedacaoCorrigeBot(
+  banca: string,
+  tema: string,
+  texto: string,
+  propostaNumero?: number,
+  usuarioId?: string
+): Promise<EssayAnalysis> {
+  const res = await fetch('/api/redacao/corrigir', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      banca,
+      tema,
+      texto,
+      proposta_numero: propostaNumero,
+      usuario_id: usuarioId,
+    }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = Array.isArray(data.erro) ? data.erro[0] : (data.erro || `Falha na correção: HTTP ${res.status}`);
+    throw new Error(msg);
+  }
+
+  const c = data.correcao || data;
+
+  // Normalizar para garantir compatibilidade com EssayAnalysis
+  const comps: Competency[] = (c.competencias || []).map((comp: any, idx: number) => ({
+    id: comp.id || (idx + 1),
+    name: comp.nome || comp.name || `Competência ${idx + 1}`,
+    nome: comp.nome || comp.name || `Competência ${idx + 1}`,
+    score: comp.nota ?? comp.score ?? (comp.conceito === 'Excelente' ? 200 : comp.conceito === 'Ótimo' ? 160 : comp.conceito === 'Bom' ? 120 : comp.conceito === 'Regular' ? 80 : 40),
+    nota: comp.nota,
+    nota_max: comp.nota_max ?? 200,
+    conceito: comp.conceito,
+    comentario: comp.comentario || comp.strengths || comp.weaknesses || '',
+    strengths: comp.strengths || (comp.conceito ? `Desempenho avaliado como ${comp.conceito}` : 'Atendeu aos critérios da banca'),
+    weaknesses: comp.weaknesses || (comp.conceito === 'Excelente' ? 'Sem desvios expressivos' : 'Reforce a fundamentação e precisão textual'),
+    improvementExample: comp.improvementExample || comp.comentario || 'Pratique aprofundando o repertório e a coesão.'
+  }));
+
+  const grade = c.nota_final ?? c.grade ?? (c.conceito_geral === 'Excelente' ? 1000 : c.conceito_geral === 'Ótimo' ? 850 : c.conceito_geral === 'Bom' ? 700 : c.conceito_geral === 'Regular' ? 500 : 350);
+
+  return {
+    grade,
+    competencies: comps,
+    generalCorrection: c.parecer_geral || c.generalCorrection || 'Redação analisada com sucesso conforme as diretrizes da banca.',
+    zerada: c.zerada,
+    motivo_zeramento: c.motivo_zeramento,
+    nota_final: c.nota_final,
+    conceito_geral: c.conceito_geral,
+    pontos_fortes: c.pontos_fortes || [],
+    pontos_melhoria: c.pontos_melhoria || [],
+    sugestao_proposta_intervencao: c.sugestao_proposta_intervencao,
+    parecer_geral: c.parecer_geral,
+    banca: c.banca,
+    banca_nome: c.banca_nome,
+    linhas_estimadas: c.linhas_estimadas,
+    redacao_id: c.redacao_id
+  };
 }
 
 const vestibularCriteria: Record<Vestibular, string> = {

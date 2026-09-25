@@ -72,6 +72,19 @@ interface DashboardProps {
   selectedVestibular?: string;
 }
 
+const SUBJECT_COLORS: Record<string, string> = {
+  'matemática': '#2563eb',
+  'física': '#4f46e5',
+  'química': '#0891b2',
+  'biologia': '#059669',
+  'português': '#e11d48',
+  'história': '#d97706',
+  'geografia': '#65a30d',
+  'sociologia': '#8b5cf6',
+  'filosofia': '#ec4899',
+  'artes': '#a855f7'
+};
+
 export default function Dashboard(props: DashboardProps) {
   return (
     <GraficosProvider>
@@ -758,12 +771,12 @@ function DashboardInner({ selectedVestibular }: DashboardProps) {
                         acc.push(curr);
                       }
                       return acc;
-                    }, [] as SubjectPerformance[]).map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={['#1D4ED8', '#0D9488', '#0284C7', '#4F46E5'][index % 4]} />
+                    }, [] as SubjectPerformance[]).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={SUBJECT_COLORS[entry.subject] || '#666'} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }} />
-                  <Legend formatter={(value) => <span className="text-[var(--text-main)]">{value}</span>} />
+                  <Legend formatter={(value) => <span className="text-[var(--text-main)] capitalize">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (

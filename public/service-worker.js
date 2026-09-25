@@ -1,20 +1,31 @@
-const CACHE_NAME = 'study-app-cache-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  // Vite usually serves main files as /assets/...
-];
+// VestHub Service Worker - Cache Purge & Network Forwarder
+// Automatically invalidates old caches (like study-app-cache-v1) and yields control to VitePWA
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          console.log('[SW Purge] Removendo cache legado:', key);
+          return caches.delete(key);
+        })
+      );
+    }).then(() => {
+      return self.clients.claim();
+    }).then(() => {
+      // Auto-unregister this worker so vite-plugin-pwa manages PWA assets cleanly
+      return self.registration.unregister();
+    })
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  // Always fetch fresh from network for all requests to prevent stale index.html
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });

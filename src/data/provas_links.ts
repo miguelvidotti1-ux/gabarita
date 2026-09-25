@@ -183,19 +183,177 @@ export const PROVAS_LINKS: Record<string, string> = {
   "ITA_2019_2_Química": "https://www.vestibular.ita.br/provas/2019_fase2_quimica.pdf",
   "ITA_2019_2_Prova": "https://www.vestibular.ita.br/provas/2019_fase2.pdf",
 
-  // Formato Prova Única (2009 a 2018)
-  "ITA_2018_Matemática": "https://www.vestibular.ita.br/provas/matematica_2018.pdf",
-  "ITA_2018_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2018.pdf",
-  "ITA_2018_unica_Prova": "https://www.vestibular.ita.br/provas/2018_prova.pdf",
+  // 2018: Provas por matéria (Física, Português, Inglês, Matemática, Química)
+  "ITA_2018_Física": "https://vestibular.ita.br/provas/fisica_2018.pdf",
+  "ITA_2018_unica_Física": "https://vestibular.ita.br/provas/fisica_2018.pdf",
+  "ITA_2018_2_Física": "https://vestibular.ita.br/provas/fisica_2018.pdf",
 
-  "ITA_2017_Matemática": "https://www.vestibular.ita.br/provas/matematica_2017.pdf",
-  "ITA_2017_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2017.pdf",
-  "ITA_2017_unica_Prova": "https://www.vestibular.ita.br/provas/2017_prova.pdf",
-  "ITA_2016_unica_Prova": "https://www.vestibular.ita.br/provas/2016_prova.pdf",
-  "ITA_2015_unica_Prova": "https://www.vestibular.ita.br/provas/2015_prova.pdf",
-  "ITA_2014_unica_Prova": "https://www.vestibular.ita.br/provas/2014_prova.pdf",
-  "ITA_2013_unica_Prova": "https://www.vestibular.ita.br/provas/2013_prova.pdf",
-  "ITA_2012_unica_Prova": "https://www.vestibular.ita.br/provas/2012_prova.pdf",
+  "ITA_2018_Português": "https://vestibular.ita.br/provas/portugues_2018.pdf",
+  "ITA_2018_unica_Português": "https://vestibular.ita.br/provas/portugues_2018.pdf",
+  "ITA_2018_2_Português": "https://vestibular.ita.br/provas/portugues_2018.pdf",
+
+  "ITA_2018_Inglês": "https://vestibular.ita.br/provas/ingles_2018.pdf",
+  "ITA_2018_unica_Inglês": "https://vestibular.ita.br/provas/ingles_2018.pdf",
+  "ITA_2018_2_Inglês": "https://vestibular.ita.br/provas/ingles_2018.pdf",
+
+  "ITA_2018_Matemática": "https://vestibular.ita.br/provas/matematica_2018.pdf",
+  "ITA_2018_unica_Matemática": "https://vestibular.ita.br/provas/matematica_2018.pdf",
+  "ITA_2018_2_Matemática": "https://vestibular.ita.br/provas/matematica_2018.pdf",
+
+  "ITA_2018_Química": "https://vestibular.ita.br/provas/quimica_2018.pdf",
+  "ITA_2018_unica_Química": "https://vestibular.ita.br/provas/quimica_2018.pdf",
+  "ITA_2018_2_Química": "https://vestibular.ita.br/provas/quimica_2018.pdf",
+
+  "ITA_2018_unica_Prova": "https://vestibular.ita.br/provas/fisica_2018.pdf",
+
+  // 2017: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
+  "ITA_2017_Física": "https://vestibular.ita.br/provas/fisica_2017.pdf",
+  "ITA_2017_unica_Física": "https://vestibular.ita.br/provas/fisica_2017.pdf",
+  "ITA_2017_2_Física": "https://vestibular.ita.br/provas/fisica_2017.pdf",
+
+  "ITA_2017_Português": "https://vestibular.ita.br/provas/portugues_2017.pdf",
+  "ITA_2017_unica_Português": "https://vestibular.ita.br/provas/portugues_2017.pdf",
+  "ITA_2017_2_Português": "https://vestibular.ita.br/provas/portugues_2017.pdf",
+
+  "ITA_2017_Inglês": "https://vestibular.ita.br/provas/ingles_2017.pdf",
+  "ITA_2017_unica_Inglês": "https://vestibular.ita.br/provas/ingles_2017.pdf",
+  "ITA_2017_2_Inglês": "https://vestibular.ita.br/provas/ingles_2017.pdf",
+
+  "ITA_2017_Matemática": "https://vestibular.ita.br/provas/matematica_2017.pdf",
+  "ITA_2017_unica_Matemática": "https://vestibular.ita.br/provas/matematica_2017.pdf",
+  "ITA_2017_2_Matemática": "https://vestibular.ita.br/provas/matematica_2017.pdf",
+
+  "ITA_2017_Química": "https://vestibular.ita.br/provas/quimica_2017.pdf",
+  "ITA_2017_unica_Química": "https://vestibular.ita.br/provas/quimica_2017.pdf",
+  "ITA_2017_2_Química": "https://vestibular.ita.br/provas/quimica_2017.pdf",
+
+  "ITA_2017_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2017.pdf",
+  "ITA_2017_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2017.pdf",
+  "ITA_2017_unica_Prova": "https://vestibular.ita.br/provas/fisica_2017.pdf",
+  // 2016: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
+  "ITA_2016_Física": "https://vestibular.ita.br/provas/fisica_2016.pdf",
+  "ITA_2016_unica_Física": "https://vestibular.ita.br/provas/fisica_2016.pdf",
+  "ITA_2016_2_Física": "https://vestibular.ita.br/provas/fisica_2016.pdf",
+
+  "ITA_2016_Português": "https://vestibular.ita.br/provas/portugues_2016.pdf",
+  "ITA_2016_unica_Português": "https://vestibular.ita.br/provas/portugues_2016.pdf",
+  "ITA_2016_2_Português": "https://vestibular.ita.br/provas/portugues_2016.pdf",
+
+  "ITA_2016_Inglês": "https://vestibular.ita.br/provas/ingles_2016.pdf",
+  "ITA_2016_unica_Inglês": "https://vestibular.ita.br/provas/ingles_2016.pdf",
+  "ITA_2016_2_Inglês": "https://vestibular.ita.br/provas/ingles_2016.pdf",
+
+  "ITA_2016_Matemática": "https://vestibular.ita.br/provas/matematica_2016.pdf",
+  "ITA_2016_unica_Matemática": "https://vestibular.ita.br/provas/matematica_2016.pdf",
+  "ITA_2016_2_Matemática": "https://vestibular.ita.br/provas/matematica_2016.pdf",
+
+  "ITA_2016_Química": "https://vestibular.ita.br/provas/quimica_2016.pdf",
+  "ITA_2016_unica_Química": "https://vestibular.ita.br/provas/quimica_2016.pdf",
+  "ITA_2016_2_Química": "https://vestibular.ita.br/provas/quimica_2016.pdf",
+
+  "ITA_2016_Gabarito": "https://vestibular.ita.br/provas/gabarito_2016.pdf",
+  "ITA_2016_unica_Gabarito": "https://vestibular.ita.br/provas/gabarito_2016.pdf",
+  "ITA_2016_unica_Prova": "https://vestibular.ita.br/provas/fisica_2016.pdf",
+
+  // 2015: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
+  "ITA_2015_Física": "https://www.vestibular.ita.br/provas/fisica_2015.pdf",
+  "ITA_2015_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2015.pdf",
+  "ITA_2015_2_Física": "https://www.vestibular.ita.br/provas/fisica_2015.pdf",
+
+  "ITA_2015_Português": "https://www.vestibular.ita.br/provas/portugues_2015.pdf",
+  "ITA_2015_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2015.pdf",
+  "ITA_2015_2_Português": "https://www.vestibular.ita.br/provas/portugues_2015.pdf",
+
+  "ITA_2015_Inglês": "https://www.vestibular.ita.br/provas/ingles_2015.pdf",
+  "ITA_2015_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2015.pdf",
+  "ITA_2015_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2015.pdf",
+
+  "ITA_2015_Matemática": "https://www.vestibular.ita.br/provas/matematica_2015.pdf",
+  "ITA_2015_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2015.pdf",
+  "ITA_2015_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2015.pdf",
+
+  "ITA_2015_Química": "https://www.vestibular.ita.br/provas/quimica_2015.pdf",
+  "ITA_2015_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2015.pdf",
+  "ITA_2015_2_Química": "https://www.vestibular.ita.br/provas/quimica_2015.pdf",
+
+  "ITA_2015_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2015.pdf",
+  "ITA_2015_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2015.pdf",
+  "ITA_2015_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2015.pdf",
+
+  // 2014: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
+  "ITA_2014_Física": "https://www.vestibular.ita.br/provas/fisica_2014.pdf",
+  "ITA_2014_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2014.pdf",
+  "ITA_2014_2_Física": "https://www.vestibular.ita.br/provas/fisica_2014.pdf",
+
+  "ITA_2014_Português": "https://www.vestibular.ita.br/provas/portugues_2014.pdf",
+  "ITA_2014_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2014.pdf",
+  "ITA_2014_2_Português": "https://www.vestibular.ita.br/provas/portugues_2014.pdf",
+
+  "ITA_2014_Inglês": "https://www.vestibular.ita.br/provas/ingles_2014.pdf",
+  "ITA_2014_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2014.pdf",
+  "ITA_2014_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2014.pdf",
+
+  "ITA_2014_Matemática": "https://www.vestibular.ita.br/provas/matematica_2014.pdf",
+  "ITA_2014_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2014.pdf",
+  "ITA_2014_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2014.pdf",
+
+  "ITA_2014_Química": "https://www.vestibular.ita.br/provas/quimica_2014.pdf",
+  "ITA_2014_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2014.pdf",
+  "ITA_2014_2_Química": "https://www.vestibular.ita.br/provas/quimica_2014.pdf",
+
+  "ITA_2014_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2014.pdf",
+  "ITA_2014_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2014.pdf",
+  "ITA_2014_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2014.pdf",
+
+  // 2013: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
+  "ITA_2013_Física": "https://vestibular.ita.br/provas/fisica_2013.pdf",
+  "ITA_2013_unica_Física": "https://vestibular.ita.br/provas/fisica_2013.pdf",
+  "ITA_2013_2_Física": "https://vestibular.ita.br/provas/fisica_2013.pdf",
+
+  "ITA_2013_Português": "https://vestibular.ita.br/provas/portugues_2013.pdf",
+  "ITA_2013_unica_Português": "https://vestibular.ita.br/provas/portugues_2013.pdf",
+  "ITA_2013_2_Português": "https://vestibular.ita.br/provas/portugues_2013.pdf",
+
+  "ITA_2013_Inglês": "https://vestibular.ita.br/provas/ingles_2013.pdf",
+  "ITA_2013_unica_Inglês": "https://vestibular.ita.br/provas/ingles_2013.pdf",
+  "ITA_2013_2_Inglês": "https://vestibular.ita.br/provas/ingles_2013.pdf",
+
+  "ITA_2013_Matemática": "https://vestibular.ita.br/provas/matematica_2013.pdf",
+  "ITA_2013_unica_Matemática": "https://vestibular.ita.br/provas/matematica_2013.pdf",
+  "ITA_2013_2_Matemática": "https://vestibular.ita.br/provas/matematica_2013.pdf",
+
+  "ITA_2013_Química": "https://vestibular.ita.br/provas/quimica_2013.pdf",
+  "ITA_2013_unica_Química": "https://vestibular.ita.br/provas/quimica_2013.pdf",
+  "ITA_2013_2_Química": "https://vestibular.ita.br/provas/quimica_2013.pdf",
+
+  "ITA_2013_Gabarito": "https://vestibular.ita.br/provas/gabarito_2013.pdf",
+  "ITA_2013_unica_Gabarito": "https://vestibular.ita.br/provas/gabarito_2013.pdf",
+  "ITA_2013_unica_Prova": "https://vestibular.ita.br/provas/fisica_2013.pdf",
+
+  // 2012: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
+  "ITA_2012_Física": "https://www.vestibular.ita.br/provas/fisica_2012.pdf",
+  "ITA_2012_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2012.pdf",
+  "ITA_2012_2_Física": "https://www.vestibular.ita.br/provas/fisica_2012.pdf",
+
+  "ITA_2012_Português": "https://www.vestibular.ita.br/provas/portugues_2012.pdf",
+  "ITA_2012_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2012.pdf",
+  "ITA_2012_2_Português": "https://www.vestibular.ita.br/provas/portugues_2012.pdf",
+
+  "ITA_2012_Inglês": "https://www.vestibular.ita.br/provas/ingles_2012.pdf",
+  "ITA_2012_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2012.pdf",
+  "ITA_2012_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2012.pdf",
+
+  "ITA_2012_Matemática": "https://www.vestibular.ita.br/provas/matematica_2012.pdf",
+  "ITA_2012_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2012.pdf",
+  "ITA_2012_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2012.pdf",
+
+  "ITA_2012_Química": "https://www.vestibular.ita.br/provas/quimica_2012.pdf",
+  "ITA_2012_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2012.pdf",
+  "ITA_2012_2_Química": "https://www.vestibular.ita.br/provas/quimica_2012.pdf",
+
+  "ITA_2012_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2012.pdf",
+  "ITA_2012_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2012.pdf",
+  "ITA_2012_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2012.pdf",
   "ITA_2011_unica_Prova": "https://www.vestibular.ita.br/provas/2011_prova.pdf",
   "ITA_2010_unica_Prova": "https://www.vestibular.ita.br/provas/2010_prova.pdf",
   "ITA_2009_unica_Prova": "https://www.vestibular.ita.br/provas/2009_prova.pdf"

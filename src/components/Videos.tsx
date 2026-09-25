@@ -1,11 +1,22 @@
 import { useState, useMemo } from 'react';
 import { Vestibular } from '../types';
-import { Play, Search, Filter, Clock, GraduationCap } from 'lucide-react';
+import { Play, Search, Filter, Clock, GraduationCap, Sparkles } from 'lucide-react';
 import { auth } from '../firebase';
 import { achievementService } from '../services/achievementService';
 import { missionEngine } from '../services/missionService';
+import ChemistryVideoModal from './ChemistryVideoModal';
 
 const VIDEOS = [
+  { 
+    title: "Ligações Químicas", 
+    materia: "Química", 
+    vestibular: "ENEM", 
+    thumbnail: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800&auto=format&fit=crop", 
+    duracao: "01:38",
+    isInteractive: true,
+    badge: "Nova Vídeo-Aula",
+    descricao: "Regra do Octeto, Ligação Iônica, Covalente, Dativa, Metálica e Exceções (Be e Boro)."
+  },
   { title: "Introdução à Química Geral", materia: "Química", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?w=800&auto=format&fit=crop", duracao: "12:10" },
   { title: "Leis de Newton na Prática", materia: "Física", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1636466484362-ad1388d21cf7?w=800&auto=format&fit=crop", duracao: "16:25" },
   { title: "Ecologia e Meio Ambiente", materia: "Biologia", vestibular: "ENEM", thumbnail: "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=800&auto=format&fit=crop", duracao: "14:00" },
@@ -21,8 +32,25 @@ export default function Videos({ vestibular: currentVestibularProp }: { vestibul
   const [searchQuery, setSearchQuery] = useState('');
   const [materiaFilter, setMateriaFilter] = useState('all');
   const [vestibularFilter, setVestibularFilter] = useState('all');
+  const [showChemistryModal, setShowChemistryModal] = useState(false);
 
   const handleVideoClick = (video: any) => {
+    if (video.isInteractive) {
+      setShowChemistryModal(true);
+      // Track mission watch
+      try {
+        missionEngine.getMissionsForToday().forEach(m => {
+          if (m.type === 'watch' && (m.topic === 'Química' || m.topic === 'review')) {
+            missionEngine.updateProgress(m.id, 1);
+          }
+        });
+      } catch (err) {}
+      if (auth.currentUser) {
+        achievementService.trackActivity(auth.currentUser.uid, 'aulas', 1);
+      }
+      return;
+    }
+
     // Open URL if available (if not, search on YouTube)
     const url = video.url || "https://www.youtube.com/results?search_query=" + encodeURIComponent("Aula " + video.title);
     window.open(url, '_blank');
@@ -167,10 +195,22 @@ export default function Videos({ vestibular: currentVestibularProp }: { vestibul
                     
                     <div className="p-8 space-y-4">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black text-[var(--text-accent)] uppercase tracking-wider">{video.vestibular}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-[var(--text-accent)] uppercase tracking-wider">{video.vestibular}</span>
+                          {(video as any).badge && (
+                            <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-bold">
+                              {(video as any).badge}
+                            </span>
+                          )}
+                        </div>
                         <h3 className="text-lg font-black text-[var(--text-primary)] leading-tight group-hover:text-[var(--text-accent)] transition-colors line-clamp-2">
                           {video.title}
                         </h3>
+                        {(video as any).descricao && (
+                          <p className="text-xs text-[var(--text-secondary)] line-clamp-1">
+                            {(video as any).descricao}
+                          </p>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-sm font-medium">
@@ -185,6 +225,17 @@ export default function Videos({ vestibular: currentVestibularProp }: { vestibul
           ))
         )}
       </div>
+
+      {showChemistryModal && (
+        <ChemistryVideoModal
+          onClose={() => setShowChemistryModal(false)}
+          onCompleted={() => {
+            if (auth.currentUser) {
+              achievementService.trackActivity(auth.currentUser.uid, 'aulas', 1);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

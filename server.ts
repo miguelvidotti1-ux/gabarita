@@ -4,6 +4,13 @@ import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { spotifyRouter } from "./server/spotifyRoutes";
+import {
+  CorretorRedacaoService,
+  RUBRICAS,
+  REDACAO_MAX_TOKENS,
+  REDACAO_TEMPERATURE,
+  REDACAO_LIMITE_CARACTERES,
+} from "./server/corretorRedacao";
 
 async function startServer() {
   const app = express();
@@ -22,6 +29,89 @@ async function startServer() {
       }
     }
   });
+
+  const DEFAULT_CANDIDATE_MODELS = [
+    'gemini-flash-latest',
+    'gemini-3.8-flash',
+    'gemini-3.1-flash-lite',
+  ];
+
+  async function generateWithFallback(options: {
+    contents: any;
+    config?: any;
+    candidateModels?: string[];
+  }) {
+    const models = options.candidateModels || DEFAULT_CANDIDATE_MODELS;
+    let lastError: any = null;
+
+    for (const modelName of models) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: options.contents,
+            config: options.config,
+          });
+          if (response && response.text) {
+            return response;
+          }
+        } catch (err: any) {
+          lastError = err;
+          const msg = err?.message || '';
+          const isTransient =
+            err?.status === 503 ||
+            err?.status === 429 ||
+            msg.includes('503') ||
+            msg.includes('429') ||
+            msg.includes('high demand') ||
+            msg.includes('UNAVAILABLE') ||
+            msg.includes('RESOURCE_EXHAUSTED');
+
+          console.warn(`[Gemini API] Falha na tentativa ${attempt + 1} com ${modelName}:`, msg);
+
+          if (isTransient && attempt === 0) {
+            await new Promise((r) => setTimeout(r, 600));
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    throw lastError || new Error('Não foi possível obter resposta dos modelos de IA.');
+  }
+
+  const FALLBACK_ESSAY_THEMES: Record<string, string[]> = {
+    ENEM: [
+      "Perspectivas para a inclusão produtiva e dignidade da população idosa no Brasil",
+      "Desafios para a preservação hídrica e a segurança alimentar no Brasil",
+      "A proteção dos direitos das crianças na era dos influenciadores digitais",
+      "Caminhos para combater a evasão escolar e democratizar o ensino técnico no Brasil",
+      "O impacto da inteligência artificial na empregabilidade e direitos trabalhistas no Brasil",
+      "Desafios para a valorização dos profissionais da educação básica no Brasil",
+      "A importância da preservação da biodiversidade e dos biomas brasileiros",
+      "Caminhos para a democratização da moradia e planejamento urbano sustentável no Brasil"
+    ],
+    FUVEST: [
+      "O papel da dúvida na construção do conhecimento científico contemporâneo",
+      "A mercantilização do tempo e do afeto nas sociedades conectadas",
+      "Utopia e distopia: os rumos da imaginação humana no século XXI",
+      "O paradoxo entre autonomia individual e vigilância algorítmica"
+    ],
+    UNICAMP: [
+      "A linguagem como instrumento de poder e exclusão social no Brasil",
+      "O papel dos arquivos e da memória coletiva na preservação da democracia",
+      "A cultura do cancelamento e os limites do debate público na internet"
+    ],
+    UNESP: [
+      "A polarização no ambiente virtual e os desafios para o diálogo democrático",
+      "Transição energética e justiça ambiental: dilemas para o desenvolvimento"
+    ],
+    UERJ: [
+      "A solidariedade social em tempos de crise e o papel das instituições públicas",
+      "A busca pela igualdade em sociedades historicamente desiguais"
+    ]
+  };
 
   // ========== SYSTEM PROMPT — RESTRIÇÃO DE TÓPICO VESTBOT ==========
   const SYSTEM_PROMPT_VESTBOT = `Você é o VestBot, assistente especializado em vestibulares brasileiros.
@@ -195,36 +285,12 @@ FORMATO DE RESPOSTA:
         },
       ];
 
-      const candidateModels = [
-        'gemini-flash-latest',
-        'gemini-3.8-flash',
-        'gemini-3.1-flash-lite',
-      ];
-
-      let response: any = null;
-      let lastError: any = null;
-
-      for (const modelName of candidateModels) {
-        try {
-          response = await ai.models.generateContent({
-            model: modelName,
-            contents: formattedContents,
-            config: {
-              systemInstruction: SYSTEM_PROMPT_VESTBOT,
-            },
-          });
-          if (response && response.text) {
-            break;
-          }
-        } catch (mErr: any) {
-          console.warn(`Tentativa com ${modelName} falhou:`, mErr?.message);
-          lastError = mErr;
-        }
-      }
-
-      if (!response || !response.text) {
-        throw lastError || new Error('Não foi possível obter resposta dos modelos de IA.');
-      }
+      const response = await generateWithFallback({
+        contents: formattedContents,
+        config: {
+          systemInstruction: SYSTEM_PROMPT_VESTBOT,
+        },
+      });
 
       res.json({
         resposta: response.text,
@@ -277,8 +343,7 @@ Retorne APENAS um array JSON:
   }
 ]`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -314,8 +379,8 @@ Retorne APENAS um array JSON:
   });
 
   app.post("/api/gemini/essay-theme", async (req, res) => {
+    const { vestibular = "ENEM", themesContext = "" } = req.body || {};
     try {
-      const { vestibular, themesContext } = req.body;
       const prompt = `Você é um especialista em bancas examinadoras de vestibulares brasileiros. 
 Gere um NOVO tema de redação inédito para o vestibular ${vestibular}.
 
@@ -326,20 +391,25 @@ Instruções:
 1. O tema deve seguir o estilo e a complexidade típicos do ${vestibular}.
 2. Considere eventos, debates sociais e notícias relevantes do início de 2026.
 3. O tema deve ser dissertativo-argumentativo.
-4. Retorne APENAS a frase temática central, CURTA e OBJETIVA (máximo 10 palavras), sem explicações adicionais.
+4. Retorne APENAS a frase temática central, CURTA e OBJETIVA (máximo 12 palavras), sem aspas ou explicações adicionais.
 
-Exemplo de saída: "Os impactos da inteligência artificial generativa na integridade acadêmica do século XXI"`;
+Exemplo de saída: Caminhos para a inclusão produtiva e dignidade da população idosa no Brasil`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: prompt,
       });
 
       const text = response.text || "";
-      res.json({ theme: text.trim().replace(/^"|"$/g, "") });
+      const cleaned = text.trim().replace(/^["']|["']$/g, "").replace(/^Tema:\s*/i, "");
+      if (cleaned.length > 5) {
+        return res.json({ theme: cleaned });
+      }
+      throw new Error("Tema gerado inválido");
     } catch (err: any) {
-      console.error("Erro ao gerar tema de redação:", err);
-      res.status(500).json({ error: err?.message || "Erro ao gerar tema de redação" });
+      console.warn("Erro ao gerar tema com IA, utilizando tema curado de contingência:", err?.message);
+      const fallbackList = FALLBACK_ESSAY_THEMES[vestibular] || FALLBACK_ESSAY_THEMES["ENEM"];
+      const randomFallback = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+      return res.json({ theme: randomFallback, isFallback: true });
     }
   });
 
@@ -367,8 +437,7 @@ Retorne um array de objetos JSON seguindo este esquema:
   }
 }`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -430,8 +499,7 @@ Retorne um array de objetos JSON seguindo este esquema:
   "estimatedHours": number (horas estimadas)
 }`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -460,9 +528,173 @@ Retorne um array de objetos JSON seguindo este esquema:
     }
   });
 
+  // ========== CORRIGEBOT — ROTAS OFICIAIS DE REDAÇÃO ==========
+
+  // 1. Listar bancas com suas rubricas e regras oficiais
+  app.get("/api/redacao/bancas", (req, res) => {
+    try {
+      const bancas = CorretorRedacaoService.listarBancas();
+      res.json({ bancas });
+    } catch (err: any) {
+      console.error("Erro ao listar bancas de redação:", err);
+      res.status(500).json({ error: "Erro ao listar bancas de redação" });
+    }
+  });
+
+  // Armazenamento em memória para histórico do servidor
+  const serverEssayHistory: Array<{
+    id: string;
+    banca: string;
+    banca_nome: string;
+    tema: string;
+    nota_final?: number;
+    conceito_geral?: string;
+    zerada: boolean;
+    data: string;
+  }> = [];
+
+  // 2. Corrigir redação conforme a banca selecionada
+  app.post("/api/redacao/corrigir", async (req, res) => {
+    try {
+      const { banca = "enem", tema, texto, proposta_numero, usuario_id } = req.body || {};
+
+      if (!tema || typeof tema !== 'string' || !tema.trim()) {
+        return res.status(400).json({ erro: "Tema da redação é obrigatório" });
+      }
+
+      if (!texto || typeof texto !== 'string' || !texto.trim()) {
+        return res.status(400).json({ erro: "Texto da redação é obrigatório" });
+      }
+
+      // Validação mecânica pré-IA
+      const erros = CorretorRedacaoService.validarSubmissao(banca, texto);
+      if (erros.length > 0) {
+        return res.status(400).json({ erro: erros });
+      }
+
+      const prompt = CorretorRedacaoService.construirPrompt(
+        banca,
+        tema.trim(),
+        texto.trim(),
+        proposta_numero ? Number(proposta_numero) : undefined
+      );
+
+      const response = await generateWithFallback({
+        contents: prompt,
+        config: {
+          temperature: REDACAO_TEMPERATURE,
+          maxOutputTokens: REDACAO_MAX_TOKENS,
+          responseMimeType: "application/json",
+        },
+      });
+
+      const responseText = response?.text;
+      if (!responseText) {
+        return res.status(500).json({ erro: "Sem resposta do modelo de IA para a correção" });
+      }
+
+      let resultado: any;
+      try {
+        resultado = JSON.parse(responseText);
+      } catch (parseErr) {
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          resultado = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("Formato de resposta inesperado retornado pela IA");
+        }
+      }
+
+      const normBanca = (banca || 'enem').toLowerCase().trim();
+      const rubrica = RUBRICAS[normBanca] || RUBRICAS.enem;
+
+      resultado.banca = normBanca;
+      resultado.banca_nome = rubrica.nome;
+      resultado.tema = tema.trim();
+      resultado.usuario_id = usuario_id || null;
+      resultado.linhas_estimadas = Math.max(1, Math.floor(texto.trim().length / 72));
+
+      // Garantir retrocompatibilidade com campos de nota e parecer
+      if (resultado.nota_final !== undefined && resultado.grade === undefined) {
+        resultado.grade = resultado.nota_final;
+      }
+      if (resultado.generalCorrection === undefined && resultado.parecer_geral) {
+        resultado.generalCorrection = resultado.parecer_geral;
+      }
+
+      // Registrar no histórico em memória
+      const historyItem = {
+        id: `red_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        banca: normBanca,
+        banca_nome: rubrica.nome,
+        tema: tema.trim(),
+        nota_final: resultado.nota_final,
+        conceito_geral: resultado.conceito_geral,
+        zerada: Boolean(resultado.zerada),
+        data: new Date().toISOString(),
+      };
+      serverEssayHistory.unshift(historyItem);
+      if (serverEssayHistory.length > 50) serverEssayHistory.pop();
+
+      resultado.redacao_id = historyItem.id;
+
+      return res.status(200).json({ correcao: resultado });
+    } catch (err: any) {
+      console.error("Erro na correção da redação pelo CorrigeBot:", err);
+      return res.status(500).json({ erro: err?.message || "Erro interno ao corrigir redação" });
+    }
+  });
+
+  // 3. Histórico de redações
+  app.get("/api/redacao/historico", (req, res) => {
+    res.json({ redacoes: serverEssayHistory.slice(0, 20) });
+  });
+
   app.post("/api/gemini/analyze-essay", async (req, res) => {
     try {
-      const { vestibular, theme, essay, criteria } = req.body;
+      const { vestibular, theme, essay, criteria, proposta_numero } = req.body;
+      const bancaKey = (vestibular || 'enem').toLowerCase().trim();
+
+      // Se for uma das bancas oficiais do CorrigeBot, usar a rubrica completa
+      if (RUBRICAS[bancaKey]) {
+        const prompt = CorretorRedacaoService.construirPrompt(
+          bancaKey,
+          theme || "Tema livre",
+          essay,
+          proposta_numero
+        );
+
+        const response = await generateWithFallback({
+          contents: prompt,
+          config: {
+            temperature: REDACAO_TEMPERATURE,
+            maxOutputTokens: REDACAO_MAX_TOKENS,
+            responseMimeType: "application/json",
+          },
+        });
+
+        const text = response.text;
+        if (!text) return res.status(500).json({ error: "Sem resposta do modelo" });
+        
+        let resultado: any;
+        try {
+          resultado = JSON.parse(text);
+        } catch {
+          const m = text.match(/\{[\s\S]*\}/);
+          resultado = m ? JSON.parse(m[0]) : {};
+        }
+
+        // Mapeia para o formato esperado pelo frontend legacy caso necessário
+        if (resultado.nota_final !== undefined && resultado.grade === undefined) {
+          resultado.grade = resultado.nota_final;
+        }
+        if (!resultado.generalCorrection && resultado.parecer_geral) {
+          resultado.generalCorrection = resultado.parecer_geral;
+        }
+
+        return res.json(resultado);
+      }
+
       const prompt = `Você é um corretor de redação experiente e rigoroso do vestibular ${vestibular}.
 Analise a redação abaixo com base no tema: "${theme}".
 
@@ -497,8 +729,7 @@ Retorne um JSON seguindo este esquema:
 Redação:
 ${essay}`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -574,8 +805,7 @@ Retorne um JSON seguindo este esquema:
   "generalCorrection": "string"
 }`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: [
           { text: prompt },
           { inlineData: { data: base64Image, mimeType: mimeType } }
@@ -641,8 +871,7 @@ Retorne exclusivamente um JSON com este formato:
   "quote": "Frase motivadora curta focada na jornada até a aprovação"
 }`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+      const response = await generateWithFallback({
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -702,8 +931,8 @@ Retorne exclusivamente um JSON com este formato:
 
       const instruction = prompt || "Transcreva este áudio com precisão no idioma original falado (português do Brasil). Retorne apenas o texto transcrito, sem introduções ou explicações.";
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-transcribe",
+      const response = await generateWithFallback({
+        candidateModels: ['gemini-3.5-transcribe', 'gemini-flash-latest'],
         contents: {
           parts: [audioPart, { text: instruction }],
         },

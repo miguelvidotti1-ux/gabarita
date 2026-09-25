@@ -4,7 +4,8 @@ import {
   CheckCircle2, ChevronRight, FileSpreadsheet, 
   ChevronDown, Calendar, GraduationCap, ArrowLeft, X,
   Sparkles, Award, Trophy, Play, RefreshCw, BarChart2,
-  TrendingUp, Check, AlertCircle, HelpCircle, BookOpen
+  TrendingUp, Check, AlertCircle, HelpCircle, BookOpen,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -16,16 +17,18 @@ function cn(...inputs: ClassValue[]) {
 }
 
 // Generates rich sample questions with realistic content based on exam subjects
-const generateRichQuestions = (exame: Vestibular, dia: number) => {
-  const subjects = {
+const generateRichQuestions = (exame: Vestibular | string, dia: number, count?: number) => {
+  const subjects: Record<string, string[]> = {
     [Vestibular.ENEM]: dia === 1 
       ? ['Linguagens e Códigos', 'Ciências Humanas'] 
       : ['Ciências da Natureza', 'Matemática'],
-    [Vestibular.FUVEST]: ['Português e Literatura', 'História e Geografia', 'Física e Química', 'Biologia', 'Matemática']
+    [Vestibular.FUVEST]: ['Português e Literatura', 'História e Geografia', 'Física e Química', 'Biologia', 'Matemática'],
+    [Vestibular.ITA]: ['Física', 'Português', 'Inglês', 'Matemática', 'Química']
   };
 
   const currentSubjects = subjects[exame as keyof typeof subjects] || ['Conhecimentos Gerais'];
   const answerKeys = ['A', 'B', 'C', 'D', 'E'];
+  const questionCount = count || (exame === Vestibular.ITA ? 60 : 90);
 
   const realProblemTemplates = [
     {
@@ -85,9 +88,9 @@ const generateRichQuestions = (exame: Vestibular, dia: number) => {
     }
   ];
 
-  const totalQuestionsList = Array.from({ length: 90 }, (_, i) => {
+  const totalQuestionsList = Array.from({ length: questionCount }, (_, i) => {
     // Determine subject based on index
-    const subjectIndex = Math.floor((i / 90) * currentSubjects.length);
+    const subjectIndex = Math.floor((i / questionCount) * currentSubjects.length);
     const disciplina = currentSubjects[subjectIndex] || currentSubjects[0];
     
     // Pick template index or generate custom
@@ -107,7 +110,322 @@ const generateRichQuestions = (exame: Vestibular, dia: number) => {
   return totalQuestionsList;
 };
 
+// Builder for official ITA exams with exact answers by subject (Física, Inglês, Português, Matemática, Química)
+const buildItaGabaritoQuestions = (
+  year: number,
+  answers: {
+    fisica: string[];
+    ingles: string[];
+    portugues: { num: number; ans: string }[];
+    matematica: string[];
+    quimica: string[];
+  },
+  anuladasObs?: Record<string, string>
+) => {
+  const questoes: GabaritoOficial['questoes'] = [];
+  let globalNum = 1;
+
+  // 1) Física: 20 questões
+  answers.fisica.forEach((ans, idx) => {
+    const qNum = idx + 1;
+    const isAnulada = ans === '*';
+    questoes.push({
+      numero: globalNum++,
+      resposta: ans,
+      disciplina: 'Física',
+      enunciado: `ITA ${year} — Prova de Física — Questão ${qNum}${isAnulada ? ' [QUESTÃO ANULADA]' : ''}\n\nEnunciado original da questão ${qNum} do exame de Física do ITA (${year}).`,
+      alternativas: [
+        'Alternativa A',
+        'Alternativa B',
+        'Alternativa C',
+        'Alternativa D',
+        'Alternativa E'
+      ],
+      justificativa: isAnulada
+        ? (anuladasObs?.[`Física_${qNum}`] || `Questão ${qNum} de Física anulada pela banca do ITA e computada como correta para todos os candidatos.`)
+        : `Gabarito oficial definitivo da banca examinadora do ITA (${year}) para a questão ${qNum} de Física: Alternativa ${ans}.`
+    });
+  });
+
+  // 2) Inglês: 20 questões
+  answers.ingles.forEach((ans, idx) => {
+    const qNum = idx + 1;
+    const isAnulada = ans === '*';
+    questoes.push({
+      numero: globalNum++,
+      resposta: ans,
+      disciplina: 'Inglês',
+      enunciado: `ITA ${year} — Prova de Inglês — Questão ${qNum}${isAnulada ? ' [QUESTÃO ANULADA]' : ''}\n\nEnunciado original da questão ${qNum} do exame de Língua Inglesa do ITA (${year}).`,
+      alternativas: [
+        'Alternativa A',
+        'Alternativa B',
+        'Alternativa C',
+        'Alternativa D',
+        'Alternativa E'
+      ],
+      justificativa: isAnulada
+        ? (anuladasObs?.[`Inglês_${qNum}`] || `Questão ${qNum} de Inglês anulada pela banca do ITA e computada como correta para todos os candidatos.`)
+        : `Gabarito oficial definitivo da banca examinadora do ITA (${year}) para a questão ${qNum} de Inglês: Alternativa ${ans}.`
+    });
+  });
+
+  // 3) Português: 20 questões (numeradas de 21 a 40 na prova)
+  answers.portugues.forEach((item) => {
+    const isAnulada = item.ans === '*';
+    questoes.push({
+      numero: globalNum++,
+      resposta: item.ans,
+      disciplina: 'Português',
+      enunciado: `ITA ${year} — Prova de Português — Questão ${item.num}${isAnulada ? ' [QUESTÃO ANULADA]' : ''}\n\nEnunciado original da questão ${item.num} do exame de Língua Portuguesa e Literatura do ITA (${year}).`,
+      alternativas: [
+        'Alternativa A',
+        'Alternativa B',
+        'Alternativa C',
+        'Alternativa D',
+        'Alternativa E'
+      ],
+      justificativa: isAnulada
+        ? (anuladasObs?.[`Português_${item.num}`] || `Questão ${item.num} de Português anulada pela banca do ITA e computada como correta para todos os candidatos.`)
+        : `Gabarito oficial definitivo da banca examinadora do ITA (${year}) para a questão ${item.num} de Português: Alternativa ${item.ans}.`
+    });
+  });
+
+  // 4) Matemática: 20 questões
+  answers.matematica.forEach((ans, idx) => {
+    const qNum = idx + 1;
+    const isAnulada = ans === '*';
+    questoes.push({
+      numero: globalNum++,
+      resposta: ans,
+      disciplina: 'Matemática',
+      enunciado: `ITA ${year} — Prova de Matemática — Questão ${qNum}${isAnulada ? ' [QUESTÃO ANULADA]' : ''}\n\nEnunciado original da questão ${qNum} do exame de Matemática do ITA (${year}).`,
+      alternativas: [
+        'Alternativa A',
+        'Alternativa B',
+        'Alternativa C',
+        'Alternativa D',
+        'Alternativa E'
+      ],
+      justificativa: isAnulada
+        ? (anuladasObs?.[`Matemática_${qNum}`] || `Questão ${qNum} de Matemática anulada pela banca do ITA e computada como correta para todos os candidatos.`)
+        : `Gabarito oficial definitivo da banca examinadora do ITA (${year}) para a questão ${qNum} de Matemática: Alternativa ${ans}.`
+    });
+  });
+
+  // 5) Química: 20 questões
+  answers.quimica.forEach((ans, idx) => {
+    const qNum = idx + 1;
+    const isAnulada = ans === '*';
+    questoes.push({
+      numero: globalNum++,
+      resposta: ans,
+      disciplina: 'Química',
+      enunciado: `ITA ${year} — Prova de Química — Questão ${qNum}${isAnulada ? ' [QUESTÃO ANULADA]' : ''}\n\nEnunciado original da questão ${qNum} do exame de Química do ITA (${year}).`,
+      alternativas: [
+        'Alternativa A',
+        'Alternativa B',
+        'Alternativa C',
+        'Alternativa D',
+        'Alternativa E'
+      ],
+      justificativa: isAnulada
+        ? (anuladasObs?.[`Química_${qNum}`] || `Questão ${qNum} de Química anulada pela banca do ITA e computada como correta para todos os candidatos.`)
+        : `Gabarito oficial definitivo da banca examinadora do ITA (${year}) para a questão ${qNum} de Química: Alternativa ${ans}.`
+    });
+  });
+
+  return questoes;
+};
+
+// Official ITA 2015 Gabarito Definitivo (100 questões)
+const ITA_2015_QUESTOES = buildItaGabaritoQuestions(
+  2015,
+  {
+    fisica: ['C', 'D', 'C', 'C', 'C', 'B', 'B', 'A', 'C', 'E', 'A', 'B', 'B', 'A', 'D', 'A', 'C', 'C', 'E', 'D'],
+    ingles: ['C', 'D', 'E', 'E', 'A', 'A', 'D', 'A', '*', 'C', 'C', 'D', 'A', 'E', 'B', 'C', 'E', 'E', 'B', 'C'],
+    portugues: [
+      { num: 21, ans: 'D' }, { num: 22, ans: 'E' }, { num: 23, ans: 'D' }, { num: 24, ans: 'A' },
+      { num: 25, ans: 'D' }, { num: 26, ans: 'C' }, { num: 27, ans: 'B' }, { num: 28, ans: 'A' },
+      { num: 29, ans: 'A' }, { num: 30, ans: 'B' }, { num: 31, ans: 'C' }, { num: 32, ans: 'D' },
+      { num: 33, ans: 'C' }, { num: 34, ans: 'B' }, { num: 35, ans: 'E' }, { num: 36, ans: 'C' },
+      { num: 37, ans: 'E' }, { num: 38, ans: 'A' }, { num: 39, ans: 'E' }, { num: 40, ans: 'A' }
+    ],
+    matematica: ['D', 'C', 'D', 'E', 'D', 'E', 'B', 'B', 'C', 'A', 'B', 'E', 'C', 'D', 'E', 'A', 'E', 'A', 'A', 'C'],
+    quimica: ['A', 'E', 'C', 'D', 'E', 'B', 'E', 'B', 'D', 'C', 'E', 'D', 'D', 'C', 'D', 'B', 'B', 'B', 'C', 'C']
+  },
+  {
+    'Inglês_9': 'Observação oficial: a opção D da questão 9 da prova de inglês apresenta erro de digitação, o que a torna gramaticalmente incorreta e pode confundir o candidato. Desta forma a questão foi anulada e considerada correta para todos os candidatos.'
+  }
+);
+
+// Official ITA 2016 Gabarito Definitivo (100 questões)
+const ITA_2016_QUESTOES = buildItaGabaritoQuestions(
+  2016,
+  {
+    fisica: ['E', 'C', 'D', '*', 'A', 'C', 'D', 'A', 'C', 'D', 'D', 'C', 'C', 'A', 'C', 'D', 'C', 'C', 'A', 'E'],
+    ingles: ['E', 'C', 'B', 'C', 'E', 'A', 'C', 'C', 'A', 'B', 'C', 'A', 'D', 'D', 'D', 'E', 'B', 'E', 'B', 'A'],
+    portugues: [
+      { num: 21, ans: 'B' }, { num: 22, ans: 'D' }, { num: 23, ans: 'E' }, { num: 24, ans: 'C' },
+      { num: 25, ans: 'A' }, { num: 26, ans: 'C' }, { num: 27, ans: 'D' }, { num: 28, ans: 'B' },
+      { num: 29, ans: 'A' }, { num: 30, ans: 'D' }, { num: 31, ans: 'B' }, { num: 32, ans: 'C' },
+      { num: 33, ans: 'A' }, { num: 34, ans: 'E' }, { num: 35, ans: 'E' }, { num: 36, ans: 'B' },
+      { num: 37, ans: 'D' }, { num: 38, ans: 'E' }, { num: 39, ans: 'C' }, { num: 40, ans: 'C' }
+    ],
+    matematica: ['B', 'D', '*', 'B', 'D', 'D', 'B', 'A', 'A', 'D', 'C', 'B', 'E', 'D', 'C', 'A', 'B', 'E', 'E', 'D'],
+    quimica: ['A', 'E', '*', 'E', 'C', 'C', 'D', 'D', 'D', 'B', 'A', 'A', 'C', 'D', 'E', 'C', 'B', 'B', 'D', '*']
+  },
+  {
+    'Física_4': 'Observação oficial: devido à imprecisão dos enunciados, a questão 4 da prova de física foi considerada correta para todos os candidatos.',
+    'Matemática_3': 'Observação oficial: devido à imprecisão dos enunciados, a questão 3 da prova de matemática foi considerada correta para todos os candidatos.',
+    'Química_3': 'Observação oficial: devido à imprecisão dos enunciados, a questão 3 da prova de química foi considerada correta para todos os candidatos.',
+    'Química_20': 'Observação oficial: devido à imprecisão dos enunciados, a questão 20 da prova de química foi considerada correta para todos os candidatos.'
+  }
+);
+
+// Official ITA 2014 Gabarito Definitivo (100 questões)
+const ITA_2014_QUESTOES = buildItaGabaritoQuestions(
+  2014,
+  {
+    fisica: ['D', 'C', 'E', 'B', 'A', 'D', 'B', 'C', 'D', '*', 'C', 'D', 'E', 'A', 'E', 'D', 'E', 'C', 'A', 'B'],
+    ingles: ['A', 'E', 'A', 'B', 'B', 'A', 'E', 'E', 'E', 'D', 'C', 'B', 'D', 'C', 'C', 'A', 'C', 'B', 'D', 'E'],
+    portugues: [
+      { num: 21, ans: 'B' }, { num: 22, ans: 'C' }, { num: 23, ans: 'A' }, { num: 24, ans: 'D' },
+      { num: 25, ans: 'A' }, { num: 26, ans: '*' }, { num: 27, ans: 'B' }, { num: 28, ans: 'E' },
+      { num: 29, ans: 'D' }, { num: 30, ans: 'E' }, { num: 31, ans: 'C' }, { num: 32, ans: 'B' },
+      { num: 33, ans: 'A' }, { num: 34, ans: 'A' }, { num: 35, ans: 'D' }, { num: 36, ans: 'C' },
+      { num: 37, ans: 'D' }, { num: 38, ans: 'B' }, { num: 39, ans: 'E' }, { num: 40, ans: 'E' }
+    ],
+    matematica: ['E', 'E', 'D', 'A', 'E', 'C', 'D', 'C', 'B', 'A', 'B', 'A', 'E', 'C', 'D', 'A', 'B', 'C', 'D', 'C'],
+    quimica: ['B', 'E', 'B', 'D', 'C', 'D', 'A', 'D', 'E', 'B', 'D', 'C', 'A', 'A', 'B', 'D', 'D', 'C', '*', 'B']
+  },
+  {
+    'Física_1': 'Nota da Banca: Nesta questão, avalia-se a capacidade do candidato de relacionar adequadamente as grandezas físicas do problema. Assim, quanto maior ε, menor a deformação (eliminando C). Quanto maior a, maior a deformação (eliminando B e E). A resposta não depende de b: dois sólidos de dimensão xb e (1-x)b apresentam a mesma deflexão; combinados, têm dimensão b e a mesma deflexão. Logo, resta exclusivamente a alternativa D.',
+    'Física_10': 'Observação oficial da comissão: A questão 10 da prova de física foi considerada correta para todos os candidatos.',
+    'Física_16': 'Nota da Banca: Esta questão não exigia o conhecimento de Cálculo Diferencial em sua solução. A principal dificuldade era, seguindo-se o dado da questão, obter a energia potencial da força centrífuga por analogia à força elástica.',
+    'Física_17': 'Nota da Banca: Questão conceitual de Mecânica (conservação da energia e da quantidade de movimento). Durante a colisão o sistema sofre a ação de uma força externa impulsiva (da articulação P), alterando a quantidade de movimento do sistema.',
+    'Português_26': 'Observação oficial da comissão: A questão 26 da prova de português foi considerada correta para todos os candidatos.',
+    'Química_18': 'Nota da Banca: Na combustão incompleta do n-octano há emissão de aldeído, assim como ocorre na combustão incompleta de gasolina e diesel.',
+    'Química_19': 'Observação oficial da comissão: A questão 19 da prova de química foi considerada correta para todos os candidatos.'
+  }
+);
+
+// Official ITA 2017 Gabarito Definitivo (100 questões)
+const ITA_2017_QUESTOES = buildItaGabaritoQuestions(
+  2017,
+  {
+    fisica: ['A', 'A', 'D', 'E', 'B', 'E', '*', 'D', 'D', 'B', 'C', 'C', 'C', 'B', 'A', 'D', 'A', 'B', 'E', '*'],
+    ingles: ['C', 'A', 'D', 'C', 'A', 'D', 'C', 'A', 'B', 'E', 'D', 'D', 'B', 'E', 'A', 'B', 'D', 'B', 'E', 'C'],
+    portugues: [
+      { num: 21, ans: 'E' }, { num: 22, ans: 'E' }, { num: 23, ans: 'D' }, { num: 24, ans: 'A' },
+      { num: 25, ans: 'C' }, { num: 26, ans: 'A' }, { num: 27, ans: 'C' }, { num: 28, ans: 'E' },
+      { num: 29, ans: 'C' }, { num: 30, ans: 'E' }, { num: 31, ans: 'A' }, { num: 32, ans: 'C' },
+      { num: 33, ans: 'B' }, { num: 34, ans: 'A' }, { num: 35, ans: 'E' }, { num: 36, ans: 'B' },
+      { num: 37, ans: 'C' }, { num: 38, ans: 'D' }, { num: 39, ans: 'E' }, { num: 40, ans: 'E' }
+    ],
+    matematica: ['A', 'A', 'D', 'B', 'C', 'C', 'C', 'E', 'A', 'C', 'A', 'E', 'A', 'B', 'D', 'A', 'D', 'B', 'E', 'E'],
+    quimica: ['A', 'B', 'D', 'D', 'A', 'D', 'C', 'A', 'E', 'E', 'E', 'C', 'E', 'D', 'C', 'D', 'A', 'B', 'C', 'B']
+  },
+  {
+    'Física_7': 'Observação oficial da banca: Devido a erros de digitação, a questão 7 da prova de física foi considerada correta para todos os candidatos.',
+    'Física_20': 'Observação oficial da banca: Devido a erros de digitação, a questão 20 da prova de física foi considerada correta para todos os candidatos.',
+    'Química_9': 'Resolução Oficial do ITA (Questão 9 de Química): Quanto mais próximo um dado composto estiver do vértice direito no diagrama de van Arkel-Ketelaar apresentado, maior será o caráter covalente da ligação química. Assim, não basta analisar apenas o valor da diferença entre eletronegatividades, mas também o valor da eletronegatividade do composto. Os compostos dados no enunciado foram posicionados no diagrama, onde se verifica que o composto OF2 é o que se encontra mais próximo do vértice direito, logo apresenta o maior caráter covalente. RESPOSTA: OPÇÃO E.'
+  }
+);
+
+// Official ITA 2013 Gabarito Definitivo (100 questões)
+const ITA_2013_QUESTOES = buildItaGabaritoQuestions(
+  2013,
+  {
+    fisica: ['C', 'B', 'A', 'A', 'A', 'D', 'A', 'C', 'C', 'B', 'E', 'D', 'B', 'B', 'E', 'D', 'C', 'E', 'D', 'A'],
+    ingles: ['C', 'A', 'A', 'B', 'C', 'D', 'C', 'D', 'E', 'B', 'A', 'D', 'D', 'C', 'A', 'B', 'E', 'B', 'C', 'E'],
+    portugues: [
+      { num: 21, ans: 'E' }, { num: 22, ans: 'B' }, { num: 23, ans: 'C' }, { num: 24, ans: 'A' },
+      { num: 25, ans: 'E' }, { num: 26, ans: 'C' }, { num: 27, ans: 'B' }, { num: 28, ans: 'D' },
+      { num: 29, ans: 'A' }, { num: 30, ans: 'B' }, { num: 31, ans: 'E' }, { num: 32, ans: 'C' },
+      { num: 33, ans: 'C' }, { num: 34, ans: 'D' }, { num: 35, ans: 'A' }, { num: 36, ans: 'D' },
+      { num: 37, ans: 'E' }, { num: 38, ans: 'A' }, { num: 39, ans: 'D' }, { num: 40, ans: 'B' }
+    ],
+    matematica: ['C', 'C', 'B', 'D', 'A', 'E', 'A', 'C', 'D', 'B', 'E', 'D', 'C', 'E', 'A', 'B', 'B', 'D', 'A', 'B'],
+    quimica: ['D', 'B', 'A', 'D', 'D', 'C', 'C', 'A', 'A', 'A', 'A', 'E', 'C', 'B', 'C', 'D', 'E', 'D', '*', 'A']
+  },
+  {
+    'Química_19': 'Observação oficial da banca: A questão 19 da prova de química, por falta de alternativa válida, foi considerada correta para todos os candidatos.'
+  }
+);
+
+// Official ITA 2012 Gabarito Definitivo (100 questões)
+const ITA_2012_QUESTOES = buildItaGabaritoQuestions(
+  2012,
+  {
+    fisica: ['B', 'B', 'C', 'A', 'D', 'C', 'E', 'C', 'D', 'B', 'B', 'E', 'E', 'D', 'E', 'A', 'D', 'C', 'D', 'A'],
+    ingles: ['C', 'B', 'E', 'B', 'D', 'B', 'D', 'C', 'A', 'A', 'B', 'E', 'A', 'A', 'C', 'E', 'E', 'B', 'B', 'B'],
+    portugues: [
+      { num: 21, ans: 'A' }, { num: 22, ans: 'B' }, { num: 23, ans: 'D' }, { num: 24, ans: 'C' },
+      { num: 25, ans: 'D' }, { num: 26, ans: 'A' }, { num: 27, ans: 'C' }, { num: 28, ans: 'D' },
+      { num: 29, ans: 'E' }, { num: 30, ans: 'B' }, { num: 31, ans: 'C' }, { num: 32, ans: 'A' },
+      { num: 33, ans: 'B' }, { num: 34, ans: 'C' }, { num: 35, ans: 'B' }, { num: 36, ans: 'E' },
+      { num: 37, ans: 'A' }, { num: 38, ans: 'E' }, { num: 39, ans: 'D' }, { num: 40, ans: 'D' }
+    ],
+    matematica: ['D', 'D', 'B', 'E', 'E', 'C', 'A', 'C', 'A', 'B', 'D', 'E', 'C', 'A', 'C', 'B', 'B', 'E', 'D', 'A'],
+    quimica: ['D', 'B', 'D', 'B', 'D', 'B', 'C', 'D', 'E', 'C', 'C', 'A', 'A', 'B', 'C', 'E', 'B', 'E', 'E', 'A']
+  }
+);
+
 const SAMPLE_GABARITOS: GabaritoOficial[] = [
+  {
+    id: 'ita-2017-gabarito',
+    exame: 'ITA',
+    ano: 2017,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2017.pdf',
+    questoes: ITA_2017_QUESTOES
+  },
+  {
+    id: 'ita-2016-gabarito',
+    exame: 'ITA',
+    ano: 2016,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://vestibular.ita.br/provas/gabarito_2016.pdf',
+    questoes: ITA_2016_QUESTOES
+  },
+  {
+    id: 'ita-2015-gabarito',
+    exame: 'ITA',
+    ano: 2015,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2015.pdf',
+    questoes: ITA_2015_QUESTOES
+  },
+  {
+    id: 'ita-2014-gabarito',
+    exame: 'ITA',
+    ano: 2014,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2014.pdf',
+    questoes: ITA_2014_QUESTOES
+  },
+  {
+    id: 'ita-2013-gabarito',
+    exame: 'ITA',
+    ano: 2013,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://vestibular.ita.br/provas/gabarito_2013.pdf',
+    questoes: ITA_2013_QUESTOES
+  },
+  {
+    id: 'ita-2012-gabarito',
+    exame: 'ITA',
+    ano: 2012,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2012.pdf',
+    questoes: ITA_2012_QUESTOES
+  },
   {
     id: 'enem-2023-d1',
     exame: Vestibular.ENEM,
@@ -415,8 +733,8 @@ export default function GabaritosOficiais() {
 
   const filteredList = useMemo(() => {
     return SAMPLE_GABARITOS.filter(g => {
-      const matchesSearch = g.exame.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           g.caderno.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchTarget = `${g.exame} ${g.ano} ${g.caderno}`.toLowerCase();
+      const matchesSearch = searchTarget.includes(searchTerm.toLowerCase());
       const matchesExame = filterExame === 'Todos' || g.exame === filterExame;
       const matchesAno = filterAno === 'Todos' || String(g.ano) === filterAno;
       return matchesSearch && matchesExame && matchesAno;
@@ -459,7 +777,8 @@ export default function GabaritosOficiais() {
     if (!selectedGabarito) return { correct: 0, total: 0, percentage: 0 };
     let correct = 0;
     selectedGabarito.questoes.forEach(q => {
-      if (userAnswers[q.numero] === q.resposta) {
+      // Questions marked with * are officially annulled and considered correct for all candidates
+      if (q.resposta === '*' || userAnswers[q.numero] === q.resposta) {
         correct++;
       }
     });
@@ -474,7 +793,8 @@ export default function GabaritosOficiais() {
       B: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40',
       C: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40',
       D: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 border border-violet-200 dark:border-violet-800/40',
-      E: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40'
+      E: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40',
+      '*': 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 font-bold'
     };
     return colors[letter] || 'bg-slate-100 text-slate-600';
   };
@@ -550,6 +870,17 @@ export default function GabaritosOficiais() {
           </button>
 
           <div className="flex flex-wrap gap-2.5">
+            {selectedGabarito.pdfUrl && (
+              <a
+                href={selectedGabarito.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs font-black bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/20 active:scale-95"
+              >
+                <ExternalLink size={14} />
+                Baixar PDF Oficial ({selectedGabarito.ano})
+              </a>
+            )}
             <button
               onClick={() => triggerSpreadsheetDownload(selectedGabarito)}
               className="flex items-center gap-2 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-95"
@@ -585,7 +916,7 @@ export default function GabaritosOficiais() {
                 </span>
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl">
                   <FileSpreadsheet size={13} className="text-emerald-400" />
-                  90 Questões Reais
+                  {selectedGabarito.questoes.length} Questões Reais
                 </span>
               </div>
             </div>
@@ -668,6 +999,83 @@ export default function GabaritosOficiais() {
         {/* Tab 1: Static Answer Keys Grid with clicking mechanism */}
         {activeTab === 'view' && (
           <div className="space-y-6">
+            {/* Observações Oficiais da Banca do ITA */}
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2017 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2017):
+                  </span>
+                  <p className="leading-relaxed">
+                    Devido a erros de digitação, as questões 7 e 20 da prova de física foram consideradas corretas para todos os candidatos.
+                  </p>
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-1">
+                    Nota de Química: Na questão 9 (diagrama de van Arkel-Ketelaar), o ITA emitiu resolução oficial confirmando a Opção E (composto OF2 com maior caráter covalente). Toque na questão 9 para ver a resolução completa.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2016 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2016):
+                  </span>
+                  <p className="leading-relaxed">
+                    Devido à imprecisão dos enunciados, as questões 4 da prova de física, 3 da prova de matemática e 3 e 20 da prova de química foram consideradas corretas para todos os candidatos.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2015 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2015):
+                  </span>
+                  <p className="leading-relaxed">
+                    A opção D da questão 9 da prova de inglês apresenta erro de digitação, o que a torna gramaticalmente incorreta e pode confundir o candidato. Desta forma a questão foi anulada e considerada correta para todos os candidatos.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2014 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2014):
+                  </span>
+                  <p className="leading-relaxed">
+                    As questões 10 da prova de física, 26 da prova de português e 19 da prova de química foram consideradas corretas para todos os candidatos.
+                  </p>
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-1">
+                    Toque nas questões de Física (1, 16, 17) e Química (18) para ver as notas técnicas conceituais fornecidas diretamente pela banca examinadora do ITA.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2013 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2013):
+                  </span>
+                  <p className="leading-relaxed">
+                    A questão 19 da prova de química, por falta de alternativa válida, foi considerada correta para todos os candidatos.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="p-4 bg-[var(--bg-badge)] border border-[var(--primary-border)] rounded-2xl flex items-start gap-3">
               <Sparkles className="text-[var(--primary)] shrink-0 mt-0.5" size={16} />
               <p className="text-xs text-[var(--primary)] font-semibold leading-relaxed">
@@ -676,25 +1084,31 @@ export default function GabaritosOficiais() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
-              {interiorFilteredQuestions.map((q) => (
-                <motion.div 
-                  key={q.numero}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  onClick={() => setSelectedQuestion(q)}
-                  className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-light)] flex flex-col justify-between items-center shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)] transition-all cursor-pointer group"
-                >
-                  <p className="text-[10px] font-bold text-[var(--text-label)] uppercase tracking-widest text-center">Questão</p>
-                  <p className="text-xl font-extrabold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors mt-1 mb-3">{String(q.numero).padStart(2, '0')}</p>
-                  
-                  <div className={cn(getAnswerColor(q.resposta), "w-11 h-11 rounded-xl flex items-center justify-center text-lg font-black shadow-inner transition-transform group-hover:scale-105")}>
-                    {q.resposta}
-                  </div>
-                  <span className="text-[9px] font-bold text-[var(--text-label)] uppercase tracking-wider text-center block mt-2 text-ellipsis overflow-hidden w-full whitespace-nowrap">
-                    {q.disciplina.split(' ')[0]}
-                  </span>
-                </motion.div>
-              ))}
+              {interiorFilteredQuestions.map((q) => {
+                const isAnulada = q.resposta === '*';
+                return (
+                  <motion.div 
+                    key={q.numero}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    onClick={() => setSelectedQuestion(q)}
+                    className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-light)] flex flex-col justify-between items-center shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)] transition-all cursor-pointer group"
+                  >
+                    <p className="text-[10px] font-bold text-[var(--text-label)] uppercase tracking-widest text-center">Questão</p>
+                    <p className="text-xl font-extrabold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors mt-1 mb-3">{String(q.numero).padStart(2, '0')}</p>
+                    
+                    <div className={cn(getAnswerColor(q.resposta), "w-11 h-11 rounded-xl flex items-center justify-center text-lg font-black shadow-inner transition-transform group-hover:scale-105")}>
+                      {isAnulada ? '★' : q.resposta}
+                    </div>
+                    <span className={cn(
+                      "text-[9px] font-bold uppercase tracking-wider text-center block mt-2 text-ellipsis overflow-hidden w-full whitespace-nowrap",
+                      isAnulada ? "text-amber-500 font-extrabold" : "text-[var(--text-label)]"
+                    )}>
+                      {isAnulada ? 'Anulada' : q.disciplina.split(' ')[0]}
+                    </span>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -734,13 +1148,14 @@ export default function GabaritosOficiais() {
               {interiorFilteredQuestions.map((q) => {
                 const userChoice = userAnswers[q.numero];
                 const isChecked = !!userChoice;
-                const isCorrect = userChoice === q.resposta;
+                const isAnulada = q.resposta === '*';
+                const isCorrect = isAnulada || userChoice === q.resposta;
                 return (
                   <div
                     key={q.numero}
                     className={cn(
                       "p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 bg-[var(--bg-card)]",
-                      isChecked 
+                      isChecked || isAnulada
                         ? isCorrect 
                           ? "border-emerald-500/40 ring-1 ring-emerald-500/20 bg-emerald-500/5" 
                           : "border-rose-500/40 ring-1 ring-rose-500/20 bg-rose-500/5"
@@ -749,11 +1164,18 @@ export default function GabaritosOficiais() {
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-[10px] font-bold text-[var(--text-label)] tracking-wider uppercase">Questão {q.numero}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-bold text-[var(--text-label)] tracking-wider uppercase">Questão {q.numero}</p>
+                          {isAnulada && (
+                            <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                              ★ Anulada
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[10px] font-semibold text-[var(--text-muted)]">{q.disciplina}</p>
                       </div>
 
-                      {isChecked && (
+                      {(isChecked || isAnulada) && (
                         <span className={cn(
                           "p-1.5 rounded-full text-white",
                           isCorrect ? "bg-emerald-500" : "bg-rose-500"
@@ -901,6 +1323,20 @@ export default function GabaritosOficiais() {
                       </p>
                     </div>
 
+                    {selectedQuestion.resposta === '*' && (
+                      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                        <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                        <div>
+                          <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block mb-0.5">
+                            Questão Anulada Oficialmente pela Banca Examinadora
+                          </span>
+                          <p className="leading-relaxed">
+                            Esta questão foi anulada pela comissão organizadora do vestibular do ITA e teve a sua pontuação atribuída integralmente como correta para todos os candidatos.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-3">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Opções da Questão</p>
                       <div className="space-y-2.5">
@@ -1041,9 +1477,16 @@ export default function GabaritosOficiais() {
                 <div className="p-3 bg-[var(--bg-hover)] text-[var(--primary)] rounded-xl border border-[var(--border-light)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
                   <FileSpreadsheet size={22} />
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--bg-badge)] px-2.5 py-1 rounded-full whitespace-nowrap border border-[var(--primary-border)]">
-                  {g.questoes.length} Questões
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                  {g.pdfUrl && (
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      PDF Oficial
+                    </span>
+                  )}
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--bg-badge)] px-2.5 py-1 rounded-full whitespace-nowrap border border-[var(--primary-border)]">
+                    {g.questoes.length} Questões
+                  </span>
+                </div>
               </div>
               <div className="space-y-1">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-label)]">{g.ano}</p>
