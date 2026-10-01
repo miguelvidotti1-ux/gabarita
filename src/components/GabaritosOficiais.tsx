@@ -722,7 +722,7 @@ const SAMPLE_GABARITOS: GabaritoOficial[] = [
     exame: Vestibular.FUVEST,
     ano: 2025,
     dia: 1,
-    caderno: '1ª Fase (V1 a V4)',
+    caderno: 'Prova V1 (Gabarito Oficial)',
     titulo: 'FUVEST 2025 - GABARITO 1ª FASE',
     pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf',
     provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V1.pdf',
@@ -737,6 +737,41 @@ const SAMPLE_GABARITOS: GabaritoOficial[] = [
     titulo: 'FUVEST 2025 - GUIA DE RESPOSTAS 2ª FASE',
     pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest_2025_guia_respostas.pdf',
     provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf',
+    questoes: generateFuvestFase2Questions('Matemática')
+  },
+  // ===== FUVEST 2024 — RESOLUÇÃO ESPERADA 2ª FASE =====
+  {
+    id: 'fuvest-2024-2fase-resolucao',
+    exame: Vestibular.FUVEST,
+    ano: 2024,
+    dia: 2,
+    caderno: 'Guia de Respostas Oficial',
+    titulo: 'FUVEST 2024 - RESOLUÇÃO ESPERADA 2ª FASE',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest_2024_2024.01.22_RESPOSTAS_USP_Guia.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_1dia.pdf',
+    questoes: generateFuvestFase2Questions('Matemática')
+  },
+  // ===== FUVEST 2023 — GABARITOS OFICIAIS =====
+  {
+    id: 'fuvest-2023-1fase-gabarito',
+    exame: Vestibular.FUVEST,
+    ano: 2023,
+    dia: 1,
+    caderno: 'Prova V (Gabarito Oficial)',
+    titulo: 'FUVEST 2023 - GABARITO 1ª FASE',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2023_gabarito_primeira_fase.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2023_primeira_fase_prova_V.pdf',
+    questoes: generateRichQuestions(Vestibular.FUVEST, 1, 90)
+  },
+  {
+    id: 'fuvest-2023-2fase-abordagens',
+    exame: Vestibular.FUVEST,
+    ano: 2023,
+    dia: 2,
+    caderno: 'Abordagens Esperadas (2ª Fase)',
+    titulo: 'FUVEST 2023 - ABORDAGENS ESPERADAS 2ª FASE',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2023_abordagens_esperadas_2fase.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_1.pdf',
     questoes: generateFuvestFase2Questions('Matemática')
   },
   {
@@ -1097,8 +1132,11 @@ const SAMPLE_GABARITOS: GabaritoOficial[] = [
     exame: Vestibular.FUVEST,
     ano: 2024,
     dia: 1,
-    caderno: 'V',
-    questoes: generateRichQuestions(Vestibular.FUVEST, 1)
+    caderno: 'Prova V (Gabarito Oficial)',
+    titulo: 'FUVEST 2024 - GABARITO 1ª FASE',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2024_gabarito_primeira_fase_retificado_2023-11-24.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_V.pdf',
+    questoes: generateRichQuestions(Vestibular.FUVEST, 1, 90)
   }
 ];
 

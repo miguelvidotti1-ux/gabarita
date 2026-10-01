@@ -33,7 +33,6 @@ import { motion } from 'motion/react';
 
 import LoginScreen from './components/LoginScreen';
 import PlanSelection from './components/PlanSelection';
-import SplashScreen from './components/SplashScreen';
 import SpotifyStudyHub from './components/SpotifyStudyHub';
 import PomodoroTimer from './components/PomodoroTimer';
 import AudioTranscriberView from './components/AudioTranscriberView';
@@ -41,7 +40,6 @@ import FloatingSupport from './components/FloatingSupport';
 
 export default function App() {
   const isOnline = useOnlineStatus();
-  const [showSplash, setShowSplash] = React.useState(true);
   const [user, setUser] = React.useState<User | any | null>(() => {
     try {
       const isAuth = localStorage.getItem('vestibularpro_authenticated') === 'true';
@@ -286,9 +284,6 @@ export default function App() {
 
   return (
     <>
-      {showSplash && (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
-      )}
       {!isOnline && (
         <div className="fixed top-0 inset-x-0 bg-amber-500 text-white text-center py-2 z-[100] text-sm font-semibold shadow-md flex items-center justify-center gap-2">
           <span>📶 Você está offline — usando dados salvos no dispositivo</span>
@@ -325,7 +320,7 @@ export default function App() {
           </Layout>
         </ErrorBoundary>
       )}
-      {!showSplash && <FloatingSupport />}
+      <FloatingSupport />
     </>
   );
 }
