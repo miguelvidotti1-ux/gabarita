@@ -516,14 +516,6 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
       ]
     }
   ],
-  [Vestibular.PUC_SP]: [
-    {
-      subject: 'Humanas',
-      topics: [
-        { name: 'História e Geografia', percentage: 40, summary: 'Atualidades e fundamentos.', youtubeId: 'Puc_H_1' }
-      ]
-    }
-  ],
   [Vestibular.UNIFESP]: [
     {
       subject: 'Ciências da Natureza',
@@ -650,11 +642,11 @@ export const ESSAY_THEMES: Record<Vestibular, { year: number | string; theme: st
     { year: 2014, theme: 'O cinema' },
     { year: 2013, theme: 'Tecnologia, publicidade e manipulação' },
     { year: 2012, theme: 'Cidadania, preconceito e consciência social' },
-    { year: 2011, theme: 'Mobilidade urbana' }
+    { year: 2011, theme: 'Mobilidade urbana' },
+    { year: 2010, theme: 'A transferência da educação moral dos pais para a escola' }
   ],
   [Vestibular.FGV]: [{ year: 2024, theme: 'O impacto da economia digital no Brasil' }],
   [Vestibular.MACKENZIE]: [{ year: 2024, theme: 'Cidadania e responsabilidade social' }],
-  [Vestibular.PUC_SP]: [{ year: 2024, theme: 'Justiça social no mundo contemporâneo' }],
   [Vestibular.UNIFESP]: [{ year: 2024, theme: 'Ética e avanços na medicina' }],
   [Vestibular.ANHEMBI_MORUMBI]: [{ year: 2024, theme: 'O mercado de trabalho e as novas tecnologias' }],
   [Vestibular.ESTACIO]: [{ year: 2024, theme: 'Inclusão digital e educação' }],

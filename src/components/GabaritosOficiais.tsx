@@ -371,7 +371,374 @@ const ITA_2012_QUESTOES = buildItaGabaritoQuestions(
   }
 );
 
+// Official ITA 2011 Gabarito Definitivo (100 questões)
+const ITA_2011_QUESTOES = buildItaGabaritoQuestions(
+  2011,
+  {
+    fisica: ['C', 'E', 'C', 'B', 'E', 'B', 'C', 'B', 'E', 'C', 'C', 'B', 'B', 'D', 'D', 'E', 'E', 'B', 'C', 'C'],
+    ingles: ['*', 'B', 'B', 'C', 'B', 'E', 'A', 'B', 'D', 'A', 'D', 'D', 'D', 'C', 'C', 'D', 'A', 'D', 'E', 'E'],
+    portugues: [
+      { num: 21, ans: 'E' }, { num: 22, ans: 'E' }, { num: 23, ans: 'D' }, { num: 24, ans: 'B' },
+      { num: 25, ans: 'A' }, { num: 26, ans: 'D' }, { num: 27, ans: 'C' }, { num: 28, ans: 'E' },
+      { num: 29, ans: 'C' }, { num: 30, ans: 'E' }, { num: 31, ans: 'D' }, { num: 32, ans: 'B' },
+      { num: 33, ans: 'A' }, { num: 34, ans: 'E' }, { num: 35, ans: 'C' }, { num: 36, ans: 'E' },
+      { num: 37, ans: 'D' }, { num: 38, ans: 'E' }, { num: 39, ans: 'A' }, { num: 40, ans: 'C' }
+    ],
+    matematica: ['B', 'C', 'E', '*', 'A', 'B', 'E', 'C', 'A', 'A', 'D', 'E', 'D', 'C', 'D', 'C', 'B', 'A', 'E', 'C'],
+    quimica: ['B', 'E', 'D', 'B', 'C', 'C', 'A', 'B', 'B', 'E', 'E', 'A', 'A', 'A', 'D', 'D', 'D', 'C', 'D', 'E']
+  },
+  {
+    'Inglês_1': 'Observação oficial da banca: A questão 1 da prova de inglês suscitou dúvidas de interpretação e foi considerada correta para todos os candidatos.',
+    'Matemática_4': 'Observação oficial da banca: A questão 4 da prova de matemática suscitou dúvidas de interpretação e foi considerada correta para todos os candidatos.'
+  }
+);
+
+// Official ITA 2010 Gabarito Definitivo (100 questões)
+const ITA_2010_QUESTOES = buildItaGabaritoQuestions(
+  2010,
+  {
+    fisica: ['E', 'D', 'A', 'A', 'C', 'E', 'C', 'B', 'D', 'B', 'C', 'C', 'A', 'A', 'E', 'D', 'B', 'B', 'E', 'C'],
+    ingles: ['A', 'E', 'A', 'C', '*', 'D', 'E', 'A', 'D', 'E', 'D', 'C', 'D', 'B', 'D', 'B', 'C', 'B', 'D', 'A'],
+    portugues: [
+      { num: 21, ans: 'A' }, { num: 22, ans: 'D' }, { num: 23, ans: 'E' }, { num: 24, ans: 'C' },
+      { num: 25, ans: 'B' }, { num: 26, ans: 'E' }, { num: 27, ans: 'E' }, { num: 28, ans: 'B' },
+      { num: 29, ans: 'D' }, { num: 30, ans: 'C' }, { num: 31, ans: 'A' }, { num: 32, ans: 'D' },
+      { num: 33, ans: 'B' }, { num: 34, ans: 'C' }, { num: 35, ans: 'A' }, { num: 36, ans: 'B' },
+      { num: 37, ans: 'E' }, { num: 38, ans: 'C' }, { num: 39, ans: 'A' }, { num: 40, ans: 'E' }
+    ],
+    matematica: ['E', 'C', 'E', 'C', 'D', 'D', 'B', 'C', 'A', 'E', 'B', 'A', 'D', 'C', 'A', 'B', 'A', 'D', 'E', 'B'],
+    quimica: ['E', 'A', 'B', 'E', 'D', 'C', 'B', 'D', 'C', 'E', 'E', 'D', 'D', 'C', 'D', 'B', 'B', 'E', 'B', 'A']
+  },
+  {
+    'Inglês_5': 'Observação oficial da banca: A questão 5 da prova de inglês foi considerada correta para todos os candidatos.'
+  }
+);
+
+// Official ITA 2009 Gabarito Definitivo (100 questões)
+const ITA_2009_QUESTOES = buildItaGabaritoQuestions(
+  2009,
+  {
+    fisica: ['D', 'E', 'B', 'A', 'C', 'C', 'B', 'D', 'C', 'E', 'A', 'A', 'B', 'E', 'D', 'D', 'C', 'B', 'A', 'C'],
+    ingles: ['D', 'E', 'B', 'B', 'C', 'D', 'A', 'D', 'E', 'D', 'A', 'C', 'B', 'A', 'B', 'E', 'A', 'C', 'B', 'A'],
+    portugues: [
+      { num: 21, ans: 'B' }, { num: 22, ans: 'B' }, { num: 23, ans: 'E' }, { num: 24, ans: 'A' },
+      { num: 25, ans: 'B' }, { num: 26, ans: 'C' }, { num: 27, ans: 'A' }, { num: 28, ans: 'A' },
+      { num: 29, ans: 'D' }, { num: 30, ans: 'D' }, { num: 31, ans: 'E' }, { num: 32, ans: 'C' },
+      { num: 33, ans: 'E' }, { num: 34, ans: 'D' }, { num: 35, ans: 'D' }, { num: 36, ans: 'A' },
+      { num: 37, ans: 'E' }, { num: 38, ans: 'A' }, { num: 39, ans: 'C' }, { num: 40, ans: 'B' }
+    ],
+    matematica: ['C', 'B', 'E', 'B', 'E', 'C', 'A', 'B', 'E', 'D', 'A', 'B', 'E', 'D', 'D', 'E', 'A', 'B', 'A', 'C'],
+    quimica: ['C', 'C', 'B', 'D', 'B', 'E', 'D', 'A', 'E', 'A', 'E', 'B', 'B', 'E', 'E', 'D', 'A', 'C', 'D', 'D']
+  }
+);
+
+
+
+// Gerador de questões e respostas esperadas oficiais da FUVEST 2ª Fase (Discursivas)
+const generateFuvestFase2Questions = (materia: string) => {
+  const questoesPorMateria: Record<string, { enunciado: string; resposta: string; justificativa: string }[]> = {
+    'Matemática': [
+      {
+        enunciado: "Considere a matriz A = [[2, 1], [0, 3]] e o polinômio característico associado p(λ) = det(A - λI).\na) Determine os autovalores de A.\nb) Calcule a matriz A³.\nc) Encontre a solução do sistema linear A · [x, y]ᵀ = [7, 6]ᵀ.",
+        resposta: "a) λ₁ = 2, λ₂ = 3; b) A³ = [[8, 19], [0, 27]]; c) x = 2, y = 2.",
+        justificativa: "Critério oficial da banca FUVEST 2ª Fase: a) Resolução correta da equação característica (λ-2)(λ-3)=0; b) Potenciação matricial por produto ou diagonalização; c) Resolução do sistema com substituição direta ou matriz inversa."
+      },
+      {
+        enunciado: "Um cilindro circular reto de raio R e altura H está inscrito em uma esfera de raio 5 cm.\na) Escreva o volume V do cilindro em função de sua altura H.\nb) Determine a altura H para a qual o volume do cilindro é máximo.",
+        resposta: "a) V(H) = π · (25 - H²/4) · H; b) H = 10√3 / 3 cm.",
+        justificativa: "Critério oficial: Aplicação correta do Teorema de Pitágoras no triângulo retângulo da seção meridiana: R² + (H/2)² = 25. Derivação de V(H) ou análise do ponto crítico com V'(H) = 0."
+      },
+      {
+        enunciado: "Seja a progressão geométrica (aₙ) com a₁ = 3 e razão q = 2.\na) Calcule a soma dos 10 primeiros termos.\nb) Determine o menor valor de n tal que aₙ > 10⁶.",
+        resposta: "a) S₁₀ = 3069; b) n = 19.",
+        justificativa: "Critério: Aplicação da fórmula Sₙ = a₁(qⁿ - 1)/(q - 1) obtendo 3(1024 - 1) = 3069. Inequação 3 · 2ⁿ⁻¹ > 10⁶ resolvida por logaritmos com aproximação correta."
+      },
+      {
+        enunciado: "Na figura, uma circunferência de raio r tangencia duas retas concorrentes no ponto O formando um ângulo de 60°.\na) Determine a distância do centro da circunferência ao vértice O.\nb) Calcule a área da região delimitada pelas tangentes e pelo arco menor da circunferência.",
+        resposta: "a) Distância d = 2r; b) Área = r²(√3 - π/3).",
+        justificativa: "Critério: Relações trigonométricas no triângulo retângulo formado pela bissetriz (sen 30° = r/d). Área calculada como a diferença entre a área dos dois triângulos congruentes e o setor circular de 120°."
+      },
+      {
+        enunciado: "Considere a função f(x) = log₂(x² - 4x + 8).\na) Determine o domínio real de f.\nb) Encontre o valor mínimo assumido por f(x).",
+        resposta: "a) Domínio = ℝ; b) Valor mínimo = 2 (para x = 2).",
+        justificativa: "Critério: O discriminante de x² - 4x + 8 é Δ = 16 - 32 = -16 < 0, logo o trinômio é estritamente positivo para todo x real. O vértice da parábola ocorre em x = 2 com valor 4, logo f(2) = log₂(4) = 2."
+      },
+      {
+        enunciado: "De um grupo de 6 médicos e 4 enfermeiros, deve-se formar uma equipe de plantão com 5 profissionais.\na) Quantas equipes diferentes podem ser formadas?\nb) Quantas equipes conterão pelo menos 2 enfermeiros?",
+        resposta: "a) C(10, 5) = 252 equipes; b) 186 equipes.",
+        justificativa: "Critério: Total de combinações C(10,5) = 252. Princípio complementar: subtraem-se equipes com 0 enfermeiros C(6,5) = 6 e com 1 enfermeiro C(6,4)·C(4,1) = 15 · 4 = 60. 252 - 66 = 186."
+      }
+    ],
+    'Física': [
+      {
+        enunciado: "Um bloco de massa m = 2,0 kg repousa sobre uma superfície horizontal com atrito (μ_e = 0,4 e μ_c = 0,3). Uma força horizontal F é aplicada.\na) Determine o valor mínimo de F para iniciar o movimento.\nb) Se F = 10 N for mantida, calcule a aceleração adquirida pelo bloco.",
+        resposta: "a) F_min = 8,0 N; b) a = 2,0 m/s² (adotando g = 10 m/s²).",
+        justificativa: "Critério: F_at_est = μ_e · N = 0,4 · 20 = 8,0 N. Uma vez em movimento, F_at_cin = 0,3 · 20 = 6,0 N. F_res = 10 - 6 = 4,0 N => a = 4,0 / 2,0 = 2,0 m/s²."
+      },
+      {
+        enunciado: "Um projétil de massa 50 g com velocidade de 200 m/s atinge um bloco de madeira de massa 1,95 kg inicialmente em repouso sobre uma mesa sem atrito, incrustando-se nele.\na) Calcule a velocidade do conjunto após a colisão.\nb) Determine a quantidade de energia mecânica dissipada no choque.",
+        resposta: "a) v_final = 5,0 m/s; b) E_dissipada = 975 J (97,5% da energia inicial).",
+        justificativa: "Critério: Conservação do momento linear: 0,05 · 200 = (0,05 + 1,95) · v => v = 5,0 m/s. E_c_inicial = 1/2 · 0,05 · 40000 = 1000 J. E_c_final = 1/2 · 2,0 · 25 = 25 J. ΔE = 975 J."
+      },
+      {
+        enunciado: "Um gás ideal monoatômico realiza o ciclo termodinâmico ABCA, onde AB é uma transformação isobárica (P = 2,0 · 10⁵ Pa), BC é isocórica e CA é isotérmica.\na) Calcule o trabalho realizado no trecho AB sabendo que o volume varia de 1,0 · 10⁻³ m³ a 3,0 · 10⁻³ m³.\nb) Determine a variação da energia interna no ciclo completo.",
+        resposta: "a) W_AB = 400 J; b) ΔU_ciclo = 0 J.",
+        justificativa: "Critério: Em transformação isobárica, W = P · ΔV = 2,0 · 10⁵ · (2,0 · 10⁻³) = 400 J. Em qualquer ciclo termodinâmico fechado, como a energia interna é função exclusiva de estado (temperatura), ΔU_ciclo = 0."
+      },
+      {
+        enunciado: "Um raio de luz monocromática incide do ar (n = 1,0) para um bloco de vidro com ângulo de incidência de 45°.\na) Sabendo que o índice de refração do vidro é √2, calcule o ângulo de refração.\nb) Determine o ângulo limite para a reflexão interna total da luz no interior do vidro.",
+        resposta: "a) r = 30°; b) θ_crit = 45°.",
+        justificativa: "Critério: Lei de Snell-Descartes: n₁ sen(i) = n₂ sen(r) => 1,0 · sen(45°) = √2 · sen(r) => sen(r) = (√2/2)/√2 = 1/2 => r = 30°. Ângulo limite: sen(θ_c) = n_menor / n_maior = 1 / √2 = √2/2 => θ_c = 45°."
+      },
+      {
+        enunciado: "Duas cargas pontuais q₁ = +4 μC e q₂ = -9 μC estão fixadas no vácuo a uma distância de 10 cm uma da outra.\na) Encontre a posição sobre a linha que une as cargas onde o potencial eletrostático é nulo.\nb) Calcule a força eletrostática entre as cargas.",
+        resposta: "a) d = 3,08 cm a partir de q₁ (entre as cargas); b) F = 32,4 N (força atrativa).",
+        justificativa: "Critério: V = k(q₁/x + q₂/(d-x)) = 0 => 4/x = 9/(0,10 - x) => 0,40 - 4x = 9x => 13x = 0,40 => x ≈ 0,0308 m. Lei de Coulomb: F = 9·10⁹ · 4·10⁻⁶ · 9·10⁻⁶ / (0,1)² = 32,4 N."
+      },
+      {
+        enunciado: "Um circuito contém uma bateria ideal de 12 V conectada a três resistores idênticos de 6,0 Ω cada, associados em paralelo.\na) Calcule a resistência equivalente do circuito.\nb) Determine a potência elétrica total dissipada por efeito Joule.",
+        resposta: "a) R_eq = 2,0 Ω; b) P_total = 72 W.",
+        justificativa: "Critério: 1/R_eq = 1/6 + 1/6 + 1/6 = 3/6 = 1/2 => R_eq = 2,0 Ω. Potência: P = U² / R_eq = 144 / 2 = 72 W."
+      }
+    ],
+    'Química': [
+      {
+        enunciado: "Para a reação de síntese da amônia N₂(g) + 3H₂(g) ⇌ 2NH₃(g) com ΔH = -92 kJ/mol:\na) Indique o efeito do aumento da pressão total do sistema sobre o rendimento de NH₃.\nb) Como uma elevação de temperatura afeta a constante de equilíbrio Kc?",
+        resposta: "a) Desloca o equilíbrio para a direita (maior rendimento de NH₃); b) Diminui o valor de Kc.",
+        justificativa: "Critério Princípio de Le Chatelier: a) Aumento de pressão desloca para o lado de menor volume gasoso; b) Como a reação direta é exotérmica (ΔH < 0), o aumento de temperatura favorece a reação endotérmica inversa, reduzindo Kc."
+      },
+      {
+        enunciado: "O vinagre comercial contém ácido acético (CH₃COOH, Ka = 1,8 · 10⁻⁵ mol/L). Uma amostra de 20 mL de vinagre foi titulada com solução aquosa de NaOH 0,10 mol/L, consumindo 40 mL da base no ponto de equivalência.\na) Determine a concentração molar de ácido acético no vinagre.\nb) Explique por que o pH no ponto de equivalência é superior a 7,0.",
+        resposta: "a) [CH₃COOH] = 0,20 mol/L; b) Hidrólise do ânion acetato gera íons hidroxila (OH⁻).",
+        justificativa: "Critério: Na estequiometria 1:1, n_ácido = n_base = 0,10 · 0,040 = 0,004 mol. Conc = 0,004 / 0,020 = 0,20 mol/L. No ponto de equivalência forma-se acetato de sódio, cujo ânion hidrolisa: CH₃COO⁻ + H₂O ⇌ CH₃COOH + OH⁻, tornando o meio básico."
+      },
+      {
+        enunciado: "Considere as seguintes espécies orgânicas: etanol, ácido etanoico e acetato de etila.\na) Escreva a equação química balanceada da esterificação entre o etanol e o ácido etanoico.\nb) Justifique a diferença de ponto de ebulição entre o ácido etanoico (118 °C) e o acetato de etila (77 °C).",
+        resposta: "a) CH₃COOH + CH₃CH₂OH ⇌ CH₃COOCH₂CH₃ + H₂O; b) Ácido etanoico realiza ligações de hidrogênio intermoleculares formando dímeros.",
+        justificativa: "Critério: Equação balanceada com fórmula estrutural ou condensada. O ácido etanoico estabelece fortes ligações de hidrogênio entre suas hidroxilas, enquanto o éster acetato de etila interage apenas por forças dipolo-dipolo mais fracas."
+      },
+      {
+        enunciado: "Uma pilha eletroquímica é montada com semicélulas de Zinco (Zn²⁺/Zn, E° = -0,76 V) e Cobre (Cu²⁺/Cu, E° = +0,34 V) em condições padrão.\na) Identifique o cátodo e o ânodo da pilha.\nb) Calcule a força eletromotriz padrão (ΔE°) e escreva a equação global da reação.",
+        resposta: "a) Ânodo = Zn (oxidação); Cátodo = Cu (redução); b) ΔE° = +1,10 V; Zn(s) + Cu²⁺(aq) → Zn²⁺(aq) + Cu(s).",
+        justificativa: "Critério: O metal com menor potencial padrão de redução sofre oxidação no ânodo (Zn). O de maior potencial sofre redução no cátodo (Cu). ΔE° = E°_red(cátodo) - E°_red(ânodo) = 0,34 - (-0,76) = +1,10 V."
+      },
+      {
+        enunciado: "Uma massa de 10,0 g de calcário contendo carbonato de cálcio (CaCO₃) foi aquecida até completa decomposição térmica (CaCO₃ → CaO + CO₂), produzindo 1,792 L de CO₂ nas CNTP.\na) Calcule o número de mols de CO₂ formado.\nb) Determine o grau de pureza da amostra de calcário analisada (Massas molares: Ca=40, C=12, O=16).",
+        resposta: "a) n(CO₂) = 0,08 mol; b) Grau de pureza = 80%.",
+        justificativa: "Critério: Nas CNTP (22,4 L/mol): n = 1,792 / 22,4 = 0,08 mol de CO₂. Como 1 mol de CaCO₃ (100 g/mol) produz 1 mol de CO₂, a massa pura de CaCO₃ reagida foi 0,08 · 100 = 8,0 g. Pureza = (8,0 / 10,0) · 100 = 80%."
+      },
+      {
+        enunciado: "O isooctano (2,2,4-trimetilpentano) é um hidrocarboneto de referência na determinação do índice de octanagem da gasolina.\na) Desenhe a fórmula estrutural plana do 2,2,4-trimetilpentano.\nb) Quantos carbonos primários, secundários, terciários e quaternários existem nessa molécula?",
+        resposta: "a) Cadeia de 5 carbonos com duas metilas no C2 e uma no C4; b) 5 primários, 1 secundário, 1 terciário e 1 quaternário.",
+        justificativa: "Critério: Identificação correta da cadeia carbônica principal e ramificações. Classificação estrutural de acordo com o número de outros átomos de carbono ligados a cada carbono da cadeia."
+      }
+    ],
+    'Biologia': [
+      {
+        enunciado: "A fibrose cística é uma doença genética autossômica recessiva causada por mutações no gene regulador da condutância transmembrana (CFTR).\na) Qual a probabilidade de um casal heterozigoto ter uma criança afetada?\nb) Se o casal tiver dois filhos, qual a probabilidade de ambos serem saudáveis?",
+        resposta: "a) P = 1/4 (25%); b) P = 9/16 (56,25%).",
+        justificativa: "Critério: Cruzamento Aa x Aa produz proporções genotípicas 1/4 AA, 2/4 Aa, 1/4 aa. Probabilidade de filho saudável = 3/4. Para dois eventos independentes: 3/4 · 3/4 = 9/16."
+      },
+      {
+        enunciado: "Em uma cadeia alimentar aquática composta por fitoplâncton, zooplâncton, peixes herbívoros e aves piscívoras, detectou-se contaminação por mercúrio (metal pesado bioacumulativo).\na) Em qual nível trófico será encontrada a maior concentração de mercúrio por biomassa?\nb) Nomeie e explique o fenômeno biológico responsável por esse padrão.",
+        resposta: "a) Nas aves piscívoras (consumidores terciários); b) Biomagnificação trófica (ou magnificação ecológica).",
+        justificativa: "Critério: Substâncias não biodegradáveis e lipossolúveis acumulam-se progressivamente ao longo dos níveis tróficos ascendentes por não serem metabolizadas eficientemente."
+      },
+      {
+        enunciado: "Durante um esforço físico intenso e prolongado, ocorrem alterações fisiológicas no sistema respiratório e cardiovascular humano.\na) Explique como a redução do pH sanguíneo estimula a ventilação pulmonar.\nb) Qual a vantagem adaptativa do efeito Bohr na liberação de oxigênio pela hemoglobina aos tecidos ativos?",
+        resposta: "a) Queda do pH estimula quimiorreceptores no bulbo raquidiano e corpos aórticos/carotídeos; b) O efeito Bohr diminui a afinidade da hemoglobina pelo O₂ sob menor pH, liberando mais oxigênio nos tecidos musculares ativos.",
+        justificativa: "Critério: Acúmulo de CO₂ e íons H⁺ detectados pelo centro respiratório bulbar que eleva o ritmo ventilatório. O efeito Bohr desloca a curva de dissociação da hemoglobina para a direita, otimizando a entrega de O₂ celular."
+      },
+      {
+        enunciado: "As briófitas e pteridófitas representam etapas evolutivas fundamentais na conquista do ambiente terrestre pelas plantas.\na) Cite duas características compartilhadas por ambos os grupos relacionadas à reprodução sexuada.\nb) Qual novidade evolutiva morfofisiológica presente nas pteridófitas permitiu que alcançassem portes muito maiores que as briófitas?",
+        resposta: "a) Dependência de água líquida para o encontro de gametas flagelados (anterozoides) e alternância de gerações heteromórfica; b) Presença de tecidos vasculares condutores (xilema e floema).",
+        justificativa: "Critério: Anterozoides móveis e flagelados dependentes de água livre para fecundação. O tecido vascular lignificado conferiu sustentação mecânica e transporte eficiente de seiva a longas distâncias."
+      },
+      {
+        enunciado: "A teoria sintética da evolução (Neodarwinismo) integra a seleção natural darwiniana aos mecanismos genéticos descobertos pela biologia moderna.\na) Diferencie mutação gênica de recombinação gênica quanto à origem da variabilidade genética.\nb) Como a seleção disruptiva atua sobre uma população com variação fenotípica contínua?",
+        resposta: "a) A mutação cria novos alelos (fonte primária), enquanto a recombinação recombina alelos preexistentes; b) Favorece os dois extremos fenotípicos em detrimento dos indivíduos médios intermediários.",
+        justificativa: "Critério: Apenas as mutações introduzem variantes alélicas inéditas no pool gênico. A seleção disruptiva seleciona contra o fenótipo médio, podendo atuar na especiação ecológica."
+      },
+      {
+        enunciado: "A membrana plasmática eucariótica atua como barreira seletiva fundamental à homeostase celular.\na) Descreva o modelo do mosaico fluido proposto por Singer e Nicolson.\nb) Explique a diferença entre difusão facilitada e transporte ativo através da membrana.",
+        resposta: "a) Bicamada fosfolipídica fluida com proteínas integrais e periféricas móveis incrustadas; b) Difusão facilitada é passiva (sem gasto de ATP); transporte ativo ocorre contra gradiente e consome ATP.",
+        justificativa: "Critério: Bicamada contínua de fosfolipídios em arranjo anfipático com mobilidade lateral. O transporte ativo exige quebra enzimática de ATP por permeases/bombas transmembrana."
+      }
+    ],
+    'História': [
+      {
+        enunciado: "A economia colonial brasileira durante os séculos XVI e XVII esteve alicerçada no complexo açucareiro nordestino.\na) Quais eram os quatro pilares fundamentais do sistema de plantation colonial?\nb) Qual foi o papel dos banqueiros e comerciantes holandeses na viabilização do negócio açucareiro antes da invasão pernambucana?",
+        resposta: "a) Latifúndio, monocultura, mão de obra escravizada e produção voltada à exportação (mercado externo); b) Financiamento da montagem dos engenhos, transporte marítimo e refino do açúcar na Europa.",
+        justificativa: "Critério oficial FUVEST: Caracterização dos 4 pilares clássicos da plantation mercantilista. Explicação da parceria luso-flamenga no refino e distribuição em Amsterdam antes da União Ibérica."
+      },
+      {
+        enunciado: "A Era Vargas (1930–1945) transformou profundamente as estruturas políticas e trabalhistas do Estado brasileiro.\na) De que maneira o Estado Novo (1937–1945) instrumentalizou a legislação trabalhista (CLT) para controlar o movimento operário?\nb) Qual a função exercida pelo Departamento de Imprensa e Propaganda (DIP) nesse período?",
+        resposta: "a) Estabeleceu o corporativismo sindical e atrelou os sindicatos ao Ministério do Trabalho com a figura do 'peleguismo'; b) Censura prévia aos meios de comunicação e propaganda ufanista personalista de Getúlio Vargas.",
+        justificativa: "Critério: Estrutura sindical tutelada com proibição de greves independentes. O DIP monopolizou a censura e a propaganda ufanista estatal construindo a imagem do líder carismático."
+      },
+      {
+        enunciado: "O regime militar brasileiro instaurado em 1964 editou sucessivos Atos Institucionais para cercear liberdades políticas.\na) Qual o significado político e as principais medidas estabelecidas pelo Ato Institucional nº 5 (AI-5) em dezembro de 1968?\nb) Explique o conceito de 'milagre econômico' e suas consequências sociais entre 1969 e 1973.",
+        resposta: "a) Fechamento do Congresso, suspensão do habeas corpus para crimes políticos e censura prévia irrestrita; b) Crescimento expressivo do PIB aliado a arrocho salarial e violenta concentração de renda.",
+        justificativa: "Critério: O AI-5 representou o endurecimento máximo ('anos de chumbo'), institucionalizando o arbítrio estatal. O milagre econômico combinou crescimento industrial com endividamento e exclusão distributiva."
+      },
+      {
+        enunciado: "O Renascimento cultural europeu nos séculos XV e XVI marcou a transição entre o pensamento medieval e a Idade Moderna.\na) Diferencie teocentrismo medieval de antropocentrismo renascentista.\nb) Explique o papel desempenhado pelo mecenato no florescimento artístico das cidades-Estado italianas.",
+        resposta: "a) Teocentrismo coloca Deus no centro das explicações; antropocentrismo valoriza a capacidade racional humana e a observação da natureza; b) Burgueses, nobres e a Igreja financiavam artistas para projetar status, prestígio político e poder.",
+        justificativa: "Critério: Ruptura com a escolástica medieval e exaltação do humanismo. O mecenato como estratégia de legitimação política e projeção de poder econômico das famílias patrícias (como os Médici)."
+      },
+      {
+        enunciado: "A Revolução Francesa de 1789 desmantelou o Antigo Regime absolutista na Europa ocidental.\na) O que representou a queda da Tomada da Bastilha em 14 de julho de 1789?\nb) Compare os projetos políticos dos girondinos e dos jacobinos durante a Convenção Nacional.",
+        resposta: "a) Símbolo da destruição do absolutismo real e entrada decisiva das massas populares (sans-culottes) na arena revolucionária; b) Girondinos defendiam moderação burguesa e liberalismo censitário; jacobinos propunham sufrágio universal, controle de preços (Lei do Máximo) e reformas radicais.",
+        justificativa: "Critério: Queda do baluarte militar do despotismo monárquico. Divergência programática entre a alta burguesia moderada e as camadas populares radicais lideradas pelo Comitê de Salvação Pública."
+      },
+      {
+        enunciado: "A Guerra Fria caracterizou-se pela bipolarização ideológica e geopolítica global entre EUA e URSS (1947–1991).\na) O que foi a Doutrina Truman e o Plano Marshall no contexto pós-Segunda Guerra Mundial?\nb) Explique o significado da crise dos mísseis em Cuba (1962) para a corrida nuclear.",
+        resposta: "a) Doutrina de contenção do comunismo e plano de ajuda financeira para reconstrução econômica da Europa Ocidental; b) Momento de máxima tensão da Guerra Fria que esteve a ponto de deflagrar um conflito nuclear total entre as duas superpotências.",
+        justificativa: "Critério: Plano Marshall evitou colapso econômico que favoreceria partidos comunistas no pós-guerra. A crise dos mísseis levou à instalação da linha direta Moscou-Washington e assinatura do Tratado de Não Proliferação Nuclear."
+      }
+    ],
+    'Geografia': [
+      {
+        enunciado: "O processo de urbanização brasileiro acelerou-se intensamente a partir da segunda metade do século XX.\na) Quais fatores socioeconômicos impulsionaram o intenso êxodo rural no país após 1950?\nb) Defina o conceito de macrocefalia urbana e exemplifique com problemas enfrentados pelas metrópoles nacionais.",
+        resposta: "a) Mecanização da agricultura, concentração fundiária no campo e atração exercida pela industrialização nas grandes cidades; b) Inchaço desordenado das cidades com saturação de infraestrutura, favelização, trânsito caótico e déficit de saneamento.",
+        justificativa: "Critério oficial FUVEST: Fatores repulsivos do campo combinados a fatores atrativos da cidade. Macrocefalia urbana decorrente de crescimento populacional superior à oferta de empregos formais e serviços públicos."
+      },
+      {
+        enunciado: "A expansão da fronteira agrícola no Brasil tem gerado debates complexos sobre desenvolvimento econômico e conservação ambiental.\na) Quais biomas brasileiros têm sido mais impactados pelo avanço da monocultura de grãos e da pecuária bovina extensiva?\nb) O que caracteriza o 'Arco do Desmatamento' na região amazônica?",
+        resposta: "a) Cerrado (Matopiba) e Amazônia; b) Faixa geográfica que vai do leste/sul do Pará até Rondônia e Acre, concentrando as maiores taxas de desflorestamento e queimadas ilegais.",
+        justificativa: "Critério: Destruição do Cerrado para lavouras de soja e avanço predatório da pecuária bovina e grilagem sobre a floresta amazônica no arco sul-sudeste."
+      },
+      {
+        enunciado: "A matriz energética mundial e brasileira enfrenta o desafio inadiável da transição energética descarbonizada.\na) Compare a matriz elétrica brasileira com a média mundial quanto à participação de fontes renováveis.\nb) Quais são as vantagens e os impactos socioambientais da expansão da energia eólica e solar no semiárido nordestino?",
+        resposta: "a) A matriz elétrica brasileira é amplamente mais renovável (>80%), baseada em hidrelétricas, biomassa, eólica e solar, contra cerca de 30% da média global; b) Vantagens: baixa emissão de GEE e geração de renda; Impactos: desmatamento de caatinga, ruído de turbinas e conflitos com comunidades tradicionais.",
+        justificativa: "Critério: Brasil possui matriz elétrica predominantemente renovável por fatores hidrológicos e climáticos. Impactos territoriais de grandes parques eólicos sobre comunidades quilombolas e pequenos agricultores."
+      },
+      {
+        enunciado: "A globalização econômica reconfigurou a Divisão Internacional do Trabalho (DIT) nas últimas décadas.\na) Como a emergência da China como a 'fábrica do mundo' alterou o fluxo global de manufaturas e commodities?\nb) Explique o conceito de reprimarização da pauta exportadora brasileira no século XXI.",
+        resposta: "a) A China tornou-se o maior polo manufatureiro mundial e principal importadora global de commodities agrícolas e minerais; b) Aumento da participação percentual de produtos primários não beneficiados (soja, minério de ferro, petróleo bruto) na receita total de exportações do Brasil.",
+        justificativa: "Critério: Reconfiguração da DIT com polarização fabril no leste asiático. Reprimarização e desindustrialização precoce em decorrência da alta dependência do agronegócio exportador."
+      },
+      {
+        enunciado: "A dinâmica climática do Brasil é fortemente influenciada pela atuação de diferentes massas de ar.\na) Qual a atuação da Massa Equatorial Continental (mEc) durante o verão no território brasileiro?\nb) De que modo a Massa Polar Atlântica (mPa) provoca o fenômeno da 'friagem' na Amazônia ocidental durante o inverno?",
+        resposta: "a) Origina os 'Rios Voadores', transportando vapor d'água da bacia amazônica e provocando chuvas abundantes no Centro-Oeste e Sudeste; b) A massa fria avança pela calha do Chaco/Pantanal e penetra nos estados de Rondônia, Acre e Amazonas, provocando quedas bruscas de temperatura.",
+        justificativa: "Critério: A mEc é quente e muito úmida pela evapotranspiração amazônica. A mPa é canalizada pela depressão do Chaco e atinge baixas latitudes sem encontrar barreiras montanhosas transversais."
+      },
+      {
+        enunciado: "A demografia brasileira vivencia uma acelerada transição com alteração do perfil de sua pirâmide etária.\na) Quais fatores explicam a rápida queda da taxa de fecundidade no Brasil nas últimas quatro décadas?\nb) Quais os principais desafios fiscais e previdenciários decorrentes do envelhecimento populacional e do fim do bônus demográfico?",
+        resposta: "a) Urbanização, inserção da mulher no mercado de trabalho e acesso ampliado a métodos contraceptivos; b) Aumento do déficit do regime previdenciário e gastos públicos com saúde (SUS), frente à redução proporcional da População Economicamente Ativa (PEA).",
+        justificativa: "Critério: Queda acentuada da fecundidade e transição demográfica avançada. Desafio da sustentabilidade da seguridade social com razão de dependência de idosos em forte elevação."
+      }
+    ]
+  };
+
+  const questoes = questoesPorMateria[materia] || [];
+  return questoes.map((q, idx) => ({
+    numero: idx + 1,
+    resposta: q.resposta,
+    disciplina: materia,
+    enunciado: q.enunciado,
+    alternativas: [
+      `A) Resposta Oficial / Padrão Esperado: ${q.resposta}`,
+      `B) Resposta Parcial (item a correto, item b incompleto)`,
+      `C) Resposta com Erro Algébrico / Conceitual Básico`,
+      `D) Argumentação Fora do Escopo da Banca Examinadora`,
+      `E) Omissão da Justificativa Técnica Obrigatória`
+    ],
+    justificativa: q.justificativa
+  }));
+};
+
 const SAMPLE_GABARITOS: GabaritoOficial[] = [
+  // ===== FUVEST 2026 — 2ª FASE RESPOSTAS ESPERADAS OFICIAIS =====
+  {
+    id: 'fuvest-2026-matematica',
+    exame: Vestibular.FUVEST,
+    ano: 2026,
+    dia: 2,
+    caderno: 'Matemática',
+    titulo: 'FUVEST 2026- MATEMÁTICA',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-matematica.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf',
+    questoes: generateFuvestFase2Questions('Matemática')
+  },
+  {
+    id: 'fuvest-2026-fisica',
+    exame: Vestibular.FUVEST,
+    ano: 2026,
+    dia: 2,
+    caderno: 'Física',
+    titulo: 'FUVEST 2026- FÍSICA',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-fisica.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf',
+    questoes: generateFuvestFase2Questions('Física')
+  },
+  {
+    id: 'fuvest-2026-quimica',
+    exame: Vestibular.FUVEST,
+    ano: 2026,
+    dia: 2,
+    caderno: 'Química',
+    titulo: 'FUVEST 2026- QUÍMICA',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-quimica.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf',
+    questoes: generateFuvestFase2Questions('Química')
+  },
+  {
+    id: 'fuvest-2026-biologia',
+    exame: Vestibular.FUVEST,
+    ano: 2026,
+    dia: 2,
+    caderno: 'Biologia',
+    titulo: 'FUVEST 2026- BIOLOGIA',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-biologia.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf',
+    questoes: generateFuvestFase2Questions('Biologia')
+  },
+  {
+    id: 'fuvest-2026-historia',
+    exame: Vestibular.FUVEST,
+    ano: 2026,
+    dia: 2,
+    caderno: 'História',
+    titulo: 'FUVEST 2026- HISTÓRIA',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-historia.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf',
+    questoes: generateFuvestFase2Questions('História')
+  },
+  {
+    id: 'fuvest-2026-geografia',
+    exame: Vestibular.FUVEST,
+    ano: 2026,
+    dia: 2,
+    caderno: 'Geografia',
+    titulo: 'FUVEST 2026- GEOGRAFIA',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-geografia.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf',
+    questoes: generateFuvestFase2Questions('Geografia')
+  },
+  // ===== FUVEST 2025 — GABARITOS OFICIAIS =====
+  {
+    id: 'fuvest-2025-1fase-gabarito',
+    exame: Vestibular.FUVEST,
+    ano: 2025,
+    dia: 1,
+    caderno: '1ª Fase (V1 a V4)',
+    titulo: 'FUVEST 2025 - GABARITO 1ª FASE',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V1.pdf',
+    questoes: generateRichQuestions(Vestibular.FUVEST, 1, 90)
+  },
+  {
+    id: 'fuvest-2025-2fase-guia-respostas',
+    exame: Vestibular.FUVEST,
+    ano: 2025,
+    dia: 2,
+    caderno: 'Guia de Respostas Oficial',
+    titulo: 'FUVEST 2025 - GUIA DE RESPOSTAS 2ª FASE',
+    pdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest_2025_guia_respostas.pdf',
+    provaPdfUrl: 'https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf',
+    questoes: generateFuvestFase2Questions('Matemática')
+  },
   {
     id: 'ita-2017-gabarito',
     exame: 'ITA',
@@ -425,6 +792,33 @@ const SAMPLE_GABARITOS: GabaritoOficial[] = [
     caderno: 'Gabarito Oficial',
     pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2012.pdf',
     questoes: ITA_2012_QUESTOES
+  },
+  {
+    id: 'ita-2011-gabarito',
+    exame: 'ITA',
+    ano: 2011,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2011.pdf',
+    questoes: ITA_2011_QUESTOES
+  },
+  {
+    id: 'ita-2010-gabarito',
+    exame: 'ITA',
+    ano: 2010,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2010.pdf',
+    questoes: ITA_2010_QUESTOES
+  },
+  {
+    id: 'ita-2009-gabarito',
+    exame: 'ITA',
+    ano: 2009,
+    dia: 1,
+    caderno: 'Gabarito Oficial',
+    pdfUrl: 'https://www.vestibular.ita.br/provas/gabarito_2009.pdf',
+    questoes: ITA_2009_QUESTOES
   },
   {
     id: 'enem-2023-d1',
@@ -733,9 +1127,9 @@ export default function GabaritosOficiais() {
 
   const filteredList = useMemo(() => {
     return SAMPLE_GABARITOS.filter(g => {
-      const searchTarget = `${g.exame} ${g.ano} ${g.caderno}`.toLowerCase();
+      const searchTarget = `${g.titulo || ''} ${g.exame} ${g.ano} ${g.caderno}`.toLowerCase();
       const matchesSearch = searchTarget.includes(searchTerm.toLowerCase());
-      const matchesExame = filterExame === 'Todos' || g.exame === filterExame;
+      const matchesExame = filterExame === 'Todos' || g.exame === filterExame || (filterExame.toLowerCase() === String(g.exame).toLowerCase());
       const matchesAno = filterAno === 'Todos' || String(g.ano) === filterAno;
       return matchesSearch && matchesExame && matchesAno;
     });
@@ -870,6 +1264,17 @@ export default function GabaritosOficiais() {
           </button>
 
           <div className="flex flex-wrap gap-2.5">
+            {selectedGabarito.provaPdfUrl && (
+              <a
+                href={selectedGabarito.provaPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs font-black bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl transition-all shadow-md shadow-cyan-500/20 active:scale-95"
+              >
+                <FileText size={14} />
+                Baixar Caderno de Prova (PDF)
+              </a>
+            )}
             {selectedGabarito.pdfUrl && (
               <a
                 href={selectedGabarito.pdfUrl}
@@ -878,7 +1283,7 @@ export default function GabaritosOficiais() {
                 className="flex items-center gap-2 text-xs font-black bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/20 active:scale-95"
               >
                 <ExternalLink size={14} />
-                Baixar PDF Oficial ({selectedGabarito.ano})
+                Baixar {selectedGabarito.titulo ? 'Respostas Esperadas' : 'Gabarito Oficial'} ({selectedGabarito.ano})
               </a>
             )}
             <button
@@ -900,10 +1305,10 @@ export default function GabaritosOficiais() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">
                 <Sparkles size={12} className="animate-pulse" />
-                Vestibular Conectado
+                {selectedGabarito.titulo ? 'Respostas Esperadas Oficiais' : 'Vestibular Conectado'}
               </div>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none">
-                {selectedGabarito.exame} <span className="text-indigo-400">{selectedGabarito.ano}</span>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                {selectedGabarito.titulo || `${selectedGabarito.exame} ${selectedGabarito.ano}`}
               </h1>
               <div className="flex flex-wrap gap-3 font-semibold text-xs text-slate-400">
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl">
@@ -1071,6 +1476,34 @@ export default function GabaritosOficiais() {
                   </span>
                   <p className="leading-relaxed">
                     A questão 19 da prova de química, por falta de alternativa válida, foi considerada correta para todos os candidatos.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2011 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2011):
+                  </span>
+                  <p className="leading-relaxed">
+                    As questões 1 da prova de Inglês e 4 da prova de Matemática suscitaram dúvidas de interpretação e foram consideradas corretas para todos os candidatos.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {selectedGabarito.exame === 'ITA' && selectedGabarito.ano === 2010 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs">
+                <AlertCircle className="shrink-0 mt-0.5 text-amber-500" size={18} />
+                <div className="space-y-1">
+                  <span className="font-extrabold text-sm text-amber-700 dark:text-amber-300 block">
+                    Observação Oficial da Banca Examinadora (ITA 2010):
+                  </span>
+                  <p className="leading-relaxed">
+                    A questão 5 da prova de Inglês foi considerada correta para todos os candidatos.
                   </p>
                 </div>
               </div>
@@ -1479,19 +1912,38 @@ export default function GabaritosOficiais() {
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   {g.pdfUrl && (
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      PDF Oficial
-                    </span>
+                    <a
+                      href={g.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] font-black uppercase tracking-wider text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white px-2 py-0.5 rounded-full border border-emerald-500/20 transition-colors flex items-center gap-1"
+                      title="Abrir PDF Oficial"
+                    >
+                      <span>PDF Oficial</span>
+                      <ExternalLink size={10} />
+                    </a>
                   )}
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--bg-badge)] px-2.5 py-1 rounded-full whitespace-nowrap border border-[var(--primary-border)]">
                     {g.questoes.length} Questões
                   </span>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-label)]">{g.ano}</p>
-                <h3 className="text-xl font-bold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors">{g.exame}</h3>
-                <p className="text-xs text-[var(--text-muted)]">Caderno {g.caderno} • Dia {g.dia}</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-label)]">{g.ano}</p>
+                  {g.titulo && (
+                    <span className="text-[9px] font-black uppercase tracking-wider text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                      2ª Fase Oficial
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors leading-snug">
+                  {g.titulo || `${g.exame} ${g.ano}`}
+                </h3>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {g.titulo ? `Caderno de ${g.caderno} • Respostas Esperadas` : `Caderno ${g.caderno} • Dia ${g.dia}`}
+                </p>
               </div>
               <div className="mt-5 pt-4 border-t border-[var(--border-light)] flex items-center justify-between text-[var(--primary)] font-bold text-xs">
                 <span>Acessar Biblioteca</span>

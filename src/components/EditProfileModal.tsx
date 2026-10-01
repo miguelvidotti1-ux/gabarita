@@ -90,7 +90,6 @@ const AVAILABLE_VESTIBULARES = [
   'UFRJ',
   'UFMG',
   'UFSC',
-  'PUC',
   'Mackenzie',
   'FGV'
 ];

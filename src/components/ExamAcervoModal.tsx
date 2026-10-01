@@ -90,6 +90,7 @@ const getExamLink = (vest: string, year: string, day?: string, color?: string) =
     return `https://www.google.com/search?q=prova+enem+${year}+dia+${day}+caderno+${color.toLowerCase()}+pdf`;
   }
   
+  // FUVEST 2025 - 1ª Fase (V1, V2, V3, V4 e Gabarito)
   if (vest.toLowerCase() === 'fuvest' && year === '2025-dia1-V1') {
     return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V1.pdf';
   }
@@ -99,6 +100,23 @@ const getExamLink = (vest: string, year: string, day?: string, color?: string) =
   if (vest.toLowerCase() === 'fuvest' && year === '2025-dia1-V3') {
     return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V3.pdf';
   }
+  if (vest.toLowerCase() === 'fuvest' && year === '2025-dia1-V4') {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V4.pdf';
+  }
+  if (vest.toLowerCase() === 'fuvest' && (year === '2025-dia1-gabarito' || year === '2025-fase1-gabarito' || year === '2025-gabarito-1')) {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf';
+  }
+  // FUVEST 2025 - 2ª Fase (1° Dia, 2° Dia e Guia de Respostas)
+  if (vest.toLowerCase() === 'fuvest' && (year === '2025-fase2-dia1' || year === '2025-dia2-1' || year === '2025-dia2' || year === '2025-fase2')) {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf';
+  }
+  if (vest.toLowerCase() === 'fuvest' && (year === '2025-fase2-dia2' || year === '2025-dia2-2')) {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia2.pdf';
+  }
+  if (vest.toLowerCase() === 'fuvest' && (year === '2025-fase2-guia' || year === '2025-guia-respostas' || year === '2025-fase2-respostas')) {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest_2025_guia_respostas.pdf';
+  }
+  // FUVEST 2026 - 1ª Fase (V1, V2, V3, V4)
   if (vest.toLowerCase() === 'fuvest' && year === '2026-dia1-V1') {
     return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase1-prova-V1.pdf';
   }
@@ -110,6 +128,33 @@ const getExamLink = (vest: string, year: string, day?: string, color?: string) =
   }
   if (vest.toLowerCase() === 'fuvest' && year === '2026-dia1-V4') {
     return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase1-prova-V4.pdf';
+  }
+  // FUVEST 2ª Fase - 1° Dia (Oficial)
+  if (vest.toLowerCase() === 'fuvest' && (year === '2026-fase2-dia1' || year === '2026-dia2-1' || year === '2026-dia2' || year === '2026-fase2')) {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia1-prova.pdf';
+  }
+  if (vest.toLowerCase() === 'fuvest' && (year === '2026-fase2-dia2' || year === '2026-dia2-2')) {
+    return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf';
+  }
+  if (vest.toLowerCase() === 'fuvest' && year.includes('-fase2-dia1')) {
+    const y = year.split('-')[0];
+    if (y === '2026') {
+      return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia1-prova.pdf';
+    }
+    if (y === '2025') {
+      return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf';
+    }
+    return `https://www.fuvest.br/wp-content/uploads/fuvest${y}_segunda_fase_dia1.pdf`;
+  }
+  if (vest.toLowerCase() === 'fuvest' && year.includes('-fase2-dia2')) {
+    const y = year.split('-')[0];
+    if (y === '2026') {
+      return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf';
+    }
+    if (y === '2025') {
+      return 'https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia2.pdf';
+    }
+    return `https://www.fuvest.br/wp-content/uploads/fuvest${y}_segunda_fase_dia2.pdf`;
   }
   return `https://www.google.com/search?q=prova+${vest.toLowerCase()}+${year}+pdf`;
 };
@@ -338,7 +383,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                 <div className="flex flex-col items-start">
                                   <span className="text-sm font-black">{vest} {item.year}</span>
                                   <span className={`text-[10px] font-bold ${isItaExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
-                                    {is2Fases ? 'Ver opções de fases' : (['2018', '2017', '2016', '2015', '2014', '2013', '2012'].includes(item.year) ? 'Ver cadernos por matéria' : 'Ver caderno integral')}
+                                    {is2Fases ? 'Ver opções de fases' : (['2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010', '2009'].includes(item.year) ? 'Ver cadernos por matéria' : 'Ver caderno integral')}
                                   </span>
                                 </div>
                               </div>
@@ -411,7 +456,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                         </div>
                                       </div>
                                     </>
-                                  ) : (['2018', '2017', '2016', '2015', '2014', '2013', '2012'].includes(item.year)) ? (
+                                  ) : (['2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010', '2009'].includes(item.year)) ? (
                                     <div className="space-y-3 text-left">
                                       <div className="space-y-1.5">
                                         <div className="flex items-center gap-1.5">
@@ -446,7 +491,7 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                       </div>
 
                                       {/* Gabarito Oficial */}
-                                      {['2017', '2016', '2015', '2014', '2013', '2012'].includes(item.year) && (
+                                      {['2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010', '2009'].includes(item.year) && (
                                         <div className="space-y-1.5 pt-2 border-t border-[var(--card-border)]">
                                           <div className="flex items-center gap-1.5">
                                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -554,24 +599,26 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                   <div className="grid grid-cols-2 gap-2">
                                     <button
                                       onClick={() => setExpandedFuvestDay(expandedFuvestDay === '1' ? null : '1')}
-                                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-black transition-all ${
+                                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-black transition-all cursor-pointer ${
                                         expandedFuvestDay === '1'
-                                          ? 'bg-[var(--text-accent)] border-[var(--text-accent)] text-white'
-                                          : 'bg-[var(--bg-secondary)] border-[var(--card-border)] hover:border-[var(--text-accent)]'
+                                          ? 'bg-[var(--text-accent)] border-[var(--text-accent)] text-white shadow-sm'
+                                          : 'bg-[var(--bg-secondary)] border-[var(--card-border)] hover:border-[var(--text-accent)] text-[var(--text-primary)]'
                                       }`}
                                     >
                                       <span>1ª FASE</span>
-                                      <ChevronRight size={14} className={`transition-transform ${expandedFuvestDay === '1' ? 'rotate-90' : ''}`} />
+                                      <ChevronRight size={14} className={`transition-transform duration-200 ${expandedFuvestDay === '1' ? 'rotate-90' : ''}`} />
                                     </button>
-                                    <a
-                                      href={getExamLink(vest, `${item.year}-dia2`)}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-[var(--text-accent)] text-xs font-black text-[var(--text-primary)] transition-all"
+                                    <button
+                                      onClick={() => setExpandedFuvestDay(expandedFuvestDay === '2' ? null : '2')}
+                                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-black transition-all cursor-pointer ${
+                                        expandedFuvestDay === '2'
+                                          ? 'bg-[var(--text-accent)] border-[var(--text-accent)] text-white shadow-sm'
+                                          : 'bg-[var(--bg-secondary)] border-[var(--card-border)] hover:border-[var(--text-accent)] text-[var(--text-primary)]'
+                                      }`}
                                     >
                                       <span>2ª FASE</span>
-                                      <ExternalLink size={12} />
-                                    </a>
+                                      <ChevronRight size={14} className={`transition-transform duration-200 ${expandedFuvestDay === '2' ? 'rotate-90' : ''}`} />
+                                    </button>
                                   </div>
 
                                   {/* Version Selection for Day 1 */}
@@ -583,7 +630,21 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                         exit={{ height: 0, opacity: 0 }}
                                         className="overflow-hidden pl-2 border-l-2 border-[var(--text-accent)]/30 space-y-2"
                                       >
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase px-1">Escolha a versão:</p>
+                                        <div className="flex items-center justify-between px-1">
+                                          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">1ª Fase — Escolha a versão:</p>
+                                          {item.year === '2025' && (
+                                            <a
+                                              href="https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-[10px] font-bold text-emerald-500 hover:underline flex items-center gap-1"
+                                              title="Abrir Gabarito Oficial da 1ª Fase (PDF)"
+                                            >
+                                              <span>Gabarito Oficial</span>
+                                              <ExternalLink size={10} />
+                                            </a>
+                                          )}
+                                        </div>
                                         <div className="grid grid-cols-4 gap-2">
                                           {['V1', 'V2', 'V3', 'V4'].map(version => (
                                             <a
@@ -597,6 +658,105 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                             </a>
                                           ))}
                                         </div>
+                                        {item.year === '2025' && (
+                                          <a
+                                            href="https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white text-emerald-600 dark:text-emerald-400 text-xs font-black transition-all"
+                                          >
+                                            <FileText size={13} />
+                                            <span>Baixar Gabarito Oficial 1ª Fase (PDF)</span>
+                                            <ExternalLink size={11} />
+                                          </a>
+                                        )}
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+
+                                  {/* 2ª Fase Selection with 1° Dia and 2° Dia */}
+                                  <AnimatePresence>
+                                    {expandedFuvestDay === '2' && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden pl-2 border-l-2 border-[var(--text-accent)]/30 space-y-2"
+                                      >
+                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase px-1">2ª Fase — Cadernos de Prova:</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          <a
+                                            href={getExamLink(vest, `${item.year}-fase2-dia1`)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-rose-500/15 to-purple-500/15 border border-rose-500/30 hover:border-rose-500 hover:from-rose-500 hover:to-purple-600 text-xs font-black text-[var(--text-primary)] hover:text-white transition-all shadow-sm group"
+                                            title="Baixar Prova FUVEST 2ª Fase — 1° Dia"
+                                          >
+                                            <FileText size={14} className="text-rose-400 group-hover:text-white" />
+                                            <span>1° Dia</span>
+                                            <ExternalLink size={12} className="opacity-70 group-hover:opacity-100" />
+                                          </a>
+                                          <a
+                                            href={getExamLink(vest, `${item.year}-fase2-dia2`)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border border-purple-500/30 hover:border-purple-500 hover:from-purple-600 hover:to-indigo-600 text-xs font-black text-[var(--text-primary)] hover:text-white transition-all shadow-sm group"
+                                            title="Baixar Prova FUVEST 2ª Fase — 2° Dia"
+                                          >
+                                            <FileText size={14} className="text-purple-400 group-hover:text-white" />
+                                            <span>2° Dia</span>
+                                            <ExternalLink size={12} className="opacity-70 group-hover:opacity-100" />
+                                          </a>
+                                        </div>
+
+                                        {/* Guia de Respostas da 2ª Fase 2025 */}
+                                        {item.year === '2025' && (
+                                          <div className="pt-2 space-y-1.5 border-t border-[var(--card-border)]/50">
+                                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase px-1">Guia de Respostas Oficial (2ª Fase):</p>
+                                            <a
+                                              href="https://www.fuvest.br/wp-content/uploads/fuvest_2025_guia_respostas.pdf"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 border border-emerald-500/30 hover:border-emerald-500 hover:from-emerald-500 hover:to-teal-600 text-xs font-black text-[var(--text-primary)] hover:text-white transition-all shadow-sm group"
+                                              title="Baixar Guia Oficial de Respostas FUVEST 2025 2ª Fase (PDF)"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <FileText size={14} className="text-emerald-500 group-hover:text-white" />
+                                                <span>Guia de Respostas Oficial (2ª Fase)</span>
+                                              </div>
+                                              <ExternalLink size={12} className="opacity-70 group-hover:opacity-100" />
+                                            </a>
+                                          </div>
+                                        )}
+
+                                        {/* Respostas Esperadas da 2ª Fase 2026 */}
+                                        {item.year === '2026' && (
+                                          <div className="pt-2 space-y-1.5 border-t border-[var(--card-border)]/50">
+                                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase px-1">Gabaritos Oficiais / Respostas Esperadas:</p>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                              {[
+                                                { label: 'Matemática', url: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-matematica.pdf' },
+                                                { label: 'Física', url: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-fisica.pdf' },
+                                                { label: 'Química', url: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-quimica.pdf' },
+                                                { label: 'Biologia', url: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-biologia.pdf' },
+                                                { label: 'História', url: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-historia.pdf' },
+                                                { label: 'Geografia', url: 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-geografia.pdf' },
+                                              ].map(gab => (
+                                                <a
+                                                  key={gab.label}
+                                                  href={gab.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-emerald-500 hover:text-emerald-500 text-[10px] font-bold transition-all group"
+                                                  title={`Abrir Gabarito Oficial de ${gab.label} (PDF)`}
+                                                >
+                                                  <span>{gab.label}</span>
+                                                  <ExternalLink size={10} className="opacity-60 group-hover:opacity-100" />
+                                                </a>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
                                       </motion.div>
                                     )}
                                   </AnimatePresence>
