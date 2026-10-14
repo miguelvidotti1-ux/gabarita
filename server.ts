@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { spotifyRouter } from "./server/spotifyRoutes";
-import { whatsappRouter } from "./server/whatsappRoutes";
 import {
   CorretorRedacaoService,
   RUBRICAS,
@@ -21,10 +20,6 @@ async function startServer() {
 
   // Mount Spotify OAuth 2.0 API routes
   app.use("/api/spotify", spotifyRouter);
-
-  // Mount WhatsApp Cloud API & AI Agent routes
-  app.use("/api/whatsapp", whatsappRouter);
-  app.use("/webhook/whatsapp", whatsappRouter);
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY || "",

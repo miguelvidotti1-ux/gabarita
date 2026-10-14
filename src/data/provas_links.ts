@@ -114,63 +114,7 @@ export const PROVAS_LINKS: Record<string, string> = {
   "ENEM_2010_2_Rosa": "https://download.inep.gov.br/educacao_basica/enem/provas/2010/dia2_caderno8_rosa.pdf",
   "ENEM_2010_2_Azul": "https://download.inep.gov.br/educacao_basica/enem/provas/2010/dia2_caderno7_azul.pdf",
   "ENEM_2010_2_Amarelo": "https://download.inep.gov.br/educacao_basica/enem/provas/2010/dia2_caderno5_amarelo.pdf",
-  "FUVEST_2023_1_V": "https://www.fuvest.br/wp-content/uploads/fuvest2023_primeira_fase_prova_V.pdf",
-  "FUVEST_2023_1_Branco": "https://www.fuvest.br/wp-content/uploads/fuvest2023_primeira_fase_prova_V.pdf",
-  "FUVEST_2023_Gabarito_1": "https://www.fuvest.br/wp-content/uploads/fuvest2023_gabarito_primeira_fase.pdf",
-  "FUVEST_2023_1_Gabarito": "https://www.fuvest.br/wp-content/uploads/fuvest2023_gabarito_primeira_fase.pdf",
-  "FUVEST_2023_2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_1.pdf",
-  "FUVEST_2023_Fase2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_1.pdf",
-  "FUVEST_2023_fase2_dia1": "https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_1.pdf",
-  "FUVEST_2023_2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_2.pdf",
-  "FUVEST_2023_Fase2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_2.pdf",
-  "FUVEST_2023_fase2_dia2": "https://www.fuvest.br/wp-content/uploads/fuvest_2023_segunda_fase_dia_2.pdf",
-  "FUVEST_2023_Abordagens_Esperadas": "https://www.fuvest.br/wp-content/uploads/fuvest2023_abordagens_esperadas_2fase.pdf",
-  "FUVEST_2023_Guia_Respostas": "https://www.fuvest.br/wp-content/uploads/fuvest2023_abordagens_esperadas_2fase.pdf",
-  "FUVEST_2023_2_Gabarito": "https://www.fuvest.br/wp-content/uploads/fuvest2023_abordagens_esperadas_2fase.pdf",
-  "FUVEST_2024_1_V": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_V.pdf",
-  "FUVEST_2024_1_K": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_K.pdf",
-  "FUVEST_2024_1_Q": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_Q.pdf",
-  "FUVEST_2024_1_X": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_X.pdf",
-  "FUVEST_2024_1_Z": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_Z.pdf",
-  "FUVEST_2024_1_Branco": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_V.pdf",
-  "FUVEST_2024_Gabarito_1": "https://www.fuvest.br/wp-content/uploads/fuvest2024_gabarito_primeira_fase_retificado_2023-11-24.pdf",
-  "FUVEST_2024_1_Gabarito": "https://www.fuvest.br/wp-content/uploads/fuvest2024_gabarito_primeira_fase_retificado_2023-11-24.pdf",
-  "FUVEST_2024_2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_1dia.pdf",
-  "FUVEST_2024_Fase2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_1dia.pdf",
-  "FUVEST_2024_fase2_dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_1dia.pdf",
-  "FUVEST_2024_2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_2dia.pdf",
-  "FUVEST_2024_Fase2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_2dia.pdf",
-  "FUVEST_2024_fase2_dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2024_segunda_fase_prova_2dia.pdf",
-  "FUVEST_2024_Resolução_Esperada": "https://www.fuvest.br/wp-content/uploads/fuvest_2024_2024.01.22_RESPOSTAS_USP_Guia.pdf",
-  "FUVEST_2024_Guia_Respostas": "https://www.fuvest.br/wp-content/uploads/fuvest_2024_2024.01.22_RESPOSTAS_USP_Guia.pdf",
-  "FUVEST_2024_2_Gabarito": "https://www.fuvest.br/wp-content/uploads/fuvest_2024_2024.01.22_RESPOSTAS_USP_Guia.pdf",
-  "FUVEST_2025_1_V1": "https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V1.pdf",
-  "FUVEST_2025_1_V2": "https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V2.pdf",
-  "FUVEST_2025_1_V3": "https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V3.pdf",
-  "FUVEST_2025_1_V4": "https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V4.pdf",
-  "FUVEST_2025_1_Branco": "https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V1.pdf",
-  "FUVEST_2025_Gabarito_1": "https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf",
-  "FUVEST_2025_1_Gabarito": "https://www.fuvest.br/wp-content/uploads/fuvest2025_gabarito_primeira_fase.pdf",
-  "FUVEST_2025_2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf",
-  "FUVEST_2025_Fase2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf",
-  "FUVEST_2025_fase2_dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia1.pdf",
-  "FUVEST_2025_2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia2.pdf",
-  "FUVEST_2025_Fase2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia2.pdf",
-  "FUVEST_2025_fase2_dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2025_prova_2fase_dia2.pdf",
-  "FUVEST_2025_Guia_Respostas": "https://www.fuvest.br/wp-content/uploads/fuvest_2025_guia_respostas.pdf",
-  "FUVEST_2025_2_Gabarito": "https://www.fuvest.br/wp-content/uploads/fuvest_2025_guia_respostas.pdf",
-  "FUVEST_2026_2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia1-prova.pdf",
-  "FUVEST_2026_Fase2_Dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia1-prova.pdf",
-  "FUVEST_2026_fase2_dia1": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia1-prova.pdf",
-  "FUVEST_2026_2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf",
-  "FUVEST_2026_Fase2_Dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf",
-  "FUVEST_2026_fase2_dia2": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-prova.pdf",
-  "FUVEST_2026_Gabarito_Matemática": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-matematica.pdf",
-  "FUVEST_2026_Gabarito_Física": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-fisica.pdf",
-  "FUVEST_2026_Gabarito_Química": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-quimica.pdf",
-  "FUVEST_2026_Gabarito_Biologia": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-biologia.pdf",
-  "FUVEST_2026_Gabarito_História": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-historia.pdf",
-  "FUVEST_2026_Gabarito_Geografia": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase2-dia2-respostas-esperadas-geografia.pdf",
+  "FUVEST_2025_1_Branco": "https://www.fuvest.br/wp-content/uploads/fuvest_2025_primeira_fase.pdf",
   // --- ITA (18 Anos: 2009 a 2026) ---
   // Formato 2 Fases (2019 a 2026)
   // 2026: 2ª Fase com Matemática, Física, Química e Português
@@ -410,82 +354,7 @@ export const PROVAS_LINKS: Record<string, string> = {
   "ITA_2012_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2012.pdf",
   "ITA_2012_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2012.pdf",
   "ITA_2012_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2012.pdf",
-
-  // 2011: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
-  "ITA_2011_Física": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
-  "ITA_2011_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
-  "ITA_2011_2_Física": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
-
-  "ITA_2011_Português": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
-  "ITA_2011_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
-  "ITA_2011_2_Português": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
-
-  "ITA_2011_Inglês": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
-  "ITA_2011_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
-  "ITA_2011_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
-
-  "ITA_2011_Matemática": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
-  "ITA_2011_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
-  "ITA_2011_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
-
-  "ITA_2011_Química": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
-  "ITA_2011_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
-  "ITA_2011_2_Química": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
-
-  "ITA_2011_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2011.pdf",
-  "ITA_2011_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2011.pdf",
-  "ITA_2011_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
-
-  // 2010: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
-  "ITA_2010_Física": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
-  "ITA_2010_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
-  "ITA_2010_2_Física": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
-
-  "ITA_2010_Português": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
-  "ITA_2010_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
-  "ITA_2010_2_Português": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
-
-  "ITA_2010_Inglês": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
-  "ITA_2010_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
-  "ITA_2010_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
-
-  "ITA_2010_Matemática": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
-  "ITA_2010_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
-  "ITA_2010_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
-
-  "ITA_2010_Química": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
-  "ITA_2010_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
-  "ITA_2010_2_Química": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
-
-  "ITA_2010_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2010.pdf",
-  "ITA_2010_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2010.pdf",
-  "ITA_2010_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
-
-  // 2009: Provas por matéria (Física, Português, Inglês, Matemática, Química) e Gabarito
-  "ITA_2009_Física": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
-  "ITA_2009_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
-  "ITA_2009_2_Física": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
-
-  "ITA_2009_Português": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
-  "ITA_2009_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
-  "ITA_2009_2_Português": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
-
-  "ITA_2009_Inglês": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
-  "ITA_2009_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
-  "ITA_2009_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
-
-  "ITA_2009_Matemática": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
-  "ITA_2009_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
-  "ITA_2009_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
-
-  "ITA_2009_Química": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
-  "ITA_2009_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
-  "ITA_2009_2_Química": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
-
-  "ITA_2009_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2009.pdf",
-  "ITA_2009_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2009.pdf",
-  "ITA_2009_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2009.pdf"
+  "ITA_2011_unica_Prova": "https://www.vestibular.ita.br/provas/2011_prova.pdf",
+  "ITA_2010_unica_Prova": "https://www.vestibular.ita.br/provas/2010_prova.pdf",
+  "ITA_2009_unica_Prova": "https://www.vestibular.ita.br/provas/2009_prova.pdf"
 };
-
-
-

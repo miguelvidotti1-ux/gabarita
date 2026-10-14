@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#07090e" />
     <title>VESTIBULARPRO — Preparação para Vestibulares</title>
+    <meta name="description" content="Plataforma completa para preparação para vestibulares brasileiros (ENEM, Fuvest, Unicamp, Unesp, UERJ, ITA)." />
+    <meta property="og:title" content="VESTIBULARPRO — Preparação para Vestibulares" />
+    <meta property="og:description" content="Plataforma completa para preparação para vestibulares brasileiros (ENEM, Fuvest, Unicamp, Unesp, UERJ, ITA)." />
     <style>
       html, body {
         background-color: #07090E !important;
@@ -40,6 +43,14 @@
         } catch (e) {}
       })();
     </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MD9V98HE12"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-MD9V98HE12');
+    </script>
   </head>
   <body class="bg-[#07090e] text-[#fafafa]">
     <div id="root">
@@ -53,7 +64,6 @@
         <div style="font-size: 13px; font-weight: 600; color: #94A3B8; letter-spacing: 0.05em;">Iniciando VestHub...</div>
       </div>
     </div>
-    <script type="module" src="/src/main.tsx"></script>
     <script>
       // ========== SPOTIFY AUTH — FRONTEND ==========
 
@@ -1172,6 +1182,7 @@
     window.voltarPasso2 = voltarPasso2;
     window.criarPlaylistFinal = criarPlaylistFinal;
     </script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
 

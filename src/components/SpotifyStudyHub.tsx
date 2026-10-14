@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Headphones, 
   ExternalLink, 
   Volume2, 
-  Volume1,
-  VolumeX,
-  Volume,
   Music, 
   Sparkles, 
   Maximize2, 
@@ -16,22 +13,15 @@ import {
   Play,
   Pause,
   SkipForward,
-  SkipBack,
   User,
   LogOut,
   Search,
   Plus,
-  Minus,
   CheckCircle2,
   HelpCircle,
   Copy,
   ListMusic,
-  RefreshCw,
-  History,
-  Clock,
-  Trash2,
-  RotateCcw,
-  Sliders
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -97,26 +87,12 @@ interface SpotifyUserProfile {
   image?: string | null;
 }
 
-export interface HistoryTrackItem {
-  id: string;
-  uri?: string;
-  name: string;
-  artist: string;
-  album?: string;
-  image?: string | null;
-  spotify_url?: string;
-  played_at: string;
-}
-
 interface NowPlayingData {
   is_playing: boolean;
   progress_ms?: number;
   duration_ms?: number;
-  volume_percent?: number | null;
-  device_name?: string | null;
   track?: {
     id: string;
-    uri?: string;
     name: string;
     artist: string;
     album: string;
@@ -183,38 +159,11 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   const [isConnecting, setIsConnecting] = useState(false);
   const [nowPlaying, setNowPlaying] = useState<NowPlayingData | null>(null);
   const [userPlaylists, setUserPlaylists] = useState<UserPlaylist[]>([]);
-  const [activeTab, setActiveTab] = useState<'curated' | 'estilos' | 'my_playlists' | 'search' | 'history'>('curated');
+  const [activeTab, setActiveTab] = useState<'curated' | 'estilos' | 'my_playlists' | 'search'>('curated');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [callbackUri, setCallbackUri] = useState('');
-
-  // Histórico de músicas ouvidas anteriormente
-  const [listenedHistory, setListenedHistory] = useState<HistoryTrackItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('vesthub_spotify_history');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [];
-  });
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [historyIndex, setHistoryIndex] = useState<number>(0);
-  const [activeTrackEmbedId, setActiveTrackEmbedId] = useState<string | null>(null);
-
-  // Controle de Volume
-  const [volume, setVolume] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('vesthub_spotify_volume');
-      if (saved !== null) {
-        const val = parseInt(saved, 10);
-        if (!isNaN(val)) return Math.max(0, Math.min(100, val));
-      }
-    } catch (e) {}
-    return 70;
-  });
-  const [isMuted, setIsMuted] = useState(false);
-  const [prevVolume, setPrevVolume] = useState(70);
-  const volumeDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Estilos Musicais states
   const [estilosList, setEstilosList] = useState<EstiloMusicalItem[]>([]);
@@ -390,39 +339,6 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
     };
   }, [checkSpotifyStatus, loadEstilos, onToast]);
 
-  // Função para adicionar música ao histórico de ouvidas anteriormente
-  const addTrackToHistory = useCallback((track: {
-    id: string;
-    uri?: string;
-    name: string;
-    artist: string;
-    album?: string;
-    image?: string | null;
-    spotify_url?: string;
-  }) => {
-    if (!track || !track.name) return;
-    setListenedHistory((prev) => {
-      const filtered = prev.filter(t => t.id !== track.id && t.name !== track.name);
-      const updated: HistoryTrackItem[] = [
-        {
-          id: track.id || `track-${Date.now()}`,
-          uri: track.uri || (track.id ? `spotify:track:${track.id}` : undefined),
-          name: track.name,
-          artist: track.artist || 'Artista Spotify',
-          album: track.album || '',
-          image: track.image || null,
-          spotify_url: track.spotify_url || (track.id ? `https://open.spotify.com/track/${track.id}` : undefined),
-          played_at: new Date().toISOString(),
-        },
-        ...filtered,
-      ].slice(0, 50);
-      try {
-        localStorage.setItem('vesthub_spotify_history', JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
-  }, []);
-
   // Polling de now-playing se estiver conectado
   useEffect(() => {
     if (!isConnected) return;
@@ -431,17 +347,8 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
       try {
         const res = await spotifyFetch('/api/spotify/now-playing');
         if (res.ok) {
-          const data = (await res.json()) as NowPlayingData;
+          const data = await res.json();
           setNowPlaying(data);
-          if (data.track && data.track.name) {
-            addTrackToHistory(data.track);
-          }
-          if (typeof data.volume_percent === 'number' && data.volume_percent !== null) {
-            setVolume(data.volume_percent);
-            if (data.volume_percent === 0) {
-              setIsMuted(true);
-            }
-          }
         }
       } catch (e) {
         // Silencioso
@@ -451,7 +358,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
     fetchNowPlaying();
     const interval = setInterval(fetchNowPlaying, 10000);
     return () => clearInterval(interval);
-  }, [isConnected, spotifyFetch, addTrackToHistory]);
+  }, [isConnected, spotifyFetch]);
 
   // Iniciar fluxo OAuth 2.0 via popup com abertura imediata para não ser bloqueado
   const handleConnectSpotify = async () => {
@@ -543,11 +450,11 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
     }
   };
 
-  // Controles de reprodução remota (play, pause, next, previous)
-  const handlePlaybackControl = async (action: 'play' | 'pause' | 'next' | 'previous', uri?: string) => {
+  // Controles de reprodução remota
+  const handlePlaybackControl = async (action: 'play' | 'pause' | 'next', uri?: string) => {
     try {
       let endpoint = `/api/spotify/${action}`;
-      let method = (action === 'next' || action === 'previous') ? 'POST' : 'PUT';
+      let method = action === 'next' ? 'POST' : 'PUT';
       if (action === 'play' && uri) {
         endpoint += `?uri=${encodeURIComponent(uri)}`;
       }
@@ -562,8 +469,6 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
           if (onToast) onToast('success', 'Reprodução pausada.');
         } else if (action === 'next') {
           if (onToast) onToast('success', 'Avançando para a próxima música...');
-        } else if (action === 'previous') {
-          if (onToast) onToast('success', 'Voltando para a música anterior...');
         }
       } else {
         const errData = await res.json().catch(() => ({}));
@@ -576,212 +481,6 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
       }
     } catch (err) {
       if (onToast) onToast('error', 'Erro ao controlar player do Spotify.');
-    }
-  };
-
-  // Tocar uma faixa específica do histórico de músicas ouvidas anteriormente
-  const playTrackFromHistory = useCallback((track: HistoryTrackItem, index?: number) => {
-    if (typeof index === 'number') {
-      setHistoryIndex(index);
-    }
-    const cleanTrackId = (track.id || '').replace(/^spotify:track:/i, '').split('?')[0].trim();
-    if (cleanTrackId && !cleanTrackId.startsWith('track-')) {
-      setActiveTrackEmbedId(cleanTrackId);
-    }
-
-    setNowPlaying({
-      is_playing: true,
-      track: {
-        id: cleanTrackId,
-        name: track.name,
-        artist: track.artist,
-        album: track.album || '',
-        image: track.image || null,
-        spotify_url: track.spotify_url || (cleanTrackId ? `https://open.spotify.com/track/${cleanTrackId}` : undefined),
-      },
-    });
-
-    if (isConnected) {
-      handlePlaybackControl('play', track.uri || (cleanTrackId ? `spotify:track:${cleanTrackId}` : undefined));
-    }
-
-    if (onToast) {
-      onToast('success', `Voltando para "${track.name}" (${track.artist})`);
-    }
-  }, [isConnected, onToast]);
-
-  // Voltar música (tenta controle remoto ou histórico de reprodução anterior)
-  const handlePlayPreviousTrack = async () => {
-    // 1. Se estiver conectado com dispositivo ativo, tenta enviar comando de voltar ao Spotify
-    if (isConnected) {
-      try {
-        const res = await spotifyFetch('/api/spotify/previous', { method: 'POST' });
-        if (res.ok) {
-          if (onToast) onToast('success', 'Voltando para a música anterior no Spotify...');
-          return;
-        }
-      } catch (e) {
-        // Fallback para histórico se o Spotify Connect não responder
-      }
-    }
-
-    // 2. Navegar sequencialmente pelo histórico de músicas já ouvidas
-    if (listenedHistory.length > 0) {
-      const nextIndex = (historyIndex + 1) < listenedHistory.length ? historyIndex + 1 : 0;
-      const targetTrack = listenedHistory[nextIndex];
-      if (targetTrack) {
-        playTrackFromHistory(targetTrack, nextIndex);
-        return;
-      }
-    }
-
-    if (onToast) {
-      onToast('error', 'Nenhuma música anterior encontrada no histórico recente.');
-    }
-  };
-
-  // Controle de Volume com persistência, debounce e feedback de aumento/redução
-  const handleVolumeChange = useCallback((newVol: number, showToastFeedback: boolean = false, customAction?: 'abaixado' | 'aumentado') => {
-    const clamped = Math.max(0, Math.min(100, Math.round(newVol)));
-    setVolume(clamped);
-    if (clamped === 0) {
-      setIsMuted(true);
-    } else {
-      setIsMuted(false);
-    }
-    try {
-      localStorage.setItem('vesthub_spotify_volume', clamped.toString());
-    } catch (e) {}
-
-    if (showToastFeedback && onToast) {
-      if (clamped === 0) {
-        onToast('success', 'Áudio no mudo (0%)');
-      } else if (customAction === 'abaixado') {
-        onToast('success', `Volume abaixado para ${clamped}%`);
-      } else if (customAction === 'aumentado') {
-        onToast('success', `Volume aumentado para ${clamped}%`);
-      } else {
-        onToast('success', `Volume ajustado para ${clamped}%`);
-      }
-    }
-
-    if (volumeDebounceRef.current) {
-      clearTimeout(volumeDebounceRef.current);
-    }
-
-    volumeDebounceRef.current = setTimeout(async () => {
-      try {
-        await spotifyFetch(`/api/spotify/volume?volume_percent=${clamped}`, { method: 'PUT' });
-      } catch (e) {
-        // Silencioso se não houver player remoto ativo
-      }
-    }, 250);
-  }, [spotifyFetch, onToast]);
-
-  const toggleMute = () => {
-    if (isMuted || volume === 0) {
-      const restore = prevVolume > 0 ? prevVolume : 70;
-      setIsMuted(false);
-      handleVolumeChange(restore, true);
-      if (onToast) onToast('success', `Áudio desmutado (${restore}%)`);
-    } else {
-      setPrevVolume(volume);
-      setIsMuted(true);
-      handleVolumeChange(0, true);
-    }
-  };
-
-  const stepVolume = (delta: number) => {
-    const target = Math.max(0, Math.min(100, volume + delta));
-    const action = delta < 0 ? 'abaixado' : 'aumentado';
-    handleVolumeChange(target, true, action);
-  };
-
-  // Carregar histórico de músicas recentes da conta Spotify
-  const loadRecentlyPlayedFromSpotify = async () => {
-    if (!isConnected) {
-      if (onToast) onToast('error', 'Conecte sua conta do Spotify para carregar o histórico remoto.');
-      return;
-    }
-    setIsLoadingHistory(true);
-    try {
-      const res = await spotifyFetch('/api/spotify/recently-played?limit=25');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.tracks && Array.isArray(data.tracks)) {
-          setListenedHistory((prev) => {
-            const map = new Map<string, HistoryTrackItem>();
-            prev.forEach(item => {
-              map.set(item.id || item.name, item);
-            });
-            data.tracks.forEach((item: any) => {
-              if (item.track && item.track.name) {
-                const key = item.track.id || item.track.name;
-                if (!map.has(key)) {
-                  map.set(key, {
-                    id: item.track.id,
-                    uri: item.track.uri,
-                    name: item.track.name,
-                    artist: item.track.artist,
-                    album: item.track.album,
-                    image: item.track.image,
-                    spotify_url: item.track.spotify_url,
-                    played_at: item.played_at || new Date().toISOString(),
-                  });
-                }
-              }
-            });
-            const merged = Array.from(map.values()).sort(
-              (a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime()
-            ).slice(0, 50);
-            try {
-              localStorage.setItem('vesthub_spotify_history', JSON.stringify(merged));
-            } catch (e) {}
-            return merged;
-          });
-          if (onToast) onToast('success', 'Histórico de reprodução sincronizado com o Spotify!');
-        }
-      }
-    } catch (e) {
-      if (onToast) onToast('error', 'Não foi possível sincronizar o histórico recente.');
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
-
-  const clearHistory = () => {
-    setListenedHistory([]);
-    try {
-      localStorage.removeItem('vesthub_spotify_history');
-    } catch (e) {}
-    if (onToast) onToast('success', 'Histórico de músicas limpo.');
-  };
-
-  const removeHistoryItem = (trackId: string) => {
-    setListenedHistory(prev => {
-      const updated = prev.filter(t => t.id !== trackId);
-      try {
-        localStorage.setItem('vesthub_spotify_history', JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
-  };
-
-  const formatRelativeTime = (isoString?: string) => {
-    if (!isoString) return 'Recentemente';
-    try {
-      const diffMs = Date.now() - new Date(isoString).getTime();
-      if (diffMs < 0) return 'Agora mesmo';
-      const diffSec = Math.floor(diffMs / 1000);
-      if (diffSec < 60) return 'Agora mesmo';
-      const diffMin = Math.floor(diffSec / 60);
-      if (diffMin < 60) return `Há ${diffMin} min`;
-      const diffHours = Math.floor(diffMin / 60);
-      if (diffHours < 24) return `Há ${diffHours} h`;
-      const diffDays = Math.floor(diffHours / 24);
-      return `Há ${diffDays} d`;
-    } catch {
-      return 'Recentemente';
     }
   };
 
@@ -1101,27 +800,6 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
             >
               Buscar no Spotify
             </button>
-            <button
-              onClick={() => {
-                setActiveTab('history');
-                if (isConnected && listenedHistory.length === 0) {
-                  loadRecentlyPlayedFromSpotify();
-                }
-              }}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'history'
-                  ? 'bg-[var(--bg-hover)] text-[var(--text-main)] font-bold'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-              }`}
-            >
-              <History size={13} className={activeTab === 'history' ? 'text-[#1DB954]' : ''} />
-              <span>Já Ouvidas</span>
-              {listenedHistory.length > 0 && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#1DB954]/20 text-[#1DB954] font-bold">
-                  {listenedHistory.length}
-                </span>
-              )}
-            </button>
           </div>
 
           <button
@@ -1263,18 +941,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                       </span>
                     )}
                     <button
-                      onClick={() => {
-                        addTrackToHistory({
-                          id: track.id,
-                          uri: track.uri || `spotify:track:${track.id}`,
-                          name: track.name,
-                          artist: track.artist,
-                          album: track.album,
-                          image: track.image,
-                          spotify_url: `https://open.spotify.com/track/${track.id}`
-                        });
-                        handlePlaybackControl('play', track.uri || `spotify:track:${track.id}`);
-                      }}
+                      onClick={() => handlePlaybackControl('play', track.uri || `spotify:track:${track.id}`)}
                       className="p-1.5 rounded-md bg-[#1DB954]/15 hover:bg-[#1DB954] text-[#1DB954] hover:text-black transition-colors cursor-pointer"
                       title="Tocar no Spotify"
                     >
@@ -1430,18 +1097,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                           </span>
                         )}
                         <button
-                          onClick={() => {
-                            addTrackToHistory({
-                              id: track.id,
-                              uri: track.uri || `spotify:track:${track.id}`,
-                              name: track.name,
-                              artist: track.artist,
-                              album: track.album,
-                              image: track.image,
-                              spotify_url: track.spotify_url || `https://open.spotify.com/track/${track.id}`
-                            });
-                            handlePlaybackControl('play', track.uri || `spotify:track:${track.id}`);
-                          }}
+                          onClick={() => handlePlaybackControl('play', track.uri || `spotify:track:${track.id}`)}
                           className="p-1.5 rounded-md bg-[#1DB954]/15 hover:bg-[#1DB954] text-[#1DB954] hover:text-black transition-colors cursor-pointer"
                           title="Tocar no Spotify"
                         >
@@ -1500,241 +1156,12 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      addTrackToHistory({
-                        id: track.id,
-                        uri: track.uri || `spotify:track:${track.id}`,
-                        name: track.name,
-                        artist: track.artist,
-                        album: track.album,
-                        image: track.image,
-                        spotify_url: track.spotify_url || `https://open.spotify.com/track/${track.id}`
-                      });
-                      handlePlaybackControl('play', track.uri || `spotify:track:${track.id}`);
-                    }}
+                    onClick={() => handlePlaybackControl('play', `spotify:track:${track.id}`)}
                     className="p-1.5 rounded-md bg-[#1DB954]/15 hover:bg-[#1DB954] text-[#1DB954] hover:text-black transition-colors shrink-0 cursor-pointer"
                     title="Tocar agora"
                   >
                     <Play size={13} />
                   </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'history' && (
-        <div className="space-y-4 mb-4">
-          {/* Header do Histórico */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-light)]">
-            <div>
-              <div className="flex items-center gap-2">
-                <History className="text-[#1DB954]" size={18} />
-                <h4 className="font-bold text-xs sm:text-sm text-[var(--text-main)]">
-                  Músicas Ouvidas Anteriormente
-                </h4>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1DB954]/15 text-[#1DB954] font-bold">
-                  {listenedHistory.length} {listenedHistory.length === 1 ? 'música' : 'músicas'}
-                </span>
-              </div>
-              <p className="text-[11px] text-[var(--text-muted)] mt-1">
-                Acesse e volte para qualquer faixa já ouvida durante suas sessões de estudo.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handlePlayPreviousTrack}
-                disabled={listenedHistory.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1DB954] text-black text-xs font-bold hover:bg-[#1ed760] transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
-                title="Voltar para a música anterior"
-              >
-                <SkipBack size={13} />
-                <span>Voltar Música</span>
-              </button>
-
-              {isConnected && (
-                <button
-                  onClick={loadRecentlyPlayedFromSpotify}
-                  disabled={isLoadingHistory}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[#1DB954] text-[var(--text-main)] hover:text-[#1DB954] text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
-                  title="Sincronizar histórico recente da sua conta Spotify"
-                >
-                  <RefreshCw size={13} className={isLoadingHistory ? 'animate-spin text-[#1DB954]' : ''} />
-                  <span className="hidden sm:inline">Sincronizar</span>
-                </button>
-              )}
-
-              {listenedHistory.length > 0 && (
-                <button
-                  onClick={clearHistory}
-                  className="p-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-red-500/40 text-[var(--text-muted)] hover:text-red-400 text-xs transition-all cursor-pointer"
-                  title="Limpar histórico"
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Ajuste de Volume na Sessão */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)]">
-            <div className="flex items-center gap-2">
-              <Sliders size={15} className="text-[#1DB954]" />
-              <span className="text-xs font-bold text-[var(--text-main)]">Ajuste de Volume da Sessão:</span>
-              <span className="text-xs font-mono font-bold text-[#1DB954]">{isMuted ? '0% (Mudo)' : `${volume}%`}</span>
-            </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Presets rápidos */}
-              <div className="flex items-center gap-1 text-[10px]">
-                <button
-                  onClick={() => handleVolumeChange(25, true)}
-                  className={`px-2 py-0.5 rounded border transition-colors cursor-pointer ${
-                    volume === 25 && !isMuted ? 'bg-[#1DB954]/20 border-[#1DB954] text-[#1DB954] font-bold' : 'border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                  }`}
-                >
-                  25% Suave
-                </button>
-                <button
-                  onClick={() => handleVolumeChange(50, true)}
-                  className={`px-2 py-0.5 rounded border transition-colors cursor-pointer ${
-                    volume === 50 && !isMuted ? 'bg-[#1DB954]/20 border-[#1DB954] text-[#1DB954] font-bold' : 'border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                  }`}
-                >
-                  50% Foco
-                </button>
-                <button
-                  onClick={() => handleVolumeChange(75, true)}
-                  className={`px-2 py-0.5 rounded border transition-colors cursor-pointer ${
-                    volume === 75 && !isMuted ? 'bg-[#1DB954]/20 border-[#1DB954] text-[#1DB954] font-bold' : 'border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                  }`}
-                >
-                  75% Energia
-                </button>
-                <button
-                  onClick={() => handleVolumeChange(100, true)}
-                  className={`px-2 py-0.5 rounded border transition-colors cursor-pointer ${
-                    volume === 100 && !isMuted ? 'bg-[#1DB954]/20 border-[#1DB954] text-[#1DB954] font-bold' : 'border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                  }`}
-                >
-                  100% Máx
-                </button>
-              </div>
-
-              {/* Botões - e + com slider */}
-              <div className="flex items-center gap-1 bg-[var(--bg-hover)] p-0.5 rounded-lg border border-[var(--border-light)]">
-                <button
-                  onClick={() => stepVolume(-10)}
-                  className="p-1 rounded hover:bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
-                  title="Abaixar volume (-10%)"
-                >
-                  <Minus size={12} />
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                  className="w-20 h-1.5 accent-[#1DB954] bg-[var(--border-light)] rounded-lg appearance-none cursor-pointer"
-                  title={`Volume: ${isMuted ? 0 : volume}%`}
-                />
-                <button
-                  onClick={() => stepVolume(10)}
-                  className="p-1 rounded hover:bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
-                  title="Aumentar volume (+10%)"
-                >
-                  <Plus size={12} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Lista de Músicas */}
-          {listenedHistory.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-[var(--bg-hover)] text-center space-y-3 border border-[var(--border-light)]">
-              <div className="w-12 h-12 rounded-2xl bg-[#1DB954]/15 text-[#1DB954] mx-auto flex items-center justify-center">
-                <RotateCcw size={22} />
-              </div>
-              <div className="max-w-md mx-auto">
-                <h5 className="font-bold text-sm text-[var(--text-main)]">Nenhuma música no histórico recente</h5>
-                <p className="text-xs text-[var(--text-muted)] mt-1">
-                  Conforme você estuda e ouve playlists ou estilos sonoros, as faixas tocadas serão salvas automaticamente aqui para você voltar a qualquer momento.
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveTab('curated')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1DB954] text-black text-xs font-bold hover:bg-[#1ed760] transition-colors cursor-pointer mt-2"
-              >
-                <Play size={13} />
-                <span>Explorar Playlists Curadas</span>
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
-              {listenedHistory.map((track, idx) => (
-                <div
-                  key={`${track.id}-${idx}`}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-light)] hover:border-[#1DB954]/40 transition-all text-xs group"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-5 text-center text-[10px] text-[var(--text-muted)] shrink-0 font-mono">
-                      {idx + 1}
-                    </span>
-                    {track.image ? (
-                      <img src={track.image} alt={track.name} className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
-                    ) : (
-                      <div className="w-9 h-9 rounded-lg bg-[var(--border-light)] flex items-center justify-center shrink-0">
-                        <Music size={14} className="text-[var(--text-muted)]" />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-bold text-[var(--text-main)] truncate group-hover:text-[#1DB954] transition-colors">
-                        {track.name}
-                      </p>
-                      <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] truncate">
-                        <span>{track.artist}</span>
-                        {track.album && <span>• {track.album}</span>}
-                        <span className="flex items-center gap-0.5 text-[9px] text-[var(--text-muted)]/70">
-                          <Clock size={9} />
-                          {formatRelativeTime(track.played_at)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={() => {
-                        playTrackFromHistory(track, idx);
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1DB954]/15 hover:bg-[#1DB954] text-[#1DB954] hover:text-black font-semibold transition-all cursor-pointer shadow-sm"
-                      title="Voltar e tocar esta faixa novamente"
-                    >
-                      <RotateCcw size={12} />
-                      <span className="text-[11px] font-bold">Voltar para esta</span>
-                    </button>
-                    {track.spotify_url && (
-                      <a
-                        href={track.spotify_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg bg-[var(--bg-card)] hover:bg-[#1DB954] hover:text-black text-[var(--text-muted)] border border-[var(--border-light)] transition-all cursor-pointer"
-                        title="Abrir no Spotify"
-                      >
-                        <ExternalLink size={12} />
-                      </a>
-                    )}
-                    <button
-                      onClick={() => removeHistoryItem(track.id)}
-                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors cursor-pointer"
-                      title="Remover do histórico"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>
@@ -1754,20 +1181,16 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
             >
               {(() => {
                 const embedId = (selectedPlaylist.id || '').replace(/^spotify:playlist:/i, '').split('?')[0].trim();
-                const embedSrc = activeTrackEmbedId
-                  ? `https://open.spotify.com/embed/track/${activeTrackEmbedId}?utm_source=generator&theme=0`
-                  : `https://open.spotify.com/embed/playlist/${embedId}?utm_source=generator&theme=0`;
-                const embedKey = activeTrackEmbedId ? `track-${activeTrackEmbedId}` : `playlist-${embedId}`;
                 return (
                   <iframe
                     id="spotify-embed"
-                    key={embedKey}
+                    key={embedId}
                     className="w-full border-none block"
                     style={{ height: '152px' }}
-                    src={embedSrc}
+                    src={`https://open.spotify.com/embed/playlist/${embedId}?utm_source=generator&theme=0`}
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     loading="lazy"
-                    title={`Spotify Player - ${nowPlaying?.track?.name || selectedPlaylist.name}`}
+                    title={`Spotify Playlist - ${selectedPlaylist.name}`}
                   />
                 );
               })()}
@@ -1775,35 +1198,22 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
           )}
         </AnimatePresence>
 
-        {/* Now Playing Status & Controles de Reprodução e Volume */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 sm:px-4 bg-[var(--bg-hover)] border-t border-[var(--border-light)]">
-          {/* Informações da Faixa / Playlist */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-10 h-10 rounded-lg bg-[#1DB954]/15 flex items-center justify-center text-[#1DB954] shrink-0 border border-[#1DB954]/20 relative overflow-hidden">
+        {/* Now Playing Status & Controles Remotos */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:px-4 bg-[var(--bg-hover)] border-t border-[var(--border-light)]">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-lg bg-[#1DB954]/15 flex items-center justify-center text-[#1DB954] shrink-0 border border-[#1DB954]/20">
               {nowPlaying?.track?.image ? (
                 <img src={nowPlaying.track.image} alt="Capa" className="w-full h-full rounded-lg object-cover" />
               ) : (
                 <Headphones size={20} className={isLoading ? 'animate-pulse' : ''} />
               )}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <div className="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate flex items-center gap-2">
                 <span id="np-track">{nowPlaying?.track?.name || selectedPlaylist.name}</span>
                 <span className="text-[10px] text-[var(--text-muted)] font-normal hidden sm:inline">
                   • {nowPlaying?.track?.artist || selectedPlaylist.category}
                 </span>
-                {activeTrackEmbedId && (
-                  <button
-                    onClick={() => {
-                      setActiveTrackEmbedId(null);
-                      if (onToast) onToast('success', 'Retomando playlist padrão.');
-                    }}
-                    className="text-[9px] px-1.5 py-0.5 rounded bg-[#1DB954]/15 hover:bg-[#1DB954]/25 text-[#1DB954] font-bold cursor-pointer shrink-0 transition-colors border border-[#1DB954]/30"
-                    title="Voltar para a playlist completa"
-                  >
-                    Voltar p/ Playlist
-                  </button>
-                )}
               </div>
               <p id="np-desc" className="text-[11px] text-[var(--text-muted)] truncate">
                 {nowPlaying?.track?.album || selectedPlaylist.description}
@@ -1811,143 +1221,56 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
             </div>
           </div>
 
-          {/* Controles de Reprodução + Ajuste de Volume */}
-          <div className="flex items-center justify-between lg:justify-end gap-2 sm:gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
-            {/* Controles de Reprodução (Voltar Música, Play/Pause, Próxima, Já Ouvidas) */}
-            <div className="flex items-center gap-1 bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border-light)] shadow-sm">
-              {/* Botão VOLTAR MÚSICA JÁ OUVIDA ANTERIORMENTE */}
-              <button
-                onClick={handlePlayPreviousTrack}
-                disabled={listenedHistory.length === 0 && !isConnected}
-                className="p-1.5 rounded-lg text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group relative"
-                title={listenedHistory.length > 0 ? "Voltar para música ouvida anteriormente" : "Voltar música anterior"}
-              >
-                <SkipBack size={15} />
-              </button>
-
-              {/* Botão Play / Pause */}
-              {nowPlaying?.is_playing ? (
-                <button
-                  onClick={() => handlePlaybackControl('pause')}
-                  className="p-1.5 rounded-lg text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
-                  title="Pausar reprodução"
-                >
-                  <Pause size={15} />
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    const cleanId = (selectedPlaylist.id || '').replace(/^spotify:playlist:/i, '').split('?')[0].trim();
-                    const targetUri = cleanId ? `spotify:playlist:${cleanId}` : undefined;
-                    handlePlaybackControl('play', targetUri);
-                  }}
-                  className="p-1.5 rounded-lg text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
-                  title="Reproduzir"
-                >
-                  <Play size={15} />
-                </button>
-              )}
-
-              {/* Botão Próxima Música */}
-              <button
-                onClick={() => handlePlaybackControl('next')}
-                className="p-1.5 rounded-lg text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
-                title="Próxima música"
-              >
-                <SkipForward size={15} />
-              </button>
-
-              {/* Atalho para Músicas Já Ouvidas */}
-              <button
-                onClick={() => {
-                  setActiveTab('history');
-                  if (isConnected && listenedHistory.length === 0) {
-                    loadRecentlyPlayedFromSpotify();
-                  }
-                }}
-                className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1 ${
-                  activeTab === 'history' 
-                    ? 'text-[#1DB954] bg-[#1DB954]/15' 
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
-                }`}
-                title="Ver histórico de músicas já ouvidas"
-              >
-                <History size={14} />
-                {listenedHistory.length > 0 && (
-                  <span className="text-[10px] font-bold text-[#1DB954]">{listenedHistory.length}</span>
-                )}
-              </button>
-            </div>
-
-            {/* CONTROLE DE VOLUME (Abaixar, Slider, Aumentar, Mudo) */}
-            <div className="flex items-center gap-1 sm:gap-1.5 bg-[var(--bg-card)] px-2 py-1 rounded-xl border border-[var(--border-light)] shadow-sm">
-              {/* Botão Mutar/Desmutar */}
-              <button
-                onClick={toggleMute}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
-                title={isMuted || volume === 0 ? 'Desmutar áudio' : 'Mutar áudio'}
-              >
-                {isMuted || volume === 0 ? (
-                  <VolumeX size={15} className="text-amber-400" />
-                ) : volume < 50 ? (
-                  <Volume1 size={15} className="text-[#1DB954]" />
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            {/* Controles interativos para conta conectada */}
+            {isConnected && (
+              <div className="flex items-center gap-1 bg-[var(--bg-card)] p-1 rounded-lg border border-[var(--border-light)]">
+                {nowPlaying?.is_playing ? (
+                  <button
+                    onClick={() => handlePlaybackControl('pause')}
+                    className="p-1.5 rounded text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+                    title="Pausar"
+                  >
+                    <Pause size={14} />
+                  </button>
                 ) : (
-                  <Volume2 size={15} className="text-[#1DB954]" />
+                  <button
+                    onClick={() => {
+                      const cleanId = (selectedPlaylist.id || '').replace(/^spotify:playlist:/i, '').split('?')[0].trim();
+                      const targetUri = cleanId ? `spotify:playlist:${cleanId}` : undefined;
+                      handlePlaybackControl('play', targetUri);
+                    }}
+                    className="p-1.5 rounded text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+                    title="Reproduzir"
+                  >
+                    <Play size={14} />
+                  </button>
                 )}
-              </button>
+                <button
+                  onClick={() => handlePlaybackControl('next')}
+                  className="p-1.5 rounded text-[var(--text-main)] hover:text-[#1DB954] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+                  title="Próxima música"
+                >
+                  <SkipForward size={14} />
+                </button>
+              </div>
+            )}
 
-              {/* Botão Abaixar Volume */}
-              <button
-                onClick={() => stepVolume(-10)}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
-                title="Abaixar volume (-10%)"
-              >
-                <Minus size={13} />
-              </button>
-
-              {/* Slider de Volume */}
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={isMuted ? 0 : volume}
-                onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                className="w-16 sm:w-20 md:w-24 h-1.5 accent-[#1DB954] bg-[var(--border-light)] rounded-lg appearance-none cursor-pointer"
-                title={`Volume: ${isMuted ? 0 : volume}%`}
-              />
-
-              {/* Botão Aumentar Volume */}
-              <button
-                onClick={() => stepVolume(10)}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
-                title="Aumentar volume (+10%)"
-              >
-                <Plus size={13} />
-              </button>
-
-              {/* Porcentagem */}
-              <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#1DB954] w-7 sm:w-8 text-right select-none">
-                {isMuted ? '0%' : `${volume}%`}
-              </span>
-            </div>
-
-            {/* Status Badge */}
             <span 
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md transition-all hidden xl:inline-block ${
+              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition-all ${
                 isLoading 
                   ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse'
                   : 'bg-[#1DB954]/15 text-[#1DB954] border border-[#1DB954]/30'
               }`}
             >
-              {isLoading ? '...' : (nowPlaying?.is_playing ? 'Tocando' : 'Pronto')}
+              {isLoading ? 'Carregando...' : (nowPlaying?.is_playing ? 'Tocando' : 'Pronto')}
             </span>
 
-            {/* Link Externo Spotify */}
             <a
               href={nowPlaying?.track?.spotify_url || `https://open.spotify.com/playlist/${selectedPlaylist.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg bg-[var(--bg-card)] hover:bg-[#1DB954] hover:text-black text-[var(--text-muted)] border border-[var(--border-light)] transition-all cursor-pointer group shrink-0"
+              className="p-2 rounded-lg bg-[var(--bg-card)] hover:bg-[#1DB954] hover:text-black text-[var(--text-muted)] border border-[var(--border-light)] transition-all cursor-pointer group"
               title="Abrir no Spotify"
             >
               <ExternalLink size={14} className="group-hover:scale-110 transition-transform" />

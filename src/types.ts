@@ -7,6 +7,7 @@ export enum Vestibular {
   ITA = 'ITA',
   FGV = 'FGV',
   MACKENZIE = 'Mackenzie',
+  PUC_SP = 'PUC-SP',
   UNIFESP = 'UNIFESP',
   ANHEMBI_MORUMBI = 'Anhembi Morumbi',
   ESTACIO = 'Estácio de Sá',
@@ -63,9 +64,7 @@ export interface GabaritoOficial {
   ano: number;
   dia: number;
   caderno: string;
-  titulo?: string;
   pdfUrl?: string;
-  provaPdfUrl?: string;
   questoes: {
     numero: number;
     resposta: string;

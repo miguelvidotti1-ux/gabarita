@@ -108,7 +108,6 @@ const SPOTIFY_SCOPES = [
   'user-read-playback-state',
   'user-modify-playback-state',
   'user-read-currently-playing',
-  'user-read-recently-played',
   'playlist-read-private',
   'playlist-read-collaborative',
   'playlist-modify-public',
@@ -1135,123 +1134,7 @@ spotifyRouter.post('/next', async (req: Request, res: Response) => {
 });
 
 // ============================================================
-// 8.1 CONTROLAR PLAYBACK — PREVIOUS (VOLTAR MÚSICA)
-// Endpoint: POST /api/spotify/previous
-// ============================================================
-spotifyRouter.post('/previous', async (req: Request, res: Response) => {
-  const token = await getValidSpotifyToken(req, res);
-  if (!token) {
-    return res.status(401).json({ error: 'Spotify não conectado' });
-  }
-
-  try {
-    const response = await fetch(`${SPOTIFY_API_BASE}/me/player/previous`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.status === 204) {
-      return res.json({ success: true, message: 'Voltando para música anterior' });
-    }
-
-    const errData = await response.json().catch(() => ({}));
-    return res.status(400).json({ 
-      error: 'Erro ao voltar música', 
-      details: errData,
-      hint: 'Verifique se há uma faixa anterior na fila do Spotify'
-    });
-  } catch (err: any) {
-    return res.status(500).json({ error: 'Erro ao voltar música', details: err?.message });
-  }
-});
-
-// ============================================================
-// 8.2 CONTROLAR PLAYBACK — VOLUME (AUMENTAR / ABAIXAR)
-// Endpoint: PUT /api/spotify/volume?volume_percent={0..100}
-// ============================================================
-spotifyRouter.put('/volume', async (req: Request, res: Response) => {
-  const token = await getValidSpotifyToken(req, res);
-  if (!token) {
-    return res.status(401).json({ error: 'Spotify não conectado' });
-  }
-
-  const rawVol = req.query.volume_percent !== undefined ? req.query.volume_percent : req.body?.volume_percent;
-  let volumePercent = parseInt(rawVol as string, 10);
-
-  if (isNaN(volumePercent)) {
-    return res.status(400).json({ error: 'volume_percent inválido (deve ser entre 0 e 100)' });
-  }
-
-  volumePercent = Math.max(0, Math.min(100, volumePercent));
-
-  try {
-    const response = await fetch(`${SPOTIFY_API_BASE}/me/player/volume?volume_percent=${volumePercent}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.status === 204) {
-      return res.json({ success: true, volume_percent: volumePercent });
-    }
-
-    const errData = await response.json().catch(() => ({}));
-    return res.status(400).json({ 
-      error: 'Erro ao alterar volume', 
-      details: errData,
-      hint: 'Verifique se o dispositivo ativo do Spotify suporta controle remoto de volume'
-    });
-  } catch (err: any) {
-    return res.status(500).json({ error: 'Erro ao alterar volume', details: err?.message });
-  }
-});
-
-// ============================================================
-// 8.3 MÚSICAS JÁ OUVIDAS ANTERIORMENTE (HISTÓRICO RECENTE)
-// Endpoint: GET /api/spotify/recently-played?limit={1..50}
-// ============================================================
-spotifyRouter.get('/recently-played', async (req: Request, res: Response) => {
-  const token = await getValidSpotifyToken(req, res);
-  if (!token) {
-    return res.status(401).json({ error: 'Spotify não conectado' });
-  }
-
-  const limit = Math.min(50, Math.max(1, parseInt((req.query.limit as string) || '25', 10)));
-
-  try {
-    const response = await fetch(`${SPOTIFY_API_BASE}/me/player/recently-played?limit=${limit}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      return res.status(response.status).json({ error: 'Erro ao obter histórico recente', details: err });
-    }
-
-    const data = (await response.json()) as any;
-    const items = data.items || [];
-    const tracks = items.map((item: any) => ({
-      played_at: item.played_at,
-      track: {
-        id: item.track?.id,
-        uri: item.track?.uri || `spotify:track:${item.track?.id}`,
-        name: item.track?.name,
-        artist: item.track?.artists?.map((a: any) => a.name).join(', ') || '',
-        album: item.track?.album?.name || '',
-        image: item.track?.album?.images?.[0]?.url || null,
-        duration_ms: item.track?.duration_ms,
-        spotify_url: item.track?.external_urls?.spotify || '',
-        preview_url: item.track?.preview_url || null,
-      }
-    }));
-
-    return res.json({ tracks, total: tracks.length });
-  } catch (err: any) {
-    return res.status(500).json({ error: 'Erro ao buscar histórico de músicas', details: err?.message });
-  }
-});
-
-// ============================================================
-// 9. MÚSICA ATUAL — o que está tocando agora (com volume e device)
+// 9. MÚSICA ATUAL — o que está tocando agora
 // Endpoint: GET /api/spotify/now-playing
 // ============================================================
 spotifyRouter.get('/now-playing', async (req: Request, res: Response) => {
@@ -1261,44 +1144,7 @@ spotifyRouter.get('/now-playing', async (req: Request, res: Response) => {
   }
 
   try {
-    let deviceVolume: number | null = null;
-    let deviceName: string | null = null;
-
-    // Tentar /me/player primeiro para obter status completo com volume e device
-    let response = await fetch(`${SPOTIFY_API_BASE}/me/player`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.status === 204) {
-      return res.json({ is_playing: false });
-    }
-
-    if (response.ok) {
-      const pData = (await response.json()) as any;
-      deviceVolume = typeof pData.device?.volume_percent === 'number' ? pData.device.volume_percent : null;
-      deviceName = pData.device?.name || null;
-
-      const item = pData.item || {};
-      return res.json({
-        is_playing: Boolean(pData.is_playing),
-        progress_ms: pData.progress_ms || 0,
-        duration_ms: item.duration_ms || 0,
-        volume_percent: deviceVolume,
-        device_name: deviceName,
-        track: item.id ? {
-          id: item.id,
-          uri: item.uri || `spotify:track:${item.id}`,
-          name: item.name,
-          artist: item.artists?.map((a: any) => a.name).join(', ') || '',
-          album: item.album?.name || '',
-          image: item.album?.images?.[0]?.url || null,
-          spotify_url: item.external_urls?.spotify || '',
-        } : null,
-      });
-    }
-
-    // Fallback para /me/player/currently-playing se /me/player não responder 200
-    response = await fetch(`${SPOTIFY_API_BASE}/me/player/currently-playing`, {
+    const response = await fetch(`${SPOTIFY_API_BASE}/me/player/currently-playing`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -1317,17 +1163,14 @@ spotifyRouter.get('/now-playing', async (req: Request, res: Response) => {
       is_playing: data.is_playing || false,
       progress_ms: data.progress_ms || 0,
       duration_ms: item.duration_ms || 0,
-      volume_percent: null,
-      device_name: null,
-      track: item.id ? {
+      track: {
         id: item.id,
-        uri: item.uri || `spotify:track:${item.id}`,
         name: item.name,
-        artist: item.artists?.map((a: any) => a.name).join(', ') || '',
+        artist: item.artists?.[0]?.name || '',
         album: item.album?.name || '',
         image: item.album?.images?.[0]?.url || null,
         spotify_url: item.external_urls?.spotify || '',
-      } : null,
+      },
     });
   } catch (err: any) {
     return res.status(500).json({ error: 'Erro ao obter faixa atual', details: err?.message });

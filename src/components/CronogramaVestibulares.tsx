@@ -45,9 +45,9 @@ const POPULAR_VENUES: Record<string, ExamVenue[]> = {
       tips: "Próximo à Estação Butantã (Linha 4-Amarela). No dia, use os circulares especiais de ônibus. Muito procurado, chegue cedo!",
     },
     {
-      name: "Universidade São Judas - Campus Mooca",
-      address: "Rua Taquari, 546 - Mooca, São Paulo - SP, 03166-000",
-      tips: "Próximo à Estação Bresser-Mooca (Linha 3-Vermelha). Fácil acesso por trem e metrô, região com ampla oferta de lanchonetes.",
+      name: "PUC-SP - Campus Monte Alegre (Perdizes)",
+      address: "Rua Monte Alegre, 984 - Perdizes, São Paulo - SP, 05014-901",
+      tips: "Estação Palmeiras-Barra Funda do Metrô e pegue ônibus integrado. Ônibus fretados costumam parar perto. Portões fecham rigorosamente.",
     },
     {
       name: "UNIP - Campus Paraíso / Vergueiro",
