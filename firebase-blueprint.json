@@ -173,6 +173,31 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "cardId", "trailId", "status", "updatedAt"]
+    },
+    "Questionnaire": {
+      "title": "Questionnaire",
+      "description": "User onboarding questionnaire data",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "vestibulares": { "type": "array", "items": { "type": "string" } },
+        "previousExams": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": {
+              "exam": { "type": "string" },
+              "grade": { "type": "number" }
+            }
+          }
+        },
+        "studyMethod": { "type": "string" },
+        "dailyHours": { "type": "number" },
+        "easySubjects": { "type": "array", "items": { "type": "string" } },
+        "hardSubjects": { "type": "array", "items": { "type": "string" } },
+        "source": { "type": "string" }
+      },
+      "required": ["userId", "vestibulares", "studyMethod", "dailyHours", "source"]
     }
   },
   "firestore": {
@@ -215,6 +240,10 @@
     "/users/{userId}/card_interactions/{cardId}": {
       "schema": "CardInteraction",
       "description": "User card interactions tracking seen/unseen cards"
+    },
+    "/users/{userId}/questionnaire": {
+      "schema": "Questionnaire",
+      "description": "User onboarding questionnaire data"
     }
   }
 }

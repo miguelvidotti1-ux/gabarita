@@ -121,6 +121,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
         { id: 'dashboard', label: 'Meu Painel', icon: LayoutDashboard },
         { id: 'agenda', label: 'Cronograma', icon: Calendar },
         { id: 'vestibulares', label: 'Vestibulares', icon: GraduationCap },
+        { id: 'provas', label: 'Provas', icon: FileText },
         { id: 'gabaritos', label: 'Gabaritos', icon: CheckCircle },
       ]
     },
@@ -192,7 +193,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
           className="flex items-center gap-2.5 cursor-pointer"
         >
           <VestibularProLogo className="w-9 h-9" bgVariant="black" />
-          <span className="font-extrabold tracking-tight text-lg text-[var(--text-main)]">VESTIBULAR<span className="text-[#3b82f6]">PRO</span></span>
+          <span className="font-extrabold tracking-tight text-xl text-[var(--text-main)]">Gabarita</span>
         </button>
         <div className="flex items-center gap-3">
           <button 
@@ -217,7 +218,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
             className="flex items-center gap-2.5 cursor-pointer"
           >
             <VestibularProLogo className="w-9 h-9" bgVariant="black" />
-            <span className="font-extrabold tracking-tight text-lg text-[var(--text-main)]">VESTIBULAR<span className="text-[#3b82f6]">PRO</span></span>
+            <span className="font-extrabold tracking-tight text-xl text-[var(--text-main)]">Gabarita</span>
           </button>
         </div>
 

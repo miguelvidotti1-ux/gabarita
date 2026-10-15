@@ -1,33 +1,58 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MD9V98HE12"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-MD9V98HE12');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar — VestHub | Preparação para Vestibulares</title>
+    <title>Entrar — Gabarita | Preparação para Vestibulares</title>
     <meta name="description" content="Acesse cronograma de estudos, simulados e estatísticas de aprovação. Prepare-se para ENEM, FUVEST e UNICAMP com análise de desempenho inteligente.">
-    <meta property="og:title" content="VestHub — Preparação para Vestibulares">
+    <meta property="og:title" content="Gabarita — Preparação para Vestibulares">
     <meta property="og:description" content="Cronograma, simulados e análise de desempenho para ENEM, FUVEST e UNICAMP.">
     <meta property="og:type" content="website">
-    <meta name="theme-color" content="#0A0A0A">
+    <meta name="theme-color" content="#000000">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
         :root {
-            --bg-main: #0A0A0A;
-            --bg-card: #141414;
-            --bg-input: #1A1A1A;
-            --bg-hover: #262626;
+            /* ===== TEMA VESTIBULAR PRO — #000000 + #10141D ===== */
+            --bg: #000000;
+            --bg2: #10141D;
+            --card: #10141D;
+            --hover: #1A2130;
             --primary: #1E3A8A;
-            --primary-hover: #1E40AF;
-            --text-main: #FAFAFA;
-            --text-muted: #A3A3A3;
-            --text-label: #737373;
-            --border: #262626;
-            --border-strong: #404040;
-            --error: #DC2626;
-            --error-light: rgba(220, 38, 38, 0.12);
-            --success: #059669;
+            --primary-h: #1E40AF;
+            --txt: #FAFAFA;
+            --mut: #A3A3A3;
+            --lbl: #737373;
+            --bd: #1E2534;
+            --bd2: #2A3348;
+            --ok: #059669;
+            --err: #DC2626;
+            --warn: #D97706;
+            --spot: #1DB954;
+
+            --bg-main: var(--bg);
+            --bg-card: var(--card);
+            --bg-input: var(--card);
+            --bg-hover: var(--hover);
+            --primary-hover: var(--primary-h);
+            --text-main: var(--txt);
+            --text-muted: var(--mut);
+            --text-label: var(--lbl);
+            --border: var(--bd);
+            --border-strong: var(--bd2);
+            --error: var(--err);
+            --error-light: rgba(220, 38, 38, 0.15);
+            --success: var(--ok);
             --focus-ring: rgba(30, 58, 138, 0.35);
         }
 
@@ -408,8 +433,8 @@
         <!-- ===== COLUNA DE LOGIN ===== -->
         <main class="auth-panel">
             <div class="logo-row">
-                <div class="logo-icon">V</div>
-                <span class="logo-text">VestHub</span>
+                <div class="logo-icon">G</div>
+                <span class="logo-text">Gabarita</span>
             </div>
 
             <h1>Entrar na conta</h1>

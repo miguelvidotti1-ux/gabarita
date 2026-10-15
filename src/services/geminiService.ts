@@ -33,7 +33,8 @@ export async function generateQuestions(
     [Vestibular.UNIFESP]: "Foque em questões com rigor científico, especialmente em biologia e química, mantendo um nível de profundidade acadêmica elevado.",
     [Vestibular.ANHEMBI_MORUMBI]: "Foque em questões diversificadas que cobrem a base nacional comum com foco em aplicação prática e mercado de trabalho.",
     [Vestibular.ESTACIO]: "Foque em questões objetivas que cobrem o conteúdo do ensino médio de forma clara e direta.",
-    [Vestibular.UNISINOS]: "Foque em questões que integram conhecimentos gerais com inovações tecnológicas e desafios contemporâneos."
+    [Vestibular.UNISINOS]: "Foque em questões que integram conhecimentos gerais com inovações tecnológicas e desafios contemporâneos.",
+    [Vestibular.IME]: "Foque em questões de altíssimo nível em matemática, física e química, com grande profundidade analítica, rigor demonstrativo e cálculos avançados típicos do Concurso de Admissão ao IME."
   };
 
   const subjectEntries = Object.entries(subjects);
@@ -333,7 +334,8 @@ const vestibularCriteria: Record<Vestibular, string> = {
   [Vestibular.UNIFESP]: "Use a escala de 0 a 20. Analise o domínio da norma culta, a estrutura textual e o desenvolvimento do tema.",
   [Vestibular.ANHEMBI_MORUMBI]: "Use a escala de 0 a 10. Foque em clareza e objetividade na defesa de um ponto de vista.",
   [Vestibular.ESTACIO]: "Use a escala de 0 a 10. Valorize a estrutura básica da dissertação e a correção gramatical.",
-  [Vestibular.UNISINOS]: "Use a escala de 0 a 10. Foque na inovação das idéias e na qualidade da argumentação."
+  [Vestibular.UNISINOS]: "Use a escala de 0 a 10. Foque na inovação das idéias e na qualidade da argumentação.",
+  [Vestibular.IME]: "Use a escala de 0 a 10. Foque em correção gramatical, rigor argumentativo, domínio da norma culta e capacidade de reflexão crítica sobre ciência, ética e tecnologia."
 };
 
 export async function analyzeEssayFromImage(

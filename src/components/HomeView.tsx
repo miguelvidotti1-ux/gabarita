@@ -142,6 +142,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
       iconColor: 'text-purple-400'
     },
     {
+      id: 'provas',
+      title: 'Acervo de Provas',
+      desc: 'Cadernos de provas originais em PDF com design padrão ENEM para todos os vestibulares.',
+      icon: BookOpen,
+      badge: 'PDFs Oficiais',
+      gradient: 'from-blue-500/10 to-teal-500/10',
+      borderGlow: 'hover:border-blue-500/40',
+      iconColor: 'text-blue-400'
+    },
+    {
       id: 'gabaritos',
       title: 'Gabaritos Oficiais',
       desc: 'Acervo completo de resoluções comentadas passo a passo de todas as disciplinas.',

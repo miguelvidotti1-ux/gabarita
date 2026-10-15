@@ -555,6 +555,33 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
         { name: 'Conhecimentos Gerais', percentage: 100, summary: 'Base nacional comum e atualidades.', youtubeId: 'Uni_G_1' }
       ]
     }
+  ],
+  [Vestibular.IME]: [
+    {
+      subject: 'Matemática',
+      topics: [
+        { name: 'Álgebra e Polinômios', percentage: 25, summary: 'Polinômios, equações algébricas e números complexos em forma trigonométrica.', youtubeId: 'IME_Mat_1' },
+        { name: 'Geometria Espacial e Analítica', percentage: 25, summary: 'Cônicas, quádricas, distâncias e seções em poliedros.', youtubeId: 'IME_Mat_2' },
+        { name: 'Cálculo e Análise Combinatória', percentage: 25, summary: 'Indução matemática, combinatória avançada, probabilidade e limites.', youtubeId: 'IME_Mat_3' },
+        { name: 'Trigonometria e Matrizes', percentage: 25, summary: 'Transformações trigonométricas, sistemas lineares e determinantes.', youtubeId: 'IME_Mat_4' }
+      ]
+    },
+    {
+      subject: 'Física',
+      topics: [
+        { name: 'Mecânica e Gravitação', percentage: 35, summary: 'Dinâmica de corpos rígidos, oscilações acopladas e gravitação.', youtubeId: 'IME_Fis_1' },
+        { name: 'Eletromagnetismo', percentage: 35, summary: 'Campos magnéticos e elétricos, indução de Faraday e circuitos RLC.', youtubeId: 'IME_Fis_2' },
+        { name: 'Termodinâmica e Ondulatória', percentage: 30, summary: 'Ciclos térmicos reais, ondas sonoras, efeito Doppler e óptica física.', youtubeId: 'IME_Fis_3' }
+      ]
+    },
+    {
+      subject: 'Química',
+      topics: [
+        { name: 'Físico-Química', percentage: 40, summary: 'Termoquímica, cinética, equilíbrios iônicos e eletroquímica quantitativa.', youtubeId: 'IME_Qui_1' },
+        { name: 'Química Geral e Inorgânica', percentage: 30, summary: 'Estrutura atômica, geometria molecular e estequiometria complexa.', youtubeId: 'IME_Qui_2' },
+        { name: 'Química Orgânica', percentage: 30, summary: 'Mecanismos de reação, isomeria espacial e síntese de polímeros.', youtubeId: 'IME_Qui_3' }
+      ]
+    }
   ]
 };
 
@@ -625,9 +652,14 @@ export const ESSAY_THEMES: Record<Vestibular, { year: number | string; theme: st
     { year: 2012, theme: 'Proposta 2: Manifesto estudantil para reunião de pais e professores (manifesto)' }
   ],
   [Vestibular.UNESP]: [
+    { year: 2025, theme: 'Medicalização da vida: a quem interessa?' },
     { year: 2024, theme: 'A tecnologia a serviço da inclusão social' },
     { year: 2023, theme: 'O desafio da mobilidade urbana sustentável' },
-    { year: 2022, theme: 'A importância do voto consciente para a democracia' }
+    { year: 2022, theme: 'A importância do voto consciente para a democracia' },
+    { year: 2021, theme: 'O tempo é uma ilusão?' },
+    { year: 2020, theme: 'O carro será o novo cigarro?' },
+    { year: 2019, theme: 'Compro, logo existo?' },
+    { year: 2018, theme: 'O voto nulo é um ato político eficaz?' }
   ],
   [Vestibular.UERJ]: [
     { year: 2025, theme: 'Preservação do patrimônio histórico no RJ' },
@@ -658,5 +690,10 @@ export const ESSAY_THEMES: Record<Vestibular, { year: number | string; theme: st
   [Vestibular.UNIFESP]: [{ year: 2024, theme: 'Ética e avanços na medicina' }],
   [Vestibular.ANHEMBI_MORUMBI]: [{ year: 2024, theme: 'O mercado de trabalho e as novas tecnologias' }],
   [Vestibular.ESTACIO]: [{ year: 2024, theme: 'Inclusão digital e educação' }],
-  [Vestibular.UNISINOS]: [{ year: 2024, theme: 'Sustentabilidade e inovação' }]
+  [Vestibular.UNISINOS]: [{ year: 2024, theme: 'Sustentabilidade e inovação' }],
+  [Vestibular.IME]: [
+    { year: 2025, theme: 'A ética no desenvolvimento da inteligência artificial e soberania tecnológica' },
+    { year: 2024, theme: 'O papel da engenharia e da defesa nacional no desenvolvimento sustentável' },
+    { year: 2023, theme: 'Inovação científica e os limites éticos da intervenção humana' }
+  ]
 };

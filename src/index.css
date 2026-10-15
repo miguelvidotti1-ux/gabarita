@@ -14,73 +14,86 @@
 
 /* ========== TEMA ÚNICO — PREMIUM DARK MODE ========== */
 :root, [data-theme="dark"], .dark {
-  /* Background — tons profundos com sutileza azulada/ardósia */
-  --bg-main: #0B0E14;
-  --bg-sidebar: #10141D;
-  --bg-card: #151A26;
-  --bg-card-elevated: #1B2130;
-  --bg-input: #171D2B;
-  --bg-hover: #1F2637;
-  --bg-badge: rgba(59, 130, 246, 0.16);
-  --bg-badge-neutral: #1E2536;
-  --bg-overlay: rgba(5, 8, 14, 0.82);
-  --bg-modal: #151A26;
-  --bg-tab-active: rgba(59, 130, 246, 0.16);
-  --bg-header: #10141D;
-  --bg-table-header: #131824;
-  --bg-toggle: #2E3952;
+  /* ===== TEMA VESTIBULAR PRO — #000000 + #10141D ===== */
+  --bg: #000000;        /* fundo principal de todas as abas (era #0A0A0A) */
+  --bg2: #10141D;       /* sidebar e superfícies secundárias (era #141414) */
+  --card: #10141D;      /* cards, modais, inputs e chat (era #1A1A1A) */
+  --hover: #1A2130;     /* hover e elementos elevados (derivado de #10141D) */
+  --primary: #1E3A8A;   /* identidade da marca — mantida */
+  --primary-h: #1E40AF;
+  --txt: #FAFAFA;
+  --mut: #A3A3A3;
+  --lbl: #737373;
+  --bd: #1E2534;        /* bordas sutis (derivada de #10141D) */
+  --bd2: #2A3348;       /* bordas de inputs e divisores fortes */
+  --ok: #059669;
+  --err: #DC2626;
+  --warn: #D97706;
+  --spot: #1DB954;      /* verde Spotify — mantido */
 
-  /* Primary — azul moderno e enérgico */
-  --primary: #3B82F6;
-  --primary-hover: #2563EB;
-  --primary-light: rgba(59, 130, 246, 0.2);
-  --primary-soft: rgba(59, 130, 246, 0.12);
-  --primary-border: rgba(59, 130, 246, 0.4);
+  /* Mapeamento Semântico Completo */
+  --bg-main: var(--bg);
+  --bg-sidebar: var(--bg2);
+  --bg-card: var(--card);
+  --bg-card-elevated: var(--hover);
+  --bg-input: var(--card);
+  --bg-hover: var(--hover);
+  --bg-badge: rgba(30, 58, 138, 0.22);
+  --bg-badge-neutral: var(--hover);
+  --bg-overlay: rgba(0, 0, 0, 0.85);
+  --bg-modal: var(--card);
+  --bg-tab-active: rgba(30, 58, 138, 0.24);
+  --bg-header: var(--bg2);
+  --bg-table-header: var(--bg2);
+  --bg-toggle: var(--bd2);
 
-  /* Text — tons nítidos e legíveis */
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-  --text-label: #64748B;
+  --primary-hover: var(--primary-h);
+  --primary-light: rgba(30, 58, 138, 0.25);
+  --primary-soft: rgba(30, 58, 138, 0.14);
+  --primary-border: rgba(30, 64, 175, 0.45);
+
+  --text-main: var(--txt);
+  --text-muted: var(--mut);
+  --text-label: var(--lbl);
   --text-on-primary: #FFFFFF;
 
-  /* Border — sutis e contrastantes */
-  --border-color: #2E384D;
-  --border-light: #202738;
-  --border-focus: #3B82F6;
+  --border-color: var(--bd2);
+  --border-light: var(--bd);
+  --border-focus: var(--primary-h);
+  --border-strong: var(--bd2);
 
-  /* Shadow — sombras profundas com atmosfera */
-  --shadow: rgba(0, 0, 0, 0.6);
-  --shadow-soft: rgba(0, 0, 0, 0.35);
-  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-  --shadow-primary: rgba(59, 130, 246, 0.28);
+  --shadow: rgba(0, 0, 0, 0.75);
+  --shadow-soft: rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  --shadow-primary: rgba(30, 58, 138, 0.35);
 
-  /* Status */
-  --success: #10B981;
-  --success-light: rgba(16, 185, 129, 0.15);
-  --error: #F43F5E;
-  --error-light: rgba(244, 63, 94, 0.15);
-  --warning: #F59E0B;
-  --warning-light: rgba(245, 158, 11, 0.15);
+  --success: var(--ok);
+  --success-light: rgba(5, 150, 105, 0.15);
+  --error: var(--err);
+  --error-light: rgba(220, 38, 38, 0.15);
+  --warning: var(--warn);
+  --warning-light: rgba(217, 119, 6, 0.15);
   --info: #38BDF8;
   --info-light: rgba(56, 189, 248, 0.15);
+  --spotify: var(--spot);
 
-  --toggle-knob: #F8FAFC;
-  --scrollbar-track: #0B0E14;
-  --scrollbar-thumb: #252D3F;
-  --scrollbar-thumb-hover: #37435C;
+  --toggle-knob: #FAFAFA;
+  --scrollbar-track: var(--bg);
+  --scrollbar-thumb: var(--hover);
+  --scrollbar-thumb-hover: var(--bd2);
 
   /* Compatibility */
-  --bg-color: #0B0E14;
-  --text-color: #F8FAFC;
-  --bg-primary: #0B0E14;
-  --bg-secondary: #10141D;
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-accent: #3B82F6;
-  --card-bg: #151A26;
-  --card-border: #202738;
-  --button-bg: #3B82F6;
-  --button-bg-hover: #2563EB;
+  --bg-color: var(--bg);
+  --text-color: var(--txt);
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--bg2);
+  --text-primary: var(--txt);
+  --text-secondary: var(--mut);
+  --text-accent: var(--primary);
+  --card-bg: var(--card);
+  --card-border: var(--bd);
+  --button-bg: var(--primary);
+  --button-bg-hover: var(--primary-h);
 }
 
 body {

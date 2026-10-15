@@ -21,6 +21,7 @@ const VESTIBULARES = [
   { id: Vestibular.ANHEMBI_MORUMBI, name: 'Anhembi Morumbi', color: 'from-cyan-600/20 via-cyan-950 to-slate-950', badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30', description: 'Universidade Anhembi Morumbi. Inovação, metodologia ativa e conexão com o mercado global.' },
   { id: Vestibular.ESTACIO, name: 'Estácio de Sá', color: 'from-blue-600/20 via-blue-950 to-slate-950', badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30', description: 'Universidade Estácio de Sá. Ampla capilaridade e cursos focados na prática profissional.' },
   { id: Vestibular.UNISINOS, name: 'Unisinos', color: 'from-emerald-600/20 via-teal-950 to-slate-950', badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', description: 'Universidade do Vale do Rio dos Sinos. Destaque em tecnologia, pesquisa e inovação no Sul.' },
+  { id: Vestibular.IME, name: 'IME', color: 'from-emerald-700/20 via-slate-900 to-slate-950', badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', description: 'Instituto Militar de Engenharia. Exame militar de excelência máxima em ciências exatas, física, química e matemática.' },
 ];
 
 export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: Vestibular) => void, onStartQuiz: (questions: Question[], isFull: boolean, timeLimit?: number) => void }) {
@@ -152,7 +153,7 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
                     <span>Gerar Simulado</span>
                   </button>
                   
-                  {['ENEM', 'Fuvest', 'Unicamp', 'Unesp', 'ITA'].includes(v.name) && (
+                  {['ENEM', 'Fuvest', 'Unicamp', 'Unesp', 'UERJ', 'UNIFESP', 'Mackenzie', 'FGV', 'ITA', 'IME'].includes(v.name) && (
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -161,7 +162,7 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
                       className="w-full py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-light)] hover:border-[var(--primary-border)] hover:text-[var(--primary)] cursor-pointer"
                     >
                       <Library size={15} />
-                      <span>Provas Anteriores (18 anos)</span>
+                      <span>Provas Anteriores (Acervo Oficial)</span>
                     </button>
                   )}
                 </div>

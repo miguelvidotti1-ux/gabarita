@@ -136,15 +136,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const handleInstantGuestAccess = () => {
     const guestUser = {
       uid: 'estudante_' + Date.now(),
-      email: 'estudante@vesthub.com.br',
-      displayName: 'Estudante VestHub',
+      email: 'estudante@gabarita.com.br',
+      displayName: 'Estudante Gabarita',
       role: 'user'
     };
     try {
       localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(guestUser));
     } catch (e) {}
-    showToast('success', 'Acesso liberado! Bem-vindo ao VestHub.');
+    showToast('success', 'Acesso liberado! Bem-vindo ao Gabarita.');
     setTimeout(() => {
       if (onLoginSuccess) onLoginSuccess(guestUser);
     }, 350);
@@ -450,7 +450,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold tracking-tight text-[#FAFAFA]">
-                    VestHub
+                    Gabarita
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-400/30 text-[10px] font-bold text-blue-400 tracking-wider">
                     PRO 2026

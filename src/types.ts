@@ -11,7 +11,8 @@ export enum Vestibular {
   UNIFESP = 'UNIFESP',
   ANHEMBI_MORUMBI = 'Anhembi Morumbi',
   ESTACIO = 'Estácio de Sá',
-  UNISINOS = 'Unisinos'
+  UNISINOS = 'Unisinos',
+  IME = 'IME'
 }
 
 export interface UserProfile {

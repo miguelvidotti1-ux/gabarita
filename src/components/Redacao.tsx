@@ -20,6 +20,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { ESSAY_THEMES } from '../constants';
+import { UNESP_2025_REDACAO } from '../data/unesp_recentes_data';
 import { 
   generateEssayTheme, 
   analyzeEssayFromImage, 
@@ -103,6 +104,7 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
   const [essayHistory, setEssayHistory] = useState<EssayResult[]>([]);
   const [showCamera, setShowCamera] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [showMotivadores, setShowMotivadores] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [toast, setToast] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
@@ -597,6 +599,56 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
                 className="w-full px-3.5 py-3 border border-[#404040] rounded-xl text-xs sm:text-sm text-[#FAFAFA] bg-[#1A1A1A] outline-none focus:border-[#1E3A8A] transition-colors"
                 placeholder="Tema da redação (ex: Perspectivas acerca do envelhecimento na sociedade brasileira)"
               />
+
+              {/* COLETÂNEA OFICIAL DE TEXTOS MOTIVADORES UNESP 2025 */}
+              {selectedTheme.toLowerCase().includes('medicalização') && (
+                <div className="mt-3 p-4 rounded-xl bg-[#141414] border border-amber-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-xs font-bold text-amber-400 uppercase tracking-wide">
+                        Caderno Oficial UNESP 2025 — Coletânea de Textos Motivadores
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowMotivadores(!showMotivadores)}
+                      className="text-xs font-bold text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                    >
+                      {showMotivadores ? 'Recolher Textos ▲' : 'Ler Textos de Apoio ▼'}
+                    </button>
+                  </div>
+
+                  {showMotivadores && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-4 pt-2 border-t border-[#262626] text-xs text-[#E5E5E5] leading-relaxed"
+                    >
+                      <div className="p-3 rounded-lg bg-[#1F1F1F] border border-[#333] text-amber-200">
+                        <strong>Comando da Prova:</strong> {UNESP_2025_REDACAO.instrucoes}
+                      </div>
+
+                      {UNESP_2025_REDACAO.textosMotivadores.map((t) => (
+                        <div key={t.numero} className="p-3.5 rounded-lg bg-[#1A1A1A] border border-[#2E2E2E] space-y-1.5">
+                          <div className="flex items-center justify-between font-bold text-amber-400">
+                            <span>Texto {t.numero}{t.titulo ? `: ${t.titulo}` : ''}</span>
+                            <span className="text-[10px] text-zinc-400 font-normal">{t.fonte}</span>
+                          </div>
+                          <p className="whitespace-pre-line text-[#D4D4D4]">{t.conteudo}</p>
+                        </div>
+                      ))}
+
+                      <div className="p-3.5 rounded-lg bg-amber-950/20 border border-amber-500/30 text-amber-100 space-y-2">
+                        <strong className="text-amber-400 block text-xs">Critérios & Comentário da Banca VUNESP:</strong>
+                        <p className="whitespace-pre-line text-[11px] leading-relaxed text-zinc-300">
+                          {UNESP_2025_REDACAO.comentarioBanca}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* TEXTAREA DA REDAÇÃO */}

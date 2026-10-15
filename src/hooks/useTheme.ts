@@ -7,7 +7,7 @@ export function useTheme() {
     const root = window.document.documentElement;
     root.classList.add('dark');
     root.setAttribute('data-theme', 'dark');
-    root.style.setProperty('--bg-color', '#0A0A0A');
+    root.style.setProperty('--bg-color', '#000000');
     root.style.setProperty('--text-color', '#FAFAFA');
     try {
       localStorage.setItem('theme', 'dark');

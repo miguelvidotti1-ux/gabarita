@@ -24,6 +24,7 @@ import DesafioSemanalComponent from './components/DesafioSemanal';
 import CronogramaVestibulares from './components/CronogramaVestibulares';
 import SistemasConquistasMetas from './components/SistemasConquistasMetas';
 import GabaritosOficiais from './components/GabaritosOficiais';
+import ProvasAcervoView from './components/ProvasAcervoView';
 import SkillSwipe from './components/SkillSwipe';
 import HomeView from './components/HomeView';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -231,6 +232,8 @@ export default function App() {
             </div>
           </div>
         );
+      case 'provas':
+        return <ProvasAcervoView />;
       case 'gabaritos':
         return <GabaritosOficiais />;
       case 'redacao':
@@ -298,7 +301,7 @@ export default function App() {
         <div className="min-h-screen flex items-center justify-center bg-[#07090e] transition-colors duration-300">
           <div className="flex flex-col items-center gap-4">
             <GraduationCap className="text-blue-400 w-12 h-12 animate-pulse" />
-            <p className="text-slate-400 text-xs font-semibold animate-pulse">Iniciando VESTIBULARPRO...</p>
+            <p className="text-slate-400 text-xs font-semibold animate-pulse">Iniciando Gabarita...</p>
           </div>
         </div>
       ) : !user ? (

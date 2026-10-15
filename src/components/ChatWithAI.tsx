@@ -59,7 +59,7 @@ export default function ChatWithAI() {
     {
       id: 'welcome-msg',
       role: 'ai',
-      text: 'Olá! Sou o seu **Tutor de IA do VESTIBULARPRO**. 🎓\n\nEstou aqui para tirar dúvidas sobre matérias do ENEM e dos principais vestibulares (FUVEST, UNICAMP, UNESP, etc.), explicar resoluções passo a passo ou dar dicas de redação.\n\nComo posso te ajudar hoje?',
+      text: 'Olá! Sou o seu **Tutor de IA do Gabarita**. 🎓\n\nEstou aqui para tirar dúvidas sobre matérias do ENEM e dos principais vestibulares (FUVEST, UNICAMP, UNESP, etc.), explicar resoluções passo a passo ou dar dicas de redação.\n\nComo posso te ajudar hoje?',
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -392,7 +392,7 @@ export default function ChatWithAI() {
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-zinc-500 mt-2 px-1">
             <span>Pressione <strong className="font-semibold text-slate-600 dark:text-zinc-400">Enter</strong> para enviar, <strong className="font-semibold text-slate-600 dark:text-zinc-400">Shift + Enter</strong> para nova linha</span>
-            <span className="hidden sm:inline">IA VESTIBULARPRO • Respostas didáticas</span>
+            <span className="hidden sm:inline">IA Gabarita • Respostas didáticas</span>
           </div>
         </div>
 

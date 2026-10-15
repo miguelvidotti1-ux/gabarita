@@ -163,14 +163,14 @@ export function VestibularProBrandLockup({
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
       <VestibularProLogo className={iconSize} bgVariant="black" />
       <span className={`font-extrabold tracking-tight ${textSize} text-white`}>
-        VESTIBULAR<span className="text-[#3b82f6]">PRO</span>
+        Gabarita
       </span>
     </div>
   );
 }
 
 /**
- * VestHub Official Brand Lockup from Video
+ * Gabarita Brand Lockup
  */
 export function VestHubBrandLockup({
   iconSize = 'w-9 h-9',
@@ -185,7 +185,7 @@ export function VestHubBrandLockup({
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
       <VestibularProLogo className={iconSize} bgVariant="black" />
       <span className={`font-extrabold tracking-tight ${textSize} text-white`}>
-        Vest<span className="text-[#2563eb]">Hub</span>
+        Gabarita
       </span>
     </div>
   );

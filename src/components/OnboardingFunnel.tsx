@@ -124,6 +124,17 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning' | 'success'; message: string } | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
 
+  // Questionnaire state
+  const [questionnaire, setQuestionnaire] = useState({
+    vestibulares: [] as string[],
+    previousExams: [] as { exam: string, grade: number }[],
+    studyMethod: '',
+    dailyHours: 0,
+    easySubjects: [] as string[],
+    hardSubjects: [] as string[],
+    source: ''
+  });
+
   // Password validation score
   const getPasswordMetrics = (pass: string) => {
     if (!pass) return { score: 0, label: 'Muito fraca', checks: { min: false, upper: false, number: false, special: false } };
@@ -301,15 +312,17 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
 
   const getHeaderTitle = () => {
     if (currentStep === 1) return 'Criar sua conta';
-    if (currentStep === 2) return 'Escolha seu plano';
-    if (currentStep === 3) return 'Finalizar pagamento';
+    if (currentStep === 2) return 'Conte-nos um pouco sobre você';
+    if (currentStep === 3) return 'Escolha seu plano';
+    if (currentStep === 4) return 'Finalizar pagamento';
     return 'Tudo pronto!';
   };
 
   const getHeaderSubtitle = () => {
     if (currentStep === 1) return 'Preencha os dados para começar';
-    if (currentStep === 2) return `Bem-vindo, ${nome.split(' ')[0] || 'Estudante'}! Selecione o plano ideal para você.`;
-    if (currentStep === 3) return 'Complete o pagamento para ativar seu plano';
+    if (currentStep === 2) return 'Precisamos conhecer melhor seu perfil de estudante';
+    if (currentStep === 3) return `Bem-vindo, ${nome.split(' ')[0] || 'Estudante'}! Selecione o plano ideal para você.`;
+    if (currentStep === 4) return 'Complete o pagamento para ativar seu plano';
     return 'Seu plano está ativo. Bons estudos!';
   };
 
@@ -542,108 +555,101 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
           </motion.div>
         )}
 
-        {/* SCREEN 2: ESCOLHER PLANO */}
+        {/* SCREEN 2: QUESTIONARIO */}
         {currentStep === 2 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
+            className="p-8 sm:p-12 max-w-md mx-auto"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 sm:p-10">
-              {PLANS.map((p) => {
-                const isSelected = selectedPlan?.id === p.id;
-                const parts = p.price.toFixed(2).split('.');
-
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedPlan(p)}
-                    className={`
-                      relative p-6 rounded-2xl border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between
-                      ${p.popular 
-                        ? 'bg-[#1A1A1A] text-white dark:bg-[#25252B] dark:border-indigo-500 shadow-xl' 
-                        : 'bg-white dark:bg-[#1A1A1E] text-[#1A1A1A] dark:text-[#F0F1F4] border-gray-200 dark:border-[#2D2D33] hover:border-gray-300'
-                      }
-                      ${isSelected ? 'ring-2 ring-indigo-600 dark:ring-indigo-400 border-indigo-600 dark:border-indigo-400 shadow-lg' : ''}
-                    `}
-                  >
-                    {p.popular && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white font-semibold text-[11px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                        MAIS POPULAR
-                      </div>
-                    )}
-
-                    <div>
-                      <div className={`text-xs font-bold uppercase tracking-wider mb-3 ${p.popular ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                        {p.name}
-                      </div>
-
-                      <div className="flex items-baseline gap-0.5 mb-1">
-                        <span className="text-base font-bold">R$&nbsp;</span>
-                        <span className="text-3xl font-extrabold tracking-tight">{parts[0]}</span>
-                        <span className={`text-base font-semibold ${p.popular ? 'text-gray-300' : 'text-gray-400'}`}>,{parts[1]}</span>
-                      </div>
-
-                      <div className={`text-xs mb-3 ${p.popular ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                        {p.periodLabel}
-                      </div>
-
-                      {p.savings ? (
-                        <span className="inline-block text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md mb-4">
-                          {p.savings}
-                        </span>
-                      ) : (
-                        <div className="h-6 mb-4" />
-                      )}
-
-                      <ul className="space-y-2.5 mb-6">
-                        {p.features.map((f, idx) => (
-                          <li 
-                            key={idx} 
-                            className={`text-xs flex items-start gap-2 ${f.enabled ? (p.popular ? 'text-gray-200' : 'text-gray-700 dark:text-gray-300') : 'opacity-40 line-through'}`}
-                          >
-                            <Check size={14} className={`shrink-0 mt-0.5 ${f.enabled ? 'text-emerald-500' : 'text-gray-400'}`} />
-                            <span>{f.text}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-1.5 text-xs font-semibold">
-                      {isSelected ? (
-                        <span className="text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-                          <CheckCircle size={14} /> Plano selecionado
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">
-                          Clique para selecionar
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* FOOTER SUMMARY */}
-            <div className="p-6 sm:p-8 border-t border-gray-100 dark:border-[#2D2D33] flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 dark:bg-[#1A1A1E]/50">
+            <div className="space-y-4">
               <div>
-                <div className="text-xs text-gray-400 font-medium">Plano selecionado</div>
-                <div className="text-xl font-bold text-[#1A1A1A] dark:text-[#F0F1F4]">
-                  {selectedPlan ? `Plano ${selectedPlan.name}` : 'Nenhum plano selecionado'}
+                <label className="block text-xs font-semibold mb-1.5">Qual(is) vestibular(es) pretende cursar esse ano?</label>
+                <input
+                  type="text"
+                  placeholder="Ex: FUVEST, UNICAMP, ENEM, IME"
+                  className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                  onChange={(e) => setQuestionnaire(prev => ({ ...prev, vestibulares: e.target.value.split(',').map(s => s.trim()) }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1.5">Já fez algum vestibular? (Qual e nota)</label>
+                <input
+                  type="text"
+                  placeholder="Ex: FUVEST 2024 (nota 65)"
+                  className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                  onChange={(e) => setQuestionnaire(prev => ({ ...prev, previousExams: [{ exam: e.target.value, grade: 0 }] }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1.5">Método de estudo preferido</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Resolução de provas antigas, flashcards, resumos"
+                  className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                  onChange={(e) => setQuestionnaire(prev => ({ ...prev, studyMethod: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1.5">Carga horária diária de estudo (horas)</label>
+                <input
+                  type="number"
+                  placeholder="Ex: 4"
+                  className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                  onChange={(e) => setQuestionnaire(prev => ({ ...prev, dailyHours: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">Matérias com mais facilidade</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Biologia, História"
+                    className="w-full px-3 py-2.5 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-xs outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                    onChange={(e) => setQuestionnaire(prev => ({ ...prev, easySubjects: e.target.value.split(',').map(s => s.trim()) }))}
+                  />
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {selectedPlan ? `R$ ${selectedPlan.price.toFixed(2).replace('.', ',')} ${selectedPlan.periodLabel}` : 'Selecione um plano para continuar'}
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">Mais dificuldade</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Física, Matemática"
+                    className="w-full px-3 py-2.5 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-xs outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                    onChange={(e) => setQuestionnaire(prev => ({ ...prev, hardSubjects: e.target.value.split(',').map(s => s.trim()) }))}
+                  />
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold mb-1.5">De onde conheceu o aplicativo?</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Instagram, indicação de amigo, Google, TikTok"
+                  className="w-full px-4 py-3 bg-white dark:bg-[#25252B] border border-gray-300 dark:border-[#3D3D45] rounded-xl text-sm outline-none focus:border-[#1A1A1A] dark:focus:border-white transition-all"
+                  onChange={(e) => setQuestionnaire(prev => ({ ...prev, source: e.target.value }))}
+                />
+              </div>
+              
               <button
                 type="button"
-                disabled={!selectedPlan}
-                onClick={() => setCurrentStep(3)}
-                className="w-full sm:w-auto py-3.5 px-8 bg-[#1A1A1A] hover:bg-[#2D2D2D] dark:bg-[#F0F1F4] dark:hover:bg-white dark:text-[#1A1A1A] text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] disabled:opacity-40 cursor-pointer"
+                onClick={async () => {
+                  try {
+                    if (registeredUser?.uid) {
+                      await setDoc(doc(db, 'users', registeredUser.uid, 'questionnaire', 'data'), questionnaire);
+                    }
+                    setCurrentStep(3);
+                  } catch (e) {
+                    setFeedback({ type: 'error', message: 'Erro ao salvar questionário.' });
+                  }
+                }}
+                className="w-full py-4 mt-2 bg-[#1A1A1A] hover:bg-[#2D2D2D] dark:bg-[#F0F1F4] dark:hover:bg-white dark:text-[#1A1A1A] text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] cursor-pointer"
               >
-                <span>Ir para pagamento</span>
+                <span>Continuar para Escolha do Plano</span>
                 <ArrowRight size={16} />
               </button>
             </div>
@@ -848,7 +854,7 @@ export const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ onComplete, 
                 Conta criada e plano ativo!
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tudo pronto. Você já pode começar a estudar no VESTIBULARPRO.
+                Tudo pronto. Você já pode começar a estudar no Gabarita.
               </p>
             </div>
 

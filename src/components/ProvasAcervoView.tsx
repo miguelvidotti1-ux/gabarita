@@ -1,0 +1,947 @@
+import React, { useState } from 'react';
+import { 
+  FileText, Search, Download, CheckCircle2, ChevronRight, 
+  ChevronDown, Calendar, GraduationCap, Sparkles, BookOpen, 
+  ExternalLink, Layers 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { PROVAS_LINKS } from '../data/provas_links';
+import FuvestAcervoTable from './FuvestAcervoTable';
+import UnicampAcervoTable from './UnicampAcervoTable';
+import ImeAcervoTable from './ImeAcervoTable';
+import UnespAcervoTable from './UnespAcervoTable';
+import UerjAcervoTable from './UerjAcervoTable';
+import UnifespAcervoTable from './UnifespAcervoTable';
+import MackenzieAcervoTable from './MackenzieAcervoTable';
+import FgvAcervoTable from './FgvAcervoTable';
+import { getFuvestYearItem } from '../data/fuvest_acervo';
+import { getUnicampYearItem } from '../data/unicamp_acervo';
+import { getImeYearItem } from '../data/ime_acervo';
+import { 
+  getUnespYearItem, 
+  getUerjYearItem, 
+  getUnifespYearItem, 
+  MACKENZIE_ACERVO_TABLE, 
+  FGV_ACERVO_TABLE 
+} from '../data/novos_acervos';
+import { DATABASE, getExamLink, getItaExamLink } from './ExamAcervoModal';
+
+const VESTIBULAR_TABS = [
+  'Todos',
+  'ENEM',
+  'Fuvest',
+  'Unicamp',
+  'Unesp',
+  'UERJ',
+  'ITA',
+  'IME',
+  'UNIFESP',
+  'Mackenzie',
+  'FGV'
+];
+
+export default function ProvasAcervoView() {
+  const [selectedVestibular, setSelectedVestibular] = useState<string>('Todos');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [expandedYearKey, setExpandedYearKey] = useState<string | null>(null);
+
+  // Table view states per vestibular
+  const [fuvestViewMode, setFuvestViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [unicampViewMode, setUnicampViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [imeViewMode, setImeViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [unespViewMode, setUnespViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [uerjViewMode, setUerjViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [unifespViewMode, setUnifespViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [mackenzieViewMode, setMackenzieViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [fgvViewMode, setFgvViewMode] = useState<'anos' | 'tabela'>('anos');
+
+  // Filtered vestibular entries
+  const displayEntries = Object.entries(DATABASE).filter(([vest]) => {
+    if (selectedVestibular === 'Todos') return vest !== 'USP';
+    return vest.toLowerCase() === selectedVestibular.toLowerCase();
+  });
+
+  return (
+    <div className="space-y-8 pb-16 font-sans animate-in fade-in duration-500">
+      {/* Hero Header */}
+      <div className="bg-slate-950 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden border border-slate-800 shadow-2xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full -mr-48 -mt-48 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 blur-[150px] rounded-full -ml-48 -mb-48 pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-4 max-w-3xl">
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
+                <BookOpen size={12} className="text-blue-400" />
+                Acervo Oficial de Provas
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+                <CheckCircle2 size={12} className="text-emerald-400" />
+                Padrão ENEM Unificado
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-purple-500/20">
+                <Sparkles size={12} className="text-purple-400" />
+                2007 — 2026
+              </div>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none">
+              Biblioteca de <span className="text-blue-400">Provas Oficiais</span>
+            </h1>
+            <p className="text-slate-400 font-medium leading-relaxed text-sm md:text-base">
+              Cadernos de provas originais completos dos principais vestibulares com o mesmo design padrão do ENEM:
+              baixe os PDFs oficiais das primeiras e segundas fases e acesse os gabaritos correspondentes.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Vestibular Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {VESTIBULAR_TABS.map((vest) => {
+          const isActive = selectedVestibular === vest;
+          return (
+            <button
+              key={vest}
+              onClick={() => setSelectedVestibular(vest)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer border ${
+                isActive
+                  ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md shadow-[var(--primary)]/20'
+                  : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border-[var(--border-light)] hover:border-[var(--primary-border)]'
+              }`}
+            >
+              {vest}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search Toolbar */}
+      <div className="bg-[var(--bg-card)] p-5 sm:p-6 rounded-2xl border border-[var(--border-light)] flex flex-col sm:flex-row gap-4 items-center shadow-sm">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-label)]" size={18} />
+          <input 
+            type="text"
+            placeholder="Buscar por ano, exame ou caderno..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl text-sm font-semibold outline-none focus:border-[var(--primary)] transition-all text-[var(--text-main)] placeholder-[var(--text-label)]"
+          />
+        </div>
+
+        {/* View Mode Toggle when a specific vestibular that has table is selected */}
+        {selectedVestibular === 'Fuvest' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setFuvestViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                fuvestViewMode === 'anos' ? 'bg-[var(--primary)] text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setFuvestViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                fuvestViewMode === 'tabela' ? 'bg-[var(--primary)] text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'Unicamp' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setUnicampViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                unicampViewMode === 'anos' ? 'bg-emerald-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setUnicampViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                unicampViewMode === 'tabela' ? 'bg-emerald-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'IME' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setImeViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                imeViewMode === 'anos' ? 'bg-emerald-700 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setImeViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                imeViewMode === 'tabela' ? 'bg-emerald-700 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'Unesp' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setUnespViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                unespViewMode === 'anos' ? 'bg-amber-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setUnespViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                unespViewMode === 'tabela' ? 'bg-amber-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'UERJ' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setUerjViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                uerjViewMode === 'anos' ? 'bg-purple-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setUerjViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                uerjViewMode === 'tabela' ? 'bg-purple-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'UNIFESP' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setUnifespViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                unifespViewMode === 'anos' ? 'bg-teal-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setUnifespViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                unifespViewMode === 'tabela' ? 'bg-teal-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'Mackenzie' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setMackenzieViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                mackenzieViewMode === 'anos' ? 'bg-rose-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setMackenzieViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                mackenzieViewMode === 'tabela' ? 'bg-rose-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
+        {selectedVestibular === 'FGV' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setFgvViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                fgvViewMode === 'anos' ? 'bg-orange-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setFgvViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                fgvViewMode === 'tabela' ? 'bg-orange-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Render Provas by Vestibular */}
+      <div className="space-y-10">
+        {displayEntries.map(([vest, items]) => {
+          const isEnem = vest.toUpperCase() === 'ENEM';
+          const isFuvest = vest.toLowerCase() === 'fuvest';
+          const isUnicamp = vest.toLowerCase() === 'unicamp';
+          const isIme = vest.toUpperCase() === 'IME';
+          const isIta = vest.toUpperCase() === 'ITA';
+          const isUnesp = vest.toLowerCase() === 'unesp';
+          const isUerj = vest.toUpperCase() === 'UERJ';
+          const isUnifesp = vest.toUpperCase() === 'UNIFESP';
+          const isMackenzie = vest.toLowerCase() === 'mackenzie';
+          const isFgv = vest.toUpperCase() === 'FGV';
+
+          // Filter by search
+          const filteredItems = items.filter(item => {
+            if (!searchTerm) return true;
+            return `${vest} ${item.year}`.toLowerCase().includes(searchTerm.toLowerCase());
+          });
+
+          if (filteredItems.length === 0) return null;
+
+          // Check if table view is active
+          if (isFuvest && fuvestViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-indigo-500" />
+                  Fuvest (USP) — Tabela Oficial
+                </h2>
+                <FuvestAcervoTable />
+              </div>
+            );
+          }
+          if (isUnicamp && unicampViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                  Unicamp — Tabela Oficial
+                </h2>
+                <UnicampAcervoTable />
+              </div>
+            );
+          }
+          if (isIme && imeViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-700" />
+                  IME — Tabela Oficial
+                </h2>
+                <ImeAcervoTable />
+              </div>
+            );
+          }
+          if (isUnesp && unespViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-amber-600" />
+                  UNESP — Tabela Oficial
+                </h2>
+                <UnespAcervoTable />
+              </div>
+            );
+          }
+          if (isUerj && uerjViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-purple-600" />
+                  UERJ — Tabela Oficial
+                </h2>
+                <UerjAcervoTable />
+              </div>
+            );
+          }
+          if (isUnifesp && unifespViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-teal-600" />
+                  UNIFESP — Tabela Oficial
+                </h2>
+                <UnifespAcervoTable />
+              </div>
+            );
+          }
+          if (isMackenzie && mackenzieViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-rose-600" />
+                  Mackenzie — Tabela Oficial
+                </h2>
+                <MackenzieAcervoTable />
+              </div>
+            );
+          }
+          if (isFgv && fgvViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-orange-600" />
+                  FGV — Tabela Oficial
+                </h2>
+                <FgvAcervoTable />
+              </div>
+            );
+          }
+
+          // Unified ENEM Accordion Cards Grid
+          return (
+            <div key={vest} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-main)] flex items-center gap-2.5">
+                  <span className={`w-3.5 h-3.5 rounded-full ${
+                    isEnem ? 'bg-[#00b894]' :
+                    isFuvest ? 'bg-[#764ba2]' :
+                    isUnicamp ? 'bg-emerald-500' :
+                    isUnesp ? 'bg-amber-600' :
+                    isUerj ? 'bg-purple-600' :
+                    isIme ? 'bg-emerald-700' :
+                    isIta ? 'bg-blue-600' :
+                    isUnifesp ? 'bg-teal-600' :
+                    isMackenzie ? 'bg-rose-600' : 'bg-orange-500'
+                  }`} />
+                  <span>{vest}</span>
+                  <span className="text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-hover)] px-2.5 py-1 rounded-full border border-[var(--border-light)]">
+                    {filteredItems.length} edições
+                  </span>
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredItems.map(item => {
+                  const cardKey = `${vest}-${item.year}`;
+                  const isExpanded = expandedYearKey === cardKey;
+
+                  const vestGradient = 
+                    isEnem ? 'bg-gradient-to-br from-[#00b894] to-[#00cec9]' :
+                    isFuvest ? 'bg-gradient-to-br from-[#667eea] to-[#764ba2]' :
+                    isUnicamp ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
+                    isUnesp ? 'bg-gradient-to-br from-amber-600 to-amber-800' :
+                    isUerj ? 'bg-gradient-to-br from-purple-700 to-indigo-800' :
+                    isIme ? 'bg-gradient-to-br from-emerald-700 to-amber-600' :
+                    isIta ? 'bg-gradient-to-br from-blue-600 to-indigo-800' :
+                    isUnifesp ? 'bg-gradient-to-br from-teal-700 to-emerald-800' :
+                    isMackenzie ? 'bg-gradient-to-br from-rose-600 to-red-800' :
+                    'bg-gradient-to-br from-orange-500 to-amber-600';
+
+                  return (
+                    <div key={cardKey} className="flex flex-col gap-2">
+                      <button
+                        onClick={() => setExpandedYearKey(isExpanded ? null : cardKey)}
+                        className={`group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 w-full text-left cursor-pointer ${
+                          isExpanded 
+                            ? 'bg-[var(--text-accent, #6366f1)] border-[var(--text-accent, #6366f1)] shadow-lg text-white' 
+                            : 'bg-[var(--bg-card)] border-[var(--border-light)] hover:bg-[var(--bg-hover)] hover:border-[var(--primary)] text-[var(--text-main)]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className={`w-12 h-12 flex items-center justify-center rounded-xl font-black text-sm shadow-md transition-all ${
+                            isExpanded ? 'bg-white/20 text-white' : `${vestGradient} text-white`
+                          }`}>
+                            {item.year.slice(-2)}
+                          </span>
+                          <div className="flex flex-col items-start">
+                            <span className="text-sm font-black">{vest} {item.year}</span>
+                            <span className={`text-[10px] font-bold ${isExpanded ? 'text-white/80' : 'text-[var(--text-muted)]'}`}>
+                              Ver opções de fases e cadernos
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight size={20} className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden space-y-4 ml-2 pl-3 border-l-2 border-[var(--primary)]/30 mt-1"
+                          >
+                            {/* ENEM Specific Cadernos */}
+                            {isEnem && (
+                              <>
+                                <div className="space-y-1.5 text-left">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-accent, #00b894)]" />
+                                    <span className="text-[10px] font-black uppercase text-[var(--text-accent, #00b894)] tracking-wider">
+                                      1º DIA — Linguagens, Humanas e Redação
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                      { color: 'Azul', dot: 'bg-blue-500' },
+                                      { color: 'Branco', dot: 'bg-slate-300 border border-slate-500' },
+                                      { color: parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023 ? 'Rosa' : 'Verde', dot: 'bg-pink-500' },
+                                      { color: 'Amarelo', dot: 'bg-yellow-400' }
+                                    ].map(btn => (
+                                      <a
+                                        key={`enem-d1-${btn.color}`}
+                                        href={getExamLink(vest, item.year, '1', btn.color)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[var(--primary)] text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${btn.dot}`} />
+                                          <span>Caderno {btn.color}</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1.5 text-left">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                    <span className="text-[10px] font-black uppercase text-violet-500 tracking-wider">
+                                      2º DIA — Matemática e Natureza
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                      { color: 'Amarelo', dot: 'bg-yellow-400' },
+                                      { color: 'Cinza', dot: 'bg-gray-400' },
+                                      { color: 'Azul', dot: 'bg-blue-500' },
+                                      { color: parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023 ? 'Rosa' : 'Verde', dot: 'bg-pink-500' }
+                                    ].map(btn => (
+                                      <a
+                                        key={`enem-d2-${btn.color}`}
+                                        href={getExamLink(vest, item.year, '2', btn.color)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[var(--primary)] text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${btn.dot}`} />
+                                          <span>Caderno {btn.color}</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+
+                            {/* FUVEST Cadernos */}
+                            {isFuvest && (() => {
+                              const fuvestData = getFuvestYearItem(item.year);
+                              return (
+                                <div className="space-y-3">
+                                  <div className="space-y-1.5 text-left">
+                                    <div className="flex items-center justify-between px-1">
+                                      <span className="text-[10px] font-black uppercase text-indigo-500 tracking-wider">
+                                        1ª FASE — Prova Objetiva
+                                      </span>
+                                      {fuvestData?.fase1.gabaritoUrl && (
+                                        <a
+                                          href={fuvestData.fase1.gabaritoUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-[10px] font-bold text-emerald-500 hover:underline flex items-center gap-1"
+                                        >
+                                          <span>Gabarito Oficial</span>
+                                          <ExternalLink size={9} />
+                                        </a>
+                                      )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <a
+                                        href={fuvestData?.fase1.provaUrl || getExamLink(vest, item.year)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-indigo-500 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-indigo-500" />
+                                          <span>Prova 1ª Fase (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                      </a>
+                                      {fuvestData?.fase1.gabaritoUrl && (
+                                        <a
+                                          href={fuvestData.fase1.gabaritoUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            <span>Gabarito 1ªF (PDF)</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1.5 text-left">
+                                    <span className="text-[10px] font-black uppercase text-purple-500 tracking-wider">
+                                      2ª FASE — Provas Dissertativas
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {fuvestData?.fase2.dias.map(d => (
+                                        <a
+                                          key={d.label}
+                                          href={d.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-purple-500 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-purple-500" />
+                                            <span>{d.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* UNICAMP Cadernos */}
+                            {isUnicamp && (() => {
+                              const unicampData = getUnicampYearItem(item.year);
+                              return (
+                                <div className="space-y-3">
+                                  <div className="space-y-1.5 text-left">
+                                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
+                                      1ª FASE — {unicampData?.fase1.isDiscursiva ? 'Prova Discursiva' : 'Prova Objetiva'}
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <a
+                                        href={unicampData?.fase1.provaUrl || getExamLink(vest, item.year)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-emerald-500 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                          <span>{unicampData?.fase1.provaLabel || 'Caderno 1ª Fase (PDF)'}</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                      </a>
+                                      {unicampData?.fase1.gabaritoUrl && (
+                                        <a
+                                          href={unicampData.fase1.gabaritoUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            <span>Gabarito 1ªF (PDF)</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {unicampData?.fase2 && unicampData.fase2.dias.length > 0 && (
+                                    <div className="space-y-1.5 text-left">
+                                      <span className="text-[10px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider">
+                                        2ª FASE — Provas Específicas
+                                      </span>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {unicampData.fase2.dias.map(d => (
+                                          <a
+                                            key={d.label}
+                                            href={d.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-teal-500 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-teal-500" />
+                                              <span>2ª Fase {d.label}</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* UNESP Cadernos */}
+                            {isUnesp && (() => {
+                              const unespData = getUnespYearItem(item.year);
+                              return (
+                                <div className="space-y-3">
+                                  <div className="space-y-1.5 text-left">
+                                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">
+                                      1ª FASE — Conhecimentos Gerais (VUNESP)
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <a
+                                        href={unespData?.fase1ProvaUrl || getExamLink(vest, item.year)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-amber-500 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-500" />
+                                          <span>Caderno 1ª Fase (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                      </a>
+                                      {unespData?.fase1GabaritoUrl && (
+                                        <a
+                                          href={unespData.fase1GabaritoUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            <span>Gabarito Oficial (PDF)</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* UERJ Cadernos */}
+                            {isUerj && (() => {
+                              const uerjData = getUerjYearItem(item.year);
+                              return (
+                                <div className="space-y-1.5 text-left">
+                                  <span className="text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider">
+                                    1º EXAME DE QUALIFICAÇÃO (1º EQ)
+                                  </span>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <a
+                                      href={uerjData?.eq1ProvaUrl || getExamLink(vest, item.year)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-purple-500 text-xs font-bold transition-all group/btn"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-purple-500" />
+                                        <span>Caderno 1º EQ (PDF)</span>
+                                      </div>
+                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                    </a>
+                                    {uerjData?.eq1GabaritoUrl && (
+                                      <a
+                                        href={uerjData.eq1GabaritoUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                          <span>Gabarito 1º EQ (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* IME Cadernos */}
+                            {isIme && (() => {
+                              const imeData = getImeYearItem(item.year);
+                              return (
+                                <div className="space-y-1.5 text-left">
+                                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
+                                    1ª FASE — Prova Objetiva
+                                  </span>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <a
+                                      href={imeData?.fase1.provaUrl || getExamLink(vest, item.year)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-emerald-500 text-xs font-bold transition-all group/btn"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                        <span>Prova Objetiva (PDF)</span>
+                                      </div>
+                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                    </a>
+                                    {imeData?.fase1.gabaritoUrl && (
+                                      <a
+                                        href={imeData.fase1.gabaritoUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                          <span>Gabarito Oficial (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* ITA Cadernos */}
+                            {isIta && (
+                              <div className="space-y-1.5 text-left">
+                                <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">
+                                  CADERNOS OFICIAIS ITA
+                                </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <a
+                                    href={getItaExamLink(item.year, '1')}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-blue-500 text-xs font-bold transition-all group/btn"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500" />
+                                      <span>Prova Oficial (PDF)</span>
+                                    </div>
+                                    <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                  </a>
+                                  <a
+                                    href={getItaExamLink(item.year, 'gabarito')}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                      <span>Gabarito Oficial (PDF)</span>
+                                    </div>
+                                    <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* UNIFESP Cadernos */}
+                            {isUnifesp && (() => {
+                              const unifespData = getUnifespYearItem(item.year);
+                              return (
+                                <div className="space-y-1.5 text-left">
+                                  <span className="text-[10px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider">
+                                    SISTEMA MISTO (MEDICINA & SAÚDE)
+                                  </span>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <a
+                                      href={unifespData?.cadernoMistoUrl || getExamLink(vest, item.year)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-teal-500 text-xs font-bold transition-all group/btn"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-teal-500" />
+                                        <span>Caderno Misto (PDF)</span>
+                                      </div>
+                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                    </a>
+                                    {unifespData?.gabaritoUrl && (
+                                      <a
+                                        href={unifespData.gabaritoUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                          <span>Gabarito Oficial (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Mackenzie & FGV fallback */}
+                            {(isMackenzie || isFgv || (!isEnem && !isFuvest && !isUnicamp && !isUnesp && !isUerj && !isIme && !isIta && !isUnifesp)) && (
+                              <div className="space-y-1.5 text-left">
+                                <span className="text-[10px] font-black uppercase text-[var(--primary)] tracking-wider">
+                                  PROVAS E GABARITOS
+                                </span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  <a
+                                    href={getExamLink(vest, item.year)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[var(--primary)] text-xs font-bold transition-all group/btn"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-[var(--primary)]" />
+                                      <span>Caderno Oficial {vest} (PDF)</span>
+                                    </div>
+                                    <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
