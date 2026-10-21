@@ -322,7 +322,7 @@ export default function Sobre() {
 
         <div className="shrink-0">
           <a
-            href="mailto:miguelvidotti1@gmail.com?subject=App%20Vestibular%20Pro%20%E2%80%93%20Feedback&body=Ol%C3%A1!%0A%0AMinha%20d%C3%BAvida%2Ffeedback%20%C3%A9%20sobre%3A%20%0A%0AP%C3%A1gina%20do%20app%20onde%20estou%3A%20%0A"
+            href="mailto:miguelvidotti1@gmail.com"
             className="px-4 py-2.5 bg-white text-indigo-700 hover:bg-blue-50 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 inline-flex items-center gap-2 cursor-pointer"
           >
             <MessageSquare size={14} />
