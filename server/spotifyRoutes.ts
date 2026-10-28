@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { GoogleGenAI } from '@google/genai';
 
 export const spotifyRouter = Router();
 
@@ -1134,6 +1135,40 @@ spotifyRouter.post('/next', async (req: Request, res: Response) => {
 });
 
 // ============================================================
+// 8.1 CONTROLAR VOLUME NO SPOTIFY
+// Endpoint: PUT /api/spotify/volume?volume_percent=X
+// ============================================================
+spotifyRouter.put('/volume', async (req: Request, res: Response) => {
+  const token = await getValidSpotifyToken(req, res);
+  if (!token) {
+    return res.status(401).json({ error: 'Spotify não conectado' });
+  }
+
+  const vol = parseInt((req.query.volume_percent as string) || '50', 10);
+  const clampedVol = Math.max(0, Math.min(100, isNaN(vol) ? 50 : vol));
+
+  try {
+    const response = await fetch(`${SPOTIFY_API_BASE}/me/player/volume?volume_percent=${clampedVol}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 204 || response.ok) {
+      return res.json({ success: true, volume_percent: clampedVol });
+    }
+
+    const errData = await response.json().catch(() => ({}));
+    return res.status(400).json({ 
+      error: 'Erro ao ajustar volume no Spotify', 
+      details: errData,
+      hint: 'Certifique-se de que o aplicativo Spotify está ativo em algum dispositivo.'
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Erro ao ajustar volume', details: err?.message });
+  }
+});
+
+// ============================================================
 // 9. MÚSICA ATUAL — o que está tocando agora
 // Endpoint: GET /api/spotify/now-playing
 // ============================================================
@@ -1174,6 +1209,142 @@ spotifyRouter.get('/now-playing', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     return res.status(500).json({ error: 'Erro ao obter faixa atual', details: err?.message });
+  }
+});
+
+// ============================================================
+// 9.1 LETRAS SINCRONIZADAS EM TEMPO REAL
+// Endpoint: GET /api/spotify/lyrics?track=...&artist=...&duration_ms=...
+// ============================================================
+const lyricsCache = new Map<string, Array<{ time_ms: number; text: string }>>();
+
+async function fetchSyncedLyrics(track: string, artist?: string, durationMs?: number): Promise<Array<{ time_ms: number; text: string }>> {
+  const normTrack = track.trim();
+  const normArtist = (artist || '').trim();
+  const cacheKey = `${normTrack.toLowerCase()}:::${normArtist.toLowerCase()}`;
+
+  if (lyricsCache.has(cacheKey)) {
+    return lyricsCache.get(cacheKey)!;
+  }
+
+  // 1. Tentar buscar letras sincronizadas na base aberta LRCLib
+  try {
+    const lrclibUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(normTrack)}&artist_name=${encodeURIComponent(normArtist)}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+    const resp = await fetch(lrclibUrl, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'VestibularPro-SyncedLyrics/1.0' }
+    });
+    clearTimeout(timeout);
+
+    if (resp.ok) {
+      const data = await resp.json() as any;
+      if (data.syncedLyrics && typeof data.syncedLyrics === 'string') {
+        const parsed: Array<{ time_ms: number; text: string }> = [];
+        const lines = data.syncedLyrics.split('\n');
+        for (const raw of lines) {
+          const match = raw.match(/\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)/);
+          if (match) {
+            const mins = parseInt(match[1], 10);
+            const secs = parseFloat(match[2]);
+            const time_ms = Math.round((mins * 60 + secs) * 1000);
+            const text = match[3].trim();
+            if (text) {
+              parsed.push({ time_ms, text });
+            }
+          }
+        }
+        if (parsed.length >= 2) {
+          lyricsCache.set(cacheKey, parsed);
+          return parsed;
+        }
+      }
+    }
+  } catch (err) {
+    // Continuar para o fallback com Gemini
+  }
+
+  // 2. Se não encontrou letra sincronizada, usar Gemini 3.8 Flash para sincronizar a letra
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+      });
+
+      const prompt = `Gere a letra sincronizada da música "${normTrack}" do artista "${normArtist}".
+Duração aproximada da faixa: ${durationMs || 210000} milissegundos.
+Retorne um JSON contendo um array de versos com timestamp inicial crescente:
+[
+  {"time_ms": 0, "text": "verso 1"},
+  {"time_ms": 14000, "text": "verso 2"}
+]
+Regras:
+- Retorne apenas o JSON puro, sem markdown extra.
+- time_ms deve começar em 0 e ir até a duração da faixa.
+- Se for instrumental, retorne a descrição dos compassos e solos musicais.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        }
+      });
+
+      if (response && response.text) {
+        const parsed = JSON.parse(response.text);
+        if (Array.isArray(parsed) && parsed.length >= 2) {
+          lyricsCache.set(cacheKey, parsed);
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Gemini lyrics note:', e);
+    }
+  }
+
+  // 3. Fallback inteligente de cadência musical sincronizada
+  const totalMs = durationMs || 210000;
+  const step = Math.max(10000, Math.floor(totalMs / 10));
+  const fallback: Array<{ time_ms: number; text: string }> = [
+    { time_ms: 0, text: `♪ [Início de "${normTrack}" — ${normArtist || 'Spotify'}]` },
+    { time_ms: Math.min(totalMs - 1000, step * 1), text: `Acompanhando o ritmo e a harmonia no Spotify` },
+    { time_ms: Math.min(totalMs - 1000, step * 2), text: `Mantenha a postura e a concentração nos estudos` },
+    { time_ms: Math.min(totalMs - 1000, step * 3), text: `♪ [Seção instrumental e melodia principal]` },
+    { time_ms: Math.min(totalMs - 1000, step * 4), text: `Foco total na absorção e resolução de questões` },
+    { time_ms: Math.min(totalMs - 1000, step * 5), text: `♪ [Refrão e energia musical]` },
+    { time_ms: Math.min(totalMs - 1000, step * 6), text: `Constância e persistência diária rumo à aprovação` },
+    { time_ms: Math.min(totalMs - 1000, step * 7), text: `♪ [Ponte harmônica e transição sonora]` },
+    { time_ms: Math.min(totalMs - 1000, step * 8), text: `Respiração calma e mente focada no objetivo` },
+    { time_ms: Math.min(totalMs - 1000, step * 9), text: `♪ [Conclusão e acordes finais da faixa]` }
+  ];
+
+  lyricsCache.set(cacheKey, fallback);
+  return fallback;
+}
+
+spotifyRouter.get('/lyrics', async (req: Request, res: Response) => {
+  const track = (req.query.track as string || '').trim();
+  const artist = (req.query.artist as string || '').trim();
+  const durationMs = parseInt((req.query.duration_ms as string) || '0', 10);
+
+  if (!track) {
+    return res.status(400).json({ error: 'Parâmetro track é obrigatório' });
+  }
+
+  try {
+    const lines = await fetchSyncedLyrics(track, artist, durationMs);
+    return res.json({
+      success: true,
+      track,
+      artist,
+      duration_ms: durationMs || (lines[lines.length - 1]?.time_ms + 10000) || 210000,
+      lines,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Erro ao buscar letra sincronizada', details: err?.message });
   }
 });
 

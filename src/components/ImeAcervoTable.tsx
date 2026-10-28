@@ -29,10 +29,10 @@ export default function ImeAcervoTable({ onSelectYear }: Props) {
                 <Shield size={10} />
                 Acervo Oficial IME · CFG
               </span>
-              <span className="text-xs text-[var(--text-secondary)] font-medium">Concursos 2007–2026 · @Hirata</span>
+              <span className="text-xs text-[var(--text-secondary)] font-medium">Concursos 2007–2027</span>
             </div>
             <h3 className="text-lg md:text-xl font-black text-[var(--text-primary)] mt-1 flex items-center gap-2">
-              <span>Provas e Gabaritos IME (2007–2025/2026)</span>
+              <span>Provas e Gabaritos IME (2007–2026/2027)</span>
             </h3>
             <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-2xl leading-relaxed">
               Links diretos para os PDFs oficiais hospedados pelo Instituto Militar de Engenharia. A 1ª fase contempla a prova objetiva e gabarito definitivo. A 2ª fase reúne cadernos discursivos de Matemática, Física, Química, Línguas e os gabaritos de questões de múltipla escolha de idiomas.

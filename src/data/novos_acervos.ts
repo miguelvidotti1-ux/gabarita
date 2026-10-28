@@ -5,6 +5,12 @@ export interface AcervoLinkItem {
   destaque?: boolean;
 }
 
+export interface UnespFase2Caderno {
+  disciplina: string;
+  url: string;
+  tamanho?: string;
+}
+
 export interface UnespEdicao {
   ano: number;
   rotulo: string;
@@ -12,6 +18,7 @@ export interface UnespEdicao {
   fase1GabaritoUrl?: string;
   fase2ProvaUrl?: string;
   fase2GabaritoUrl?: string;
+  fase2Cadernos?: UnespFase2Caderno[];
   pacoteZipUrl?: string;
   resolucaoObjetivoUrl?: string;
   observacao?: string;
@@ -126,20 +133,55 @@ export const UNESP_ACERVO_TABLE: UnespEdicao[] = [
   },
   {
     ano: 2020,
-    rotulo: 'Vestibular UNESP 2020 (1ª Fase Conhecimentos Gerais)',
-    fase1ProvaUrl: 'https://vestibular.unesp.br/Home/2020/unesp_caderno_de_questoes_prova_de_conhecimentos_gerais_15_nov_2019__v1.pdf',
-    fase1GabaritoUrl: 'https://vestibular.unesp.br/Home/2020/unesp_gabarito_prova_de_conhecimentos_gerais_15_nov_2019__v1.pdf',
-    fase2ProvaUrl: 'https://vestibular.unesp.br/Home/unesp-2a-fase-2020-caderno-linguagens.pdf',
+    rotulo: 'Vestibular UNESP 2020',
+    fase1ProvaUrl: '/assets/aistudio/unesp_caderno_de_questoes_prova_de_conhecimentos_gerais_15_nov_2019__v1_6f85d56a.pdf',
+    fase1GabaritoUrl: '/assets/aistudio/unesp_gabarito_prova_de_conhecimentos_gerais_15_nov_2019__v1_570623fc.pdf',
+    fase2ProvaUrl: '/assets/aistudio/unesp-2a-fase-2020-caderno-linguagens_23bb3b48.pdf',
+    fase2Cadernos: [
+      {
+        disciplina: 'Ciências Humanas',
+        url: '/assets/aistudio/unesp-2a-fase-2020-caderno_ciencias_humanas_b8770a34.pdf',
+        tamanho: '2ª Fase'
+      },
+      {
+        disciplina: 'Ciências da Natureza e Matemática',
+        url: '/assets/aistudio/unesp-2a-fase-2020-caderno_ciencias_natur_matem_4c8f2c55.pdf',
+        tamanho: '2ª Fase'
+      },
+      {
+        disciplina: 'Linguagens e Códigos',
+        url: '/assets/aistudio/unesp-2a-fase-2020-caderno-linguagens_23bb3b48.pdf',
+        tamanho: '2ª Fase'
+      }
+    ],
     resolucaoObjetivoUrl: 'https://www.curso-objetivo.br/vestibular/resolucao-comentada/unesp.aspx',
-    observacao: 'Caderno de Conhecimentos Gerais (todas as 90 questões objetivas oficiais) e Gabarito oficial VUNESP.'
+    observacao: 'Caderno 1ª Fase Conhecimentos Gerais (90 questões) + Gabarito Oficial + Cadernos completos da 2ª Fase (Humanas, Natureza/Matemática e Linguagens) para download direto.'
   },
   {
     ano: 2019,
     rotulo: 'Vestibular UNESP 2019',
-    fase1ProvaUrl: 'https://vestibular.unesp.br/Home/2019/caderno-cg-1a-fase-versao-1-2019.pdf',
-    fase1GabaritoUrl: 'https://vestibular.unesp.br/Home/2019/gabarito-cg-1a-fase-versao-1-2019.pdf',
+    fase1ProvaUrl: '/assets/aistudio/caderno-cg-1a-fase-versao-1-2019_dbeba965.pdf',
+    fase1GabaritoUrl: '/assets/aistudio/gabarito-cg-1a-fase-versao-1-2019_4d9f3c51.pdf',
+    fase2ProvaUrl: '/assets/aistudio/2fase_caderno_linguagens_d8965cee.pdf',
+    fase2Cadernos: [
+      {
+        disciplina: 'Ciências Humanas',
+        url: '/assets/aistudio/2fase_caderno_ci_humanas_a371e8f5.pdf',
+        tamanho: '2ª Fase'
+      },
+      {
+        disciplina: 'Ciências da Natureza e Matemática',
+        url: '/assets/aistudio/2fase_caderno_c_natureza_e_matematica_395599e1.pdf',
+        tamanho: '2ª Fase'
+      },
+      {
+        disciplina: 'Linguagens e Códigos',
+        url: '/assets/aistudio/2fase_caderno_linguagens_d8965cee.pdf',
+        tamanho: '2ª Fase'
+      }
+    ],
     resolucaoObjetivoUrl: 'https://www.curso-objetivo.br/vestibular/resolucao-comentada/unesp.aspx',
-    observacao: 'Caderno CG 1ª fase Versão 1 e Gabarito oficial VUNESP.'
+    observacao: 'Caderno 1ª Fase CG Versão 1 + Gabarito Oficial + Cadernos completos da 2ª Fase (Humanas, Natureza/Matemática e Linguagens) para download direto.'
   },
   {
     ano: 2018,

@@ -96,20 +96,69 @@ async function startServer() {
       "O papel da dúvida na construção do conhecimento científico contemporâneo",
       "A mercantilização do tempo e do afeto nas sociedades conectadas",
       "Utopia e distopia: os rumos da imaginação humana no século XXI",
-      "O paradoxo entre autonomia individual e vigilância algorítmica"
+      "O paradoxo entre autonomia individual e vigilância algorítmica",
+      "A banalização da memória e a hiperaceleração do esquecimento na era digital"
     ],
     UNICAMP: [
       "A linguagem como instrumento de poder e exclusão social no Brasil",
       "O papel dos arquivos e da memória coletiva na preservação da democracia",
-      "A cultura do cancelamento e os limites do debate público na internet"
+      "A cultura do cancelamento e os limites do debate público na internet",
+      "Manifesto em defesa da preservação de saberes tradicionais e biodiversidade",
+      "Carta aberta às autoridades sobre o acolhimento de pessoas em vulnerabilidade climática"
     ],
     UNESP: [
       "A polarização no ambiente virtual e os desafios para o diálogo democrático",
-      "Transição energética e justiça ambiental: dilemas para o desenvolvimento"
+      "Transição energética e justiça ambiental: dilemas para o desenvolvimento",
+      "A velocidade da inovação tecnológica anula o pensamento crítico humano?",
+      "Inteligência artificial e criatividade: o que resta de exclusivamente humano?",
+      "O consumismo verde é capaz de solucionar a crise ecológica global?"
     ],
     UERJ: [
       "A solidariedade social em tempos de crise e o papel das instituições públicas",
-      "A busca pela igualdade em sociedades historicamente desiguais"
+      "A busca pela igualdade em sociedades historicamente desiguais",
+      "A dignidade humana diante da burocracia e do abandono institucional",
+      "O conflito entre a honra individual e as convenções sociais hipócritas"
+    ],
+    ITA: [
+      "Os limites éticos da inteligência artificial militar e a soberania aeroespacial",
+      "A tecnociência como vetor de autonomia ou dependência geopolítica das nações",
+      "A responsabilidade social e moral do engenheiro diante de catástrofes climáticas",
+      "O risco da alienação epistemológica na hiperespecialização científica"
+    ],
+    IME: [
+      "O papel da engenharia militar e da inovação autóctone na defesa da soberania nacional",
+      "A corrida espacial contemporânea: cooperação pacífica ou militarização orbital?",
+      "Cibersegurança e proteção de infraestruturas críticas em um mundo hiperconectado",
+      "A transição para combustíveis sustentáveis e a matriz energética de defesa"
+    ],
+    FGV: [
+      "O impacto da inteligência artificial generativa na produtividade e na desigualdade de renda",
+      "A regulação das plataformas digitais e a preservação da concorrência econômica",
+      "Desafios da governança pública e compliance no combate à corrupção sistêmica",
+      "A reforma tributária como instrumento de redistribuição e justiça fiscal no Brasil"
+    ],
+    MACKENZIE: [
+      "Cidadania digital, liberdade de expressão e a responsabilidade civil na rede",
+      "O papel da família e da comunidade escolar na formação ética das novas gerações",
+      "Sustentabilidade e consumo consciente: da retórica à prática individual e corporativa",
+      "O voluntariado e a empatia ativa como antídotos para o individualismo contemporâneo"
+    ],
+    PUC_SP: [
+      "Justiça restaurativa e os direitos humanos no sistema penal brasileiro",
+      "A precarização do trabalho mediado por aplicativos e a dignidade do trabalhador",
+      "O direito à cidade e a segregação socioespacial nas metrópoles contemporâneas",
+      "Políticas afirmativas e a democratização do acesso às instâncias de poder"
+    ],
+    'PUC-SP': [
+      "Justiça restaurativa e os direitos humanos no sistema penal brasileiro",
+      "A precarização do trabalho mediado por aplicativos e a dignidade do trabalhador",
+      "O direito à cidade e a segregação socioespacial nas metrópoles contemporâneas"
+    ],
+    UNIFESP: [
+      "Bioética e edição genética: onde residem os limites da intervenção na vida humana?",
+      "A crise de saúde mental entre os jovens e a sobrecarga de desempenho social",
+      "Acesso equitativo a medicamentos de alto custo e a judicialização da saúde no SUS",
+      "O impacto da crise climática na proliferação de epidemias e na saúde pública global"
     ]
   };
 
@@ -379,37 +428,108 @@ Retorne APENAS um array JSON:
   });
 
   app.post("/api/gemini/essay-theme", async (req, res) => {
-    const { vestibular = "ENEM", themesContext = "" } = req.body || {};
+    const { 
+      vestibular = "ENEM", 
+      themesContext = "", 
+      baseTheme, 
+      similarTo, 
+      thematicAxis 
+    } = req.body || {};
+
+    const targetTheme = (baseTheme || similarTo || "").trim();
+    const axis = (thematicAxis || "").trim();
+
     try {
-      const prompt = `Você é um especialista em bancas examinadoras de vestibulares brasileiros. 
+      let prompt = "";
+      if (targetTheme) {
+        prompt = `Você é um especialista em bancas examinadoras de vestibulares brasileiros, com foco no vestibular ${vestibular}.
+Gere um NOVO tema de redação INÉDITO, DIRETAMENTE RELACIONADO ao seguinte tema-base:
+"${targetTheme}"
+${axis ? `Eixo Temático de Foco: ${axis}` : ""}
+
+Instruções da banca ${vestibular}:
+1. O novo tema deve dialogar intimamente com o tema-base (mesmo universo temático ou desdobramento de causas/efeitos), mas propondo um ângulo ou recorte problematizador original.
+2. Adote o estilo formal exato da banca ${vestibular} (ex: pergunta reflexiva para UNESP; viés filosófico-reflexivo para FUVEST e ITA; temas de cidadania, políticas públicas e minorias para ENEM; gêneros textuais variados para UNICAMP; ciência e soberania para IME; bioética/saúde para UNIFESP; economia/instituições para FGV; ética e família para Mackenzie; direitos humanos para PUC-SP).
+3. Forneça também 2 temas alternativos semelhantes dentro do mesmo eixo.
+
+Retorne EXCLUSIVAMENTE um objeto JSON no formato:
+{
+  "theme": "Frase temática completa, instigante e precisa",
+  "eixo": "Eixo temático principal",
+  "justificativa": "1 a 2 frases explicando por que é análogo ao tema-base e como o estudante pode abordar",
+  "similares": ["Tema semelhante 1", "Tema semelhante 2"]
+}`;
+      } else {
+        prompt = `Você é um especialista em bancas examinadoras de vestibulares brasileiros. 
 Gere um NOVO tema de redação inédito para o vestibular ${vestibular}.
 
 Contexto de temas anteriores do ${vestibular}:
 ${themesContext}
+${axis ? `Eixo Temático Prioritário: ${axis}` : ""}
 
 Instruções:
 1. O tema deve seguir o estilo e a complexidade típicos do ${vestibular}.
-2. Considere eventos, debates sociais e notícias relevantes do início de 2026.
-3. O tema deve ser dissertativo-argumentativo.
-4. Retorne APENAS a frase temática central, CURTA e OBJETIVA (máximo 12 palavras), sem aspas ou explicações adicionais.
-
-Exemplo de saída: Caminhos para a inclusão produtiva e dignidade da população idosa no Brasil`;
+2. Considere eventos contemporâneos, debates sociais e desafios éticos atuais.
+3. Retorne EXCLUSIVAMENTE um objeto JSON no formato:
+{
+  "theme": "Frase temática principal objetiva e precisa",
+  "eixo": "Eixo temático principal (ex: Tecnologia, Cidadania, Meio Ambiente)",
+  "justificativa": "1 frase contextualizando a relevância contemporânea da proposta",
+  "similares": ["Sugestão relacionada 1", "Sugestão relacionada 2"]
+}`;
+      }
 
       const response = await generateWithFallback({
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.7,
+        }
       });
 
       const text = response.text || "";
+      let parsed: any = null;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const m = text.match(/\{[\s\S]*\}/);
+        if (m) parsed = JSON.parse(m[0]);
+      }
+
+      if (parsed && parsed.theme && String(parsed.theme).trim().length > 5) {
+        return res.json({
+          theme: String(parsed.theme).trim().replace(/^["']|["']$/g, "").replace(/^Tema:\s*/i, ""),
+          eixo: parsed.eixo || axis || "Atualidades",
+          justificativa: parsed.justificativa || "Tema formulado segundo as diretrizes da banca.",
+          similares: Array.isArray(parsed.similares) ? parsed.similares : []
+        });
+      }
+
       const cleaned = text.trim().replace(/^["']|["']$/g, "").replace(/^Tema:\s*/i, "");
       if (cleaned.length > 5) {
-        return res.json({ theme: cleaned });
+        return res.json({ 
+          theme: cleaned,
+          eixo: axis || "Geral",
+          justificativa: "Tema inédito gerado para treino.",
+          similares: []
+        });
       }
       throw new Error("Tema gerado inválido");
     } catch (err: any) {
       console.warn("Erro ao gerar tema com IA, utilizando tema curado de contingência:", err?.message);
-      const fallbackList = FALLBACK_ESSAY_THEMES[vestibular] || FALLBACK_ESSAY_THEMES["ENEM"];
+      const normalizedKey = CorretorRedacaoService.normalizarBancaKey(vestibular);
+      const keyUpper = vestibular.toUpperCase();
+      const fallbackList = FALLBACK_ESSAY_THEMES[keyUpper] || 
+        FALLBACK_ESSAY_THEMES[normalizedKey.toUpperCase()] || 
+        FALLBACK_ESSAY_THEMES["ENEM"];
       const randomFallback = fallbackList[Math.floor(Math.random() * fallbackList.length)];
-      return res.json({ theme: randomFallback, isFallback: true });
+      return res.json({ 
+        theme: randomFallback, 
+        eixo: axis || "Eixo Temático Transversal",
+        justificativa: "Tema curricular oficial selecionado do banco da banca.",
+        similares: fallbackList.filter(t => t !== randomFallback).slice(0, 2),
+        isFallback: true 
+      });
     }
   });
 
@@ -605,7 +725,7 @@ Retorne um array de objetos JSON seguindo este esquema:
         }
       }
 
-      const normBanca = (banca || 'enem').toLowerCase().trim();
+      const normBanca = CorretorRedacaoService.normalizarBancaKey(banca || 'enem');
       const rubrica = RUBRICAS[normBanca] || RUBRICAS.enem;
 
       resultado.banca = normBanca;
@@ -653,7 +773,7 @@ Retorne um array de objetos JSON seguindo este esquema:
   app.post("/api/gemini/analyze-essay", async (req, res) => {
     try {
       const { vestibular, theme, essay, criteria, proposta_numero } = req.body;
-      const bancaKey = (vestibular || 'enem').toLowerCase().trim();
+      const bancaKey = CorretorRedacaoService.normalizarBancaKey(vestibular || 'enem');
 
       // Se for uma das bancas oficiais do CorrigeBot, usar a rubrica completa
       if (RUBRICAS[bancaKey]) {

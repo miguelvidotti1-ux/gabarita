@@ -585,115 +585,664 @@ export const VESTIBULARES_DATA: Record<Vestibular, ContentTopic[]> = {
   ]
 };
 
-export const ESSAY_THEMES: Record<Vestibular, { year: number | string; theme: string }[]> = {
+export interface EssayThemeItem {
+  year: number | string;
+  theme: string;
+  eixo?: string;
+  genero?: string;
+  obra?: string;
+  similares?: string[];
+}
+
+export const ESSAY_THEMES: Record<Vestibular, EssayThemeItem[]> = {
   [Vestibular.ENEM]: [
-    { year: 2025, theme: 'Perspectivas acerca do envelhecimento na sociedade brasileira' },
-    { year: 2024, theme: 'Desafios para a valorização da herança africana no Brasil' },
-    { year: 2023, theme: 'Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil' },
-    { year: 2022, theme: 'Desafios para a valorização de comunidades e povos tradicionais no Brasil' },
-    { year: 2021, theme: 'Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil' },
-    { year: 2020, theme: 'O estigma associado às doenças mentais na sociedade brasileira' },
-    { year: 2019, theme: 'Democratização do acesso ao cinema no Brasil' },
-    { year: 2018, theme: 'Manipulação do comportamento do usuário pelo controle de dados na internet' },
-    { year: 2017, theme: 'Desafios para a formação educacional no Brasil' },
-    { year: 2016, theme: 'Caminhos para combater a intolerância religiosa no Brasil' },
-    { year: 2015, theme: 'A persistência da violência contra a mulher na sociedade brasileira' },
-    { year: 2014, theme: 'Publicidade infantil em questão no Brasil' },
-    { year: 2013, theme: 'Os efeitos da implantação da Lei Seca no Brasil' },
-    { year: 2012, theme: 'O movimento imigratório para o Brasil no século XXI' },
-    { year: 2011, theme: 'Viver em rede no século XXI: os limites entre o público e o privado' }
+    { 
+      year: 2025, 
+      theme: 'Perspectivas acerca do envelhecimento na sociedade brasileira',
+      eixo: 'Demografia e Cidadania',
+      similares: [
+        'Desafios para a valorização e inserção social da terceira idade no mercado de trabalho',
+        'Políticas de cuidado integral e autonomia para a população longeva no Brasil',
+        'A invisibilidade dos idosos nas cidades contemporâneas e a urgência da acessibilidade urbana'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Desafios para a valorização da herança africana no Brasil',
+      eixo: 'Memória e Identidade Cultural',
+      similares: [
+        'A importância do ensino da história afro-brasileira nas escolas públicas',
+        'Combate ao racismo estrutural e preservação dos patrimônios quilombolas',
+        'Apropriação cultural versus valorização genuína das manifestações de matriz africana'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil',
+      eixo: 'Gênero e Trabalho',
+      similares: [
+        'A sobrecarga materna e os impactos na saúde mental da mulher trabalhadora',
+        'A economia do cuidado como pilar invisível do desenvolvimento socioeconômico',
+        'A divisão desigual do trabalho doméstico e os entraves à ascensão profissional feminina'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'Desafios para a valorização de comunidades e povos tradicionais no Brasil',
+      eixo: 'Direitos Humanos e Povos Tradicionais',
+      similares: [
+        'Demarcação de terras indígenas e proteção da sociobiodiversidade',
+        'A preservação das culturas ribeirinhas e caiçaras frente à especulação imobiliária'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil',
+      eixo: 'Cidadania e Documentação',
+      similares: [
+        'O sub-registro de nascimento e a exclusão dos direitos sociais básicos no Brasil',
+        'A inclusão digital como nova fronteira da certidão de cidadania'
+      ]
+    },
+    { 
+      year: 2020, 
+      theme: 'O estigma associado às doenças mentais na sociedade brasileira',
+      eixo: 'Saúde Pública e Preconceito',
+      similares: [
+        'A precarização da saúde mental dos jovens na era das redes sociais',
+        'A desmistificação do sofrimento psicológico nos ambientes corporativos e escolares'
+      ]
+    },
+    { 
+      year: 2019, 
+      theme: 'Democratização do acesso ao cinema no Brasil',
+      eixo: 'Cultura e Democratização',
+      similares: [
+        'A descentralização das produções audiovisuais fora do eixo Rio-São Paulo',
+        'O papel do cinema educativo na formação cidadã dos jovens'
+      ]
+    },
+    { 
+      year: 2018, 
+      theme: 'Manipulação do comportamento do usuário pelo controle de dados na internet',
+      eixo: 'Tecnologia e Privacidade',
+      similares: [
+        'Bolhas algorítmicas, polarização e desinformação no debate democrático',
+        'A mercantilização da privacidade e o poder dos monopólios digitais'
+      ]
+    },
+    { year: 2017, theme: 'Desafios para a formação educacional de surdos no Brasil', eixo: 'Educação e Inclusão' },
+    { year: 2016, theme: 'Caminhos para combater a intolerância religiosa no Brasil', eixo: 'Liberdade e Diversidade Religiosa' },
+    { year: 2015, theme: 'A persistência da violência contra a mulher na sociedade brasileira', eixo: 'Direitos da Mulher e Segurança' },
+    { year: 2014, theme: 'Publicidade infantil em questão no Brasil', eixo: 'Infância e Consumo' },
+    { year: 2013, theme: 'Os efeitos da implantação da Lei Seca no Brasil', eixo: 'Segurança no Trânsito e Legislação' },
+    { year: 2012, theme: 'O movimento imigratório para o Brasil no século XXI', eixo: 'Migração e Cidadania' },
+    { year: 2011, theme: 'Viver em rede no século XXI: os limites entre o público e o privado', eixo: 'Cibercultura e Privacidade' }
   ],
+
   [Vestibular.FUVEST]: [
-    { year: 2025, theme: 'Perdão' },
-    { year: 2024, theme: 'Educação básica e formação profissional: entre a multitarefa e a reflexão' },
-    { year: 2023, theme: 'Refugiados ambientais e vulnerabilidade social' },
-    { year: 2022, theme: 'As diferentes faces do riso' },
-    { year: 2021, theme: 'O mundo contemporâneo está fora de ordem?' },
-    { year: 2020, theme: 'O papel da ciência no mundo contemporâneo' },
-    { year: 2019, theme: 'De que maneira o passado contribui para a compreensão do presente?' },
-    { year: 2018, theme: 'Devem existir limites para a arte?' },
-    { year: 2017, theme: 'O homem saiu de sua menoridade?' },
-    { year: 2016, theme: 'As utopias: indispensáveis, inúteis ou nocivas?' },
-    { year: 2015, theme: '"Camarotização" da sociedade brasileira: a segregação das classes sociais e a democracia' },
-    { year: 2014, theme: 'Envelhecimento populacional' },
-    { year: 2013, theme: 'Consumismo' },
-    { year: 2012, theme: 'Participação política: indispensável ou superada?' },
-    { year: 2011, theme: 'O altruísmo e o pensamento a longo prazo ainda têm lugar no mundo contemporâneo?' }
+    { 
+      year: 2025, 
+      theme: 'Perdão',
+      eixo: 'Filosofia Moral e Ética',
+      similares: [
+        'A tensão entre o dever de esquecer e a exigência de justiça histórica',
+        'O ressentimento coletivo como obstáculo à reconciliação democrática',
+        'O perdão nas relações institucionais: ato de compaixão ou manutenção da impunidade?'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Educação básica e formação profissional: entre a multitarefa e a reflexão',
+      eixo: 'Educação e Crítica Filosófica',
+      similares: [
+        'A mercantilização do ensino e a substituição do pensamento reflexivo pela utilidade técnica',
+        'O esgotamento da atenção na hiperconectividade e o valor do tédio criativo',
+        'A formação humanista em xeque diante do pragmatismo mercadológico'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'Refugiados ambientais e vulnerabilidade social',
+      eixo: 'Justiça Climática e Geopolítica',
+      similares: [
+        'O colapso ecológico e o direito fundamental à mobilidade humana',
+        'O racismo ambiental e a distribuição desigual das catástrofes climáticas'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'As diferentes faces do riso',
+      eixo: 'Cultura e Subjetividade',
+      similares: [
+        'O riso como arma política de resistência contra o autoritarismo',
+        'A crueldade travestida de humor: os limites éticos do escárnio social'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'O mundo contemporâneo está fora de ordem?',
+      eixo: 'Diagnóstico de Época e Crise Global',
+      similares: [
+        'A ascensão de narrativas conspiratórias como sintoma de desamparo institucional',
+        'A fragmentação da esfera pública e a perda do consenso fático'
+      ]
+    },
+    { 
+      year: 2020, 
+      theme: 'O papel da ciência no mundo contemporâneo',
+      eixo: 'Epistemologia e Sociedade',
+      similares: [
+        'O negacionismo científico e as disputas políticas em torno da verdade',
+        'A autonomia da pesquisa frente aos imperativos do lucro corporativo'
+      ]
+    },
+    { year: 2019, theme: 'De que maneira o passado contribui para a compreensão do presente?', eixo: 'História e Memória' },
+    { year: 2018, theme: 'Devem existir limites para a arte?', eixo: 'Estética e Liberdade de Expressão' },
+    { year: 2017, theme: 'O homem saiu de sua menoridade?', eixo: 'Iluminismo e Autonomia' },
+    { year: 2016, theme: 'As utopias: indispensáveis, inúteis ou nocivas?', eixo: 'Política e Utopia' },
+    { year: 2015, theme: '"Camarotização" da sociedade brasileira: a segregação das classes sociais e a democracia', eixo: 'Estratificação Social' },
+    { year: 2014, theme: 'Envelhecimento populacional', eixo: 'Sociedade e Temporalidade' },
+    { year: 2013, theme: 'Consumismo', eixo: 'Capitalismo e Desejo' },
+    { year: 2012, theme: 'Participação política: indispensável ou superada?', eixo: 'Cidadania e Política' },
+    { year: 2011, theme: 'O altruísmo e o pensamento a longo prazo ainda têm lugar no mundo contemporâneo?', eixo: 'Ética Contemporânea' }
   ],
+
   [Vestibular.UNICAMP]: [
-    { year: 2026, theme: 'Proposta 1: Machosfera e misoginia digital (depoimento pessoal)' },
-    { year: 2026, theme: 'Proposta 2: Importância histórica da CLT (nota de esclarecimento)' },
-    { year: 2025, theme: 'Proposta 1: Discursos de ódio em ambientes digitais (carta aberta)' },
-    { year: 2025, theme: 'Proposta 2: Acolhimento e combate ao preconceito em escolas (relatório)' },
-    { year: 2024, theme: 'Proposta 1: Direitos de empregadas domésticas (carta-denúncia)' },
-    { year: 2024, theme: 'Proposta 2: Acolhimento a refugiados (discurso)' },
-    { year: 2023, theme: 'Proposta 1: Racismo no ambiente escolar (depoimento sigiloso)' },
-    { year: 2023, theme: 'Proposta 2: Flexibilização do porte de armas (texto de convocação)' },
-    { year: 2022, theme: 'Proposta 1: Corte de verbas na ciência e tecnologia (post em redes sociais)' },
-    { year: 2022, theme: 'Proposta 2: Superexposição de crianças e adolescentes na internet (manifesto coletivo)' },
-    { year: 2021, theme: 'Proposta 1: Retirada de estátuas (discurso político)' },
-    { year: 2021, theme: 'Proposta 2: Pandemia da Covid-19 (relato em diário)' },
-    { year: 2020, theme: 'Proposta 1: Biodiversidade e sociodiversidade no Brasil (roteiro de podcast)' },
-    { year: 2020, theme: 'Proposta 2: Micromachismo na sociedade (crônica)' },
-    { year: 2019, theme: 'Proposta 1: Doutrinação ideológica em sala de aula (abaixo-assinado)' },
-    { year: 2019, theme: 'Proposta 2: Relação entre Desenvolvimento Humano e PIB (postagem em fórum)' },
-    { year: 2018, theme: 'Proposta 1: Pós-verdade (texto-base para palestra)' },
-    { year: 2018, theme: 'Proposta 2: Há limite para a liberdade de expressão? (artigo de opinião)' },
-    { year: 2017, theme: 'Proposta 1: Brasil cordial e presença de estrangeiros no País (carta argumentativa)' },
-    { year: 2017, theme: 'Proposta 2: Arrecadação de fundos para biblioteca (texto de apresentação)' },
-    { year: 2016, theme: 'Proposta 1: Leitura e horizonte cultural de estudantes — fábula de La Fontaine (resenha)' },
-    { year: 2016, theme: 'Proposta 2: Indução das emoções (texto de divulgação científica)' },
-    { year: 2015, theme: 'Proposta 1: Humanização do atendimento à saúde (síntese)' },
-    { year: 2015, theme: 'Proposta 2: Resolução de conflitos a partir de conversas (carta-convite)' },
-    { year: 2014, theme: 'Proposta 1: Oficina cultural (relatório)' },
-    { year: 2014, theme: 'Proposta 2: Carta aberta sobre demanda social (carta aberta)' },
-    { year: 2013, theme: 'Proposta 1: Resumo de texto de divulgação (resumo)' },
-    { year: 2012, theme: "Proposta 1: Carreira científica — 'Quem quer ser um cientista?' (texto dissertativo)" },
-    { year: 2012, theme: 'Proposta 2: Manifesto estudantil para reunião de pais e professores (manifesto)' }
+    { 
+      year: 2026, 
+      theme: 'Proposta 1: Machosfera e misoginia digital (depoimento pessoal)',
+      eixo: 'Cultura Digital e Direitos Humanos',
+      genero: 'Depoimento Pessoal',
+      similares: [
+        'Carta de leitor sobre a proliferação de discursos de ódio em comunidades virtuais',
+        'Artigo de opinião: A radicalização de jovens em fóruns extremistas e a omissão das redes'
+      ]
+    },
+    { 
+      year: 2026, 
+      theme: 'Proposta 2: Importância histórica da CLT (nota de esclarecimento)',
+      eixo: 'Trabalho e Cidadania',
+      genero: 'Nota de Esclarecimento',
+      similares: [
+        'Manifesto em defesa dos direitos trabalhistas na economia dos bicos (gig economy)',
+        'Carta aberta aos legisladores sobre a precarização das relações contratuais'
+      ]
+    },
+    { 
+      year: 2025, 
+      theme: 'Proposta 1: Discursos de ódio em ambientes digitais (carta aberta)',
+      eixo: 'Cidadania Digital e Liberdade',
+      genero: 'Carta Aberta',
+      similares: [
+        'Manifesto estudantil contra o linchamento virtual nas escolas',
+        'Editorial sobre a moderação de conteúdo e a preservação dos direitos humanos'
+      ]
+    },
+    { 
+      year: 2025, 
+      theme: 'Proposta 2: Acolhimento e combate ao preconceito em escolas (relatório)',
+      eixo: 'Educação Inclusiva e Diversidade',
+      genero: 'Relatório Diagnóstico',
+      similares: [
+        'Projeto de intervenção pedagógica: mediação de conflitos no ambiente escolar',
+        'Depoimento sobre práticas de acolhimento a alunos neurodivergentes'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Proposta 1: Direitos de empregadas domésticas (carta-denúncia)',
+      eixo: 'Justiça Social e Herança Histórica',
+      genero: 'Carta-Denúncia',
+      similares: [
+        'Artigo de opinião sobre a persistência de relações coloniais no trabalho doméstico',
+        'Depoimento sobre a invisibilidade das cuidadoras de idosos no Brasil'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Proposta 2: Acolhimento a refugiados (discurso)',
+      eixo: 'Geopolítica e Direitos Humanos',
+      genero: 'Discurso de Boas-Vindas',
+      similares: [
+        'Carta aberta à comunidade cobrando hospitalidade e políticas públicas para imigrantes',
+        'Crônica sobre o desenraizamento e a saudade da terra natal'
+      ]
+    },
+    { year: 2023, theme: 'Proposta 1: Racismo no ambiente escolar (depoimento sigiloso)', eixo: 'Relações Étnico-Raciais', genero: 'Depoimento Sigiloso' },
+    { year: 2023, theme: 'Proposta 2: Flexibilização do porte de armas (texto de convocação)', eixo: 'Segurança Pública', genero: 'Texto de Convocação' },
+    { year: 2022, theme: 'Proposta 1: Corte de verbas na ciência e tecnologia (post em redes sociais)', eixo: 'Ciência e Soberania', genero: 'Post em Rede Social' },
+    { year: 2022, theme: 'Proposta 2: Superexposição de crianças e adolescentes na internet (manifesto coletivo)', eixo: 'Infância e Redes', genero: 'Manifesto Coletivo' },
+    { year: 2021, theme: 'Proposta 1: Retirada de estátuas (discurso político)', eixo: 'Memória e Espaço Público', genero: 'Discurso Político' },
+    { year: 2021, theme: 'Proposta 2: Pandemia da Covid-19 (relato em diário)', eixo: 'Saúde e Sociedade', genero: 'Relato em Diário' }
   ],
+
   [Vestibular.UNESP]: [
-    { year: 2025, theme: 'Medicalização da vida: a quem interessa?' },
-    { year: 2024, theme: 'A tecnologia a serviço da inclusão social' },
-    { year: 2023, theme: 'O desafio da mobilidade urbana sustentável' },
-    { year: 2022, theme: 'A importância do voto consciente para a democracia' },
-    { year: 2021, theme: 'O tempo é uma ilusão?' },
-    { year: 2020, theme: 'O carro será o novo cigarro?' },
-    { year: 2019, theme: 'Compro, logo existo?' },
-    { year: 2018, theme: 'O voto nulo é um ato político eficaz?' }
+    { 
+      year: 2025, 
+      theme: 'Medicalização da vida: a quem interessa?',
+      eixo: 'Saúde, Bioética e Sociedade',
+      similares: [
+        'A patologização da tristeza e a tirania da felicidade compulsória',
+        'O consumo desenfreado de psicofármacos entre jovens: sintoma de uma sociedade exausta?',
+        'A mercantilização da saúde e a indústria farmacêutica: cura ou dependência?'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'A tecnologia a serviço da inclusão social?',
+      eixo: 'Inovação e Desigualdade',
+      similares: [
+        'A inteligência artificial aprofunda ou reduz o abismo socioeconômico?',
+        'O letramento digital como condicionante de sobrevivência na cidadania moderna',
+        'As redes sociais democratizam vozes ou amplificam a segregação comunicacional?'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'O desafio da mobilidade urbana sustentável',
+      eixo: 'Urbanismo e Ecologia',
+      similares: [
+        'A cidade planejada para automóveis ou para pedestres: um dilema político',
+        'Tarifa zero nos transportes públicos: utopia econômica ou direito fundamental?'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'A importância do voto consciente para a democracia',
+      eixo: 'Cidadania e Política',
+      similares: [
+        'O descontentamento com a política institucional legitima a abstenção eleitoral?',
+        'As fake news enfraquecem irremediavelmente a soberania do sufrágio popular?'
+      ]
+    },
+    { year: 2021, theme: 'O tempo é uma ilusão?', eixo: 'Filosofia e Subjetividade' },
+    { year: 2020, theme: 'O carro será o novo cigarro?', eixo: 'Consumo, Saúde e Meio Ambiente' },
+    { year: 2019, theme: 'Compro, logo existo?', eixo: 'Consumo e Identidade' },
+    { year: 2018, theme: 'O voto nulo é um ato político eficaz?', eixo: 'Participação Democrática' }
   ],
+
   [Vestibular.UERJ]: [
-    { year: 2025, theme: 'Preservação do patrimônio histórico no RJ' },
-    { year: 2024, theme: 'Educação e redução de desigualdades' },
-    { year: 2023, theme: 'A importância da cultura popular na identidade nacional' },
-    { year: 2022, theme: 'O papel do Estado na garantia da saúde pública' }
+    { 
+      year: 2025, 
+      theme: 'Preservação do patrimônio histórico no RJ e a identidade coletiva',
+      eixo: 'Memória Urbana e Cultura',
+      obra: 'O Alienista (Machado de Assis) / Leituras do Edital',
+      similares: [
+        'A linha tênue entre razão, loucura e poder autoritário nas instituições',
+        'A obsessão pelo método científico e o esquecimento da condição humana',
+        'Quem vigia quem tem o poder de rotular os outros como insanos?'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Educação e redução de desigualdades: a busca por dignidade',
+      eixo: 'Justiça Social e Cidadania',
+      obra: 'Coração das Trevas (Joseph Conrad)',
+      similares: [
+        'A hipocrisia das missões civilizatórias e a barbárie do colonialismo moderno',
+        'A escuridão moral no íntimo do indivíduo diante da impunidade total'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'A importância da cultura popular na identidade nacional',
+      eixo: 'Cultura e Resistência',
+      obra: 'Não me abandone jamais (Kazuo Ishiguro)',
+      similares: [
+        'A instrumentalização do corpo humano e os limites éticos da clonagem e da doação de órgãos',
+        'O que define a alma e a humanidade de um ser: sua biologia ou sua capacidade de amar?'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'O papel do Estado na garantia da saúde pública e a dignidade humana',
+      eixo: 'Políticas Públicas e Ética',
+      obra: 'Uma Janela em Copacabana (Luiz Alfredo Garcia-Roza)',
+      similares: [
+        'A corrupção policial como espelho da degradação das instituições republicanas',
+        'A violência urbana no Rio de Janeiro: sintoma de falência estatal ou projeto de controle?'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'Nacionalismo ingênuo e patriotismo crítico na construção do Brasil',
+      eixo: 'Identidade e Utopia',
+      obra: 'Triste Fim de Policarpo Quaresma (Lima Barreto)',
+      similares: [
+        'O ufanismo patriótico cego como obstáculo à identificação dos reais problemas nacionais',
+        'O idealismo incompreendido e a perseguição àquele que sonha com a justiça social'
+      ]
+    }
   ],
+
   [Vestibular.ITA]: [
-    { year: 2025, theme: 'O potencial brasileiro no cenário mundial e a Agenda 2030 da ONU (proposta baseada nos temas do Brasil no G20)' },
-    { year: 2024, theme: 'A responsabilidade da engenharia frente aos problemas do mundo contemporâneo' },
-    { year: 2023, theme: 'Tecnofilia: riscos' },
-    { year: 2022, theme: 'A influência do medo nas ações humanas' },
-    { year: 2021, theme: 'Que liberdade nos resta no século XXI?' },
-    { year: 2020, theme: 'Em que medida o conhecimento tecno-científico segue princípios ético-morais?' },
-    { year: 2019, theme: 'O incêndio no Museu Nacional' },
-    { year: 2018, theme: 'O envelhecimento' },
-    { year: 2017, theme: 'O poder das mídias e da comunicação' },
-    { year: 2016, theme: 'A formação universitária e o mercado de trabalho' },
-    { year: 2015, theme: 'Trabalho, imigração e diversidade no Brasil' },
-    { year: 2014, theme: 'O cinema' },
-    { year: 2013, theme: 'Tecnologia, publicidade e manipulação' },
-    { year: 2012, theme: 'Cidadania, preconceito e consciência social' },
-    { year: 2011, theme: 'Mobilidade urbana' }
+    { 
+      year: 2025, 
+      theme: 'O potencial brasileiro no cenário mundial e a Agenda 2030 da ONU (desenvolvimento soberano vs dependência)',
+      eixo: 'Geopolítica e Soberania Tecnológica',
+      similares: [
+        'O Brasil como potência agroambiental: conciliação entre preservação dos biomas e protagonismo produtivo',
+        'A transição para a economia verde: oportunidade de reindustrialização ou risco de neoextrativismo?',
+        'O papel das instituições aeroespaciais e da engenharia avançada na afirmação soberana das nações do Sul Global'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'A responsabilidade da engenharia frente aos problemas do mundo contemporâneo',
+      eixo: 'Ética Profissional e Sustentabilidade',
+      similares: [
+        'A tecnociência sem humanismo: o perigo da neutralidade moral do cientista',
+        'Engenharia de precisão e a minimização dos impactos ambientais antropogênicos',
+        'A responsabilidade civil e moral das corporações diante de acidentes tecnológicos e climáticos'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'Tecnofilia: riscos e ilusões da dependência cibernética',
+      eixo: 'Filosofia da Tecnologia',
+      similares: [
+        'A ilusão da onisciência digital e o definhamento do raciocínio reflexivo humano',
+        'Automação de decisões críticas: até onde a razão algorítmica deve suplantar o discernimento moral?',
+        'A hipervigilância corporativa e a perda silenciosa do livre-arbítrio individual'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'A influência do medo nas ações humanas e nas decisões políticas',
+      eixo: 'Psicologia Social e Política',
+      similares: [
+        'O medo como instrumento deliberado de controle social e capitulação de direitos civis',
+        'A coragem moral como fundamento primordial da busca científica e da inovação'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'Que liberdade nos resta no século XXI diante da vigilância contínua?',
+      eixo: 'Liberdade e Sociedade de Controle',
+      similares: [
+        'A servidão voluntária na era dos algoritmos de recomendação',
+        'O confinamento do pensamento crítico em bolhas epistêmicas autossuficientes'
+      ]
+    },
+    { 
+      year: 2020, 
+      theme: 'Em que medida o conhecimento tecno-científico segue princípios ético-morais?',
+      eixo: 'Bioética e Epistemologia',
+      similares: [
+        'O imperativo do progresso técnico justifica a supressão de salvaguardas humanas?',
+        'A engenharia genética e a responsabilidade pelas futuras gerações biológicas'
+      ]
+    },
+    { year: 2019, theme: 'O incêndio no Museu Nacional e o descuido com a memória científica brasileira', eixo: 'Memória e Patrimônio Científico' },
+    { year: 2018, theme: 'O envelhecimento na sociedade moderna: descarte ou sabedoria?', eixo: 'Tempo e Condição Humana' },
+    { year: 2017, theme: 'O poder das mídias e da comunicação na moldagem da opinião pública', eixo: 'Comunicação e Poder' },
+    { year: 2016, theme: 'A formação universitária e o mercado de trabalho: pragmatismo ou reflexão?', eixo: 'Educação Superior' },
+    { year: 2015, theme: 'Trabalho, imigração e diversidade no Brasil contemporâneo', eixo: 'Trabalho e Sociedade' }
   ],
-  [Vestibular.FGV]: [{ year: 2024, theme: 'O impacto da economia digital no Brasil' }],
-  [Vestibular.MACKENZIE]: [{ year: 2024, theme: 'Cidadania e responsabilidade social' }],
-  [Vestibular.PUC_SP]: [{ year: 2024, theme: 'Justiça social no mundo contemporâneo' }],
-  [Vestibular.UNIFESP]: [{ year: 2024, theme: 'Ética e avanços na medicina' }],
-  [Vestibular.ANHEMBI_MORUMBI]: [{ year: 2024, theme: 'O mercado de trabalho e as novas tecnologias' }],
-  [Vestibular.ESTACIO]: [{ year: 2024, theme: 'Inclusão digital e educação' }],
-  [Vestibular.UNISINOS]: [{ year: 2024, theme: 'Sustentabilidade e inovação' }],
+
   [Vestibular.IME]: [
-    { year: 2025, theme: 'A ética no desenvolvimento da inteligência artificial e soberania tecnológica' },
-    { year: 2024, theme: 'O papel da engenharia e da defesa nacional no desenvolvimento sustentável' },
-    { year: 2023, theme: 'Inovação científica e os limites éticos da intervenção humana' }
+    { 
+      year: 2026, 
+      theme: 'A ética no desenvolvimento da inteligência artificial bélica e a soberania tecnológica nacional',
+      eixo: 'Defesa e Inteligência Artificial',
+      similares: [
+        'Sistemas autônomos de armas: limites éticos e responsabilização jurídica no direito internacional',
+        'A autonomia tecnológica nas cadeias de semicondutores como questão de sobrevivência nacional',
+        'Cibersegurança de infraestruturas estratégicas (redes elétricas, satélites e saneamento) em guerras híbridas'
+      ]
+    },
+    { 
+      year: 2025, 
+      theme: 'O papel da engenharia militar e da inovação autóctone na defesa da soberania e do desenvolvimento sustentável',
+      eixo: 'Engenharia, Defesa e Desenvolvimento',
+      similares: [
+        'A integração entre Forças Armadas, universidades e indústria na criação de tecnologia de ponta',
+        'O Brasil na era dos satélites de observação da Terra: vigilância das fronteiras e proteção da Amazônia',
+        'A matriz energética militar: transição para biocombustíveis e resiliência logística em cenários de crise'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Inovação científica e os limites éticos da intervenção humana em biologia sintética e nanotecnologia',
+      eixo: 'Ciência, Tecnologia e Ética',
+      similares: [
+        'Pesquisa de duplo uso: os dilemas de segurança na biotecnologia avançada',
+        'Nanotecnologia aplicada à engenharia de materiais e à blindagem estratégica'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'A corrida espacial contemporânea: cooperação científica pacífica ou militarização orbital?',
+      eixo: 'Aeroespacial e Relações Internacionais',
+      similares: [
+        'O lixo espacial e a necessidade urgente de governança e regulação internacional das órbitas baixas',
+        'O Centro de Lançamento de Alcântara e o papel estratégico do Brasil na exploração comercial do espaço'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'A infraestrutura logística de transportes como alicerce da soberania e da integração territorial brasileira',
+      eixo: 'Infraestrutura e Logística',
+      similares: [
+        'A malha ferroviária e hidroviária nacional: gargalos históricos e potencial de escoamento sustentável',
+        'A engenharia de pontes, rodovias e portos na conectividade de regiões isoladas'
+      ]
+    }
+  ],
+
+  [Vestibular.FGV]: [
+    { 
+      year: 2025, 
+      theme: 'O impacto da inteligência artificial generativa na produtividade, na regulação e na desigualdade de renda',
+      eixo: 'Economia e Tecnologia',
+      similares: [
+        'A tributação da automação como alternativa para financiar a seguridade social futura',
+        'A concentração de mercado nas Big Techs e os desafios para a preservação da concorrência econômica',
+        'O trabalho cognitivo sob ameaça: reconversão profissional e o novo perfil das lideranças corporativas'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'O impacto da economia digital no Brasil: inclusão financeira vs endividamento familiar',
+      eixo: 'Finanças e Cidadania',
+      similares: [
+        'O avanço das apostas virtuais (bets) e os impactos no orçamento das famílias de baixa renda',
+        'A bancarização via Pix e fintechs: democratização do crédito ou aumento da vulnerabilidade patrimonial?'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'A reforma tributária como instrumento de eficiência produtiva e justiça distributiva',
+      eixo: 'Finanças Públicas e Tributação',
+      similares: [
+        'A desoneração do consumo e a tributação da renda e patrimônio na busca por equidade fiscal',
+        'A simplificação dos impostos no Brasil como indutor de atração de investimentos produtivos'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'Governança ESG nas corporações brasileiras: compromisso autêntico ou greenwashing cosmético?',
+      eixo: 'Sustentabilidade e Governança Corporativa',
+      similares: [
+        'A métrica de sustentabilidade no valuation de empresas de capital aberto',
+        'A responsabilidade socioambiental corporativa na cadeia de suprimentos da Amazônia'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'O papel do Estado em crises sistêmicas: liberalismo econômico vs intervencionismo de resgate',
+      eixo: 'Economia Política',
+      similares: [
+        'Endividamento público, teto de gastos e a capacidade de investimento do Estado em infraestrutura',
+        'Auxílios emergenciais e seus efeitos dinâmicos no consumo e na contenção da pobreza extrema'
+      ]
+    }
+  ],
+
+  [Vestibular.MACKENZIE]: [
+    { 
+      year: 2025, 
+      theme: 'Cidadania digital, liberdade de expressão e a responsabilidade civil e moral nas redes sociais',
+      eixo: 'Ética e Cidadania Digital',
+      similares: [
+        'A responsabilidade das plataformas no combate à disseminação de golpes e fraudes financeiras digitais',
+        'O cyberbullying entre adolescentes e os limites entre brincadeira e violência psicológica',
+        'A erosão da reputação pessoal e profissional em tribunais sumários da internet'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Cidadania e responsabilidade social: da obrigação legal ao engajamento comunitário voluntário',
+      eixo: 'Solidariedade e Sociedade Civil',
+      similares: [
+        'O voluntariado jovem como catalisador de empatia e transformação local',
+        'A cooperação entre iniciativa privada, igrejas e ONGs no acolhimento de pessoas em situação de rua',
+        'A conscientização ambiental comunitária: o papel do cidadão na reciclagem e no consumo frugal'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'O papel da família e da escola na formação dos valores éticos das novas gerações',
+      eixo: 'Educação, Família e Valores',
+      similares: [
+        'A terceirização da educação afetiva e moral para as telas e influenciadores digitais',
+        'O diálogo intergeracional em tempos de transformações comportamentais aceleradas'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'Sustentabilidade urbana e o direito a um meio ambiente equilibrado nas grandes metrópoles',
+      eixo: 'Meio Ambiente e Cidades',
+      similares: [
+        'A conservação dos mananciais e áreas verdes como garantia de qualidade de vida urbana',
+        'Economia circular no cotidiano doméstico: descarte consciente e redução do desperdício de alimentos'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'A empatia ativa e a superação da indiferença diante das vulnerabilidades humanas',
+      eixo: 'Relações Humanas e Alteridade',
+      similares: [
+        'O individualismo exacerbado como patologia das sociedades hipercompetitivas',
+        'A hospitalidade e a escuta paciente no ambiente familiar e corporativo'
+      ]
+    }
+  ],
+
+  [Vestibular.PUC_SP]: [
+    { 
+      year: 2025, 
+      theme: 'Justiça restaurativa, direitos humanos e a superação do encarceramento em massa no Brasil',
+      eixo: 'Direitos Humanos e Sistema de Justiça',
+      similares: [
+        'A eficácia de penas alternativas e programas de reinserção social para egressos do sistema prisional',
+        'A criminalização da pobreza e a seletividade penal nas periferias urbanas',
+        'O papel da Defensoria Pública e da sociedade civil na garantia do devido processo legal'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Justiça social no mundo contemporâneo: a precarização do trabalho mediado por algoritmos',
+      eixo: 'Trabalho e Dignidade da Pessoa Humana',
+      similares: [
+        'A perda de direitos trabalhistas históricos sob o discurso da autonomia do microempreendedor',
+        'A saúde física e mental dos entregadores e motoristas de aplicativo',
+        'A sindicalização e novas formas de representação coletiva na era do teletrabalho'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'O direito à cidade e a segregação socioespacial nas metrópoles contemporâneas',
+      eixo: 'Urbanismo, Moradia e Cidadania',
+      similares: [
+        'O déficit habitacional e a função social da propriedade urbana',
+        'A gentrificação dos bairros históricos e a expulsão silenciosa das populações tradicionais',
+        'A periferização dos serviços de saúde e cultura e a mobilidade pendular degradante'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'Políticas afirmativas e a democratização do acesso às posições de decisão no Brasil',
+      eixo: 'Ações Afirmativas e Igualdade Étnica',
+      similares: [
+        'A consolidação da lei de cotas no ensino superior e nos concursos públicos',
+        'A representatividade feminina e negra nas bancadas parlamentares e nos tribunais superiores'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'A ética do cuidado e a solidariedade intergeracional na reconstrução do pacto social',
+      eixo: 'Ética e Vulnerabilidade',
+      similares: [
+        'A proteção integral da infância e da juventude em territórios conflagrados pela violência',
+        'A defesa intransigente dos direitos dos povos indígenas e quilombolas'
+      ]
+    }
+  ],
+
+  [Vestibular.UNIFESP]: [
+    { 
+      year: 2025, 
+      theme: 'Bioética e edição genética: onde residem os limites da intervenção na vida e na hereditariedade humana?',
+      eixo: 'Bioética e Biotecnologia',
+      similares: [
+        'A tecnologia CRISPR e o risco de eugenia velada e segregação biológica no futuro',
+        'O consentimento informado e os ensaios clínicos em populações vulneráveis de países em desenvolvimento',
+        'A patente de genomas e o monopólio de terapias celulares curativas por grandes laboratórios'
+      ]
+    },
+    { 
+      year: 2024, 
+      theme: 'Ética, humanização e avanços na medicina: a tecnologia substitui a relação médico-paciente?',
+      eixo: 'Saúde e Humanização',
+      similares: [
+        'Telemedicina e diagnósticos por IA: agilidade clínica ou distanciamento empático?',
+        'A formação médica brasileira: ênfase técnica em detrimento da escuta humanizada e bioética',
+        'O esgotamento profissional (Síndrome de Burnout) entre médicos, enfermeiros e equipes do SUS'
+      ]
+    },
+    { 
+      year: 2023, 
+      theme: 'Acesso equitativo a medicamentos de alto custo e os dilemas da judicialização da saúde no SUS',
+      eixo: 'Saúde Pública e Direito Sanitário',
+      similares: [
+        'A sustentabilidade orçamentária do SUS frente a tratamentos individualizados de custos astronômicos',
+        'A autonomia dos órgãos reguladores (ANVISA/CONITEC) na incorporação de novas tecnologias médicas',
+        'A desigualdade regional no acesso à medicina especializada de alta complexidade'
+      ]
+    },
+    { 
+      year: 2022, 
+      theme: 'A crise de saúde mental entre jovens universitários e a cobrança por produtividade contínua',
+      eixo: 'Saúde Mental e Educação',
+      similares: [
+        'O suicídio na juventude como urgência sanitária silenciosa e a necessidade de redes de apoio institucional',
+        'O uso abusivo de estimulantes cognitivos para fins acadêmicos e seus efeitos colaterais neurológicos'
+      ]
+    },
+    { 
+      year: 2021, 
+      theme: 'O impacto das mudanças climáticas na proliferação de zoonoses, arboviroses e na saúde pública global',
+      eixo: 'Saúde Planetária e Meio Ambiente',
+      similares: [
+        'O conceito de Saúde Única (One Health): interdependência entre saúde humana, animal e ambiental',
+        'A vulnerabilidade sanitária das populações ribeirinhas e periféricas frente a eventos climáticos extremos'
+      ]
+    }
+  ],
+
+  [Vestibular.ANHEMBI_MORUMBI]: [
+    { year: 2025, theme: 'O mercado de trabalho, a economia criativa e as novas tecnologias digitais', eixo: 'Trabalho e Criatividade' },
+    { year: 2024, theme: 'O mercado de trabalho e as novas tecnologias', eixo: 'Carreira e Automação' }
+  ],
+  [Vestibular.ESTACIO]: [
+    { year: 2025, theme: 'Inclusão digital, conectividade e o futuro da educação a distância no Brasil', eixo: 'Educação e Tecnologia' },
+    { year: 2024, theme: 'Inclusão digital e educação', eixo: 'Cidadania Digital' }
+  ],
+  [Vestibular.UNISINOS]: [
+    { year: 2025, theme: 'Sustentabilidade, energias renováveis e a responsabilidade social das organizações', eixo: 'Ecologia e Gestão' },
+    { year: 2024, theme: 'Sustentabilidade e inovação', eixo: 'Inovação e Meio Ambiente' }
   ]
 };
+

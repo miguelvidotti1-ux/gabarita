@@ -234,6 +234,232 @@ export const RUBRICAS: Record<string, RubricaBanca> = {
       'Texto com partes desconexas ou desenhos'
     ],
     observacao: 'O ITA valoriza elevado rigor de raciocínio, maturidade analítica e precisão lógica. Não exige proposta de intervenção.'
+  },
+
+  ime: {
+    id: 'ime',
+    nome: 'IME (Instituto Militar de Engenharia)',
+    tipo_texto: 'dissertativo-argumentativo',
+    nota_maxima: 10,
+    escala_por_competencia: 2.5,
+    exige_proposta_intervencao: false,
+    limite_linhas: 30,
+    competencias: [
+      {
+        id: 1,
+        nome: 'Tema, tese crítica e cobertura do debate',
+        criterios: 'Compreensão exata do tema e formulação de ponto de vista claro sobre os impactos da ciência, tecnologia, soberania e ética no mundo contemporâneo.'
+      },
+      {
+        id: 2,
+        nome: 'Raciocínio lógico e solidez argumentativa',
+        criterios: 'Estruturação lógica rigorosa dos argumentos; clareza demonstrativa; ausência de contradições, sofismas ou sentimentalismo ingênuo.'
+      },
+      {
+        id: 3,
+        nome: 'Estrutura dissertativa e progressão textual',
+        criterios: 'Introdução, desenvolvimento e conclusão articulados; coesão inter e intraparágrafos; encadeamento fluido e ausência de repetições.'
+      },
+      {
+        id: 4,
+        nome: 'Correção vernácula e precisão terminológica',
+        criterios: 'Domínio impecável da norma culta formal (morfossintaxe, pontuação, regência, concordância); vocabulário técnico e preciso, com concisão.'
+      }
+    ],
+    zerar_redacao: [
+      'Fuga total ao tema',
+      'Extensão inferior a 15 linhas',
+      'Não atendimento ao gênero dissertativo-argumentativo',
+      'Identificação do candidato no corpo do texto',
+      'Texto com impropérios ou incompreensível'
+    ],
+    observacao: 'O Concurso de Admissão ao IME avalia a maturidade reflexiva voltada para questões de ciência, engenharia, ética, defesa nacional e desafios estratégicos do Brasil. Não exige intervenção social.'
+  },
+
+  uerj: {
+    id: 'uerj',
+    nome: 'UERJ',
+    tipo_texto: 'dissertativo-argumentativo com base em obra literária',
+    nota_maxima: 10,
+    escala_por_competencia: null,
+    exige_proposta_intervencao: false,
+    limite_linhas: 30,
+    competencias: [
+      {
+        id: 1,
+        nome: 'Adequação ao tema e diálogo com a obra literária indicada',
+        criterios: 'Compreensão crítica da questão-problema suscitada pelo livro do exame (0 a 4,0 pontos). O texto deve articular as ideias da obra à realidade social contemporânea, sem se limitar a um mero resumo do enredo.'
+      },
+      {
+        id: 2,
+        nome: 'Estrutura dissertativo-argumentativa, projeto de texto e coesão',
+        criterios: 'Construção de tese autônoma (0 a 3,0 pontos), progressão temática sem repetições, coerência interna dos argumentos e articulação entre parágrafos.'
+      },
+      {
+        id: 3,
+        nome: 'Domínio da norma culta e recursos expressivos',
+        criterios: 'Adequação ao registro formal da língua portuguesa (0 a 3,0 pontos), precisão vocabular, variedade de estruturas sintáticas e correção gramatical.'
+      }
+    ],
+    zerar_redacao: [
+      'Fuga total ao tema',
+      'Desvio do tipo dissertativo-argumentativo',
+      'Menos de 15 linhas escritas',
+      'Identificação do candidato',
+      'Texto em língua estrangeira'
+    ],
+    observacao: 'A UERJ baseia seu tema na leitura de uma obra literária indicada no edital. O foco é a discussão reflexiva e a problematização, sem exigência de proposta de intervenção.'
+  },
+
+  fgv: {
+    id: 'fgv',
+    nome: 'FGV (Fundação Getulio Vargas)',
+    tipo_texto: 'dissertativo-argumentativo',
+    nota_maxima: 10,
+    escala_por_competencia: 2.5,
+    exige_proposta_intervencao: false,
+    limite_linhas: 30,
+    competencias: [
+      {
+        id: 1,
+        nome: 'Interpretação temática e leitura de conjuntura',
+        criterios: 'Compreensão abrangente da proposta; capacidade de interpretar fenômenos socioeconômicos, jurídicos ou institucionais com visão crítica e contemporânea.'
+      },
+      {
+        id: 2,
+        nome: 'Rigor argumentativo, consistência e autoria',
+        criterios: 'Defesa consistente de tese; uso produtivo de dados, fatos e teorias das ciências sociais e econômicas; originalidade e ausência de senso comum.'
+      },
+      {
+        id: 3,
+        nome: 'Estrutura, encadeamento e progressão textual',
+        criterios: 'Projeto de texto lúcido e progressivo; parágrafos bem delimitados com tópicos frasais claros; conclusão que arremata os argumentos com solidez.'
+      },
+      {
+        id: 4,
+        nome: 'Domínio da norma culta e precisão terminológica',
+        criterios: 'Correção gramatical estrita; vocabulário maduro, preciso e adequado ao debate acadêmico e profissional.'
+      }
+    ],
+    zerar_redacao: [
+      'Fuga total ao tema',
+      'Não atendimento ao tipo dissertativo-argumentativo',
+      'Menos de 15 linhas',
+      'Identificação do candidato'
+    ],
+    observacao: 'A FGV valoriza forte capacidade analítica, visão crítica sobre instituições, mercado e sociedade, e argumentação embasada.'
+  },
+
+  mackenzie: {
+    id: 'mackenzie',
+    nome: 'Mackenzie',
+    tipo_texto: 'dissertativo-argumentativo',
+    nota_maxima: 10,
+    escala_por_competencia: 2.5,
+    exige_proposta_intervencao: false,
+    limite_linhas: 30,
+    competencias: [
+      {
+        id: 1,
+        nome: 'Adequação ao tema e clareza da tese',
+        criterios: 'Compreensão do tema escolhido e formulação de ponto de vista explícito e sustentável desde a introdução.'
+      },
+      {
+        id: 2,
+        nome: 'Estrutura dissertativa e coerência argumentativa',
+        criterios: 'Desenvolvimento consistente dos argumentos, relação de causa e consequência, ausência de contradições e conclusão coerente.'
+      },
+      {
+        id: 3,
+        nome: 'Coesão textual e variedade de conectivos',
+        criterios: 'Emprego correto e diversificado de mecanismos de coesão referencial e sequencial entre os períodos e parágrafos.'
+      },
+      {
+        id: 4,
+        nome: 'Modalidade escrita padrão e correção vernácula',
+        criterios: 'Domínio da gramática normativa (concordância, regência, crase, pontuação e ortografia) e clareza de expressão.'
+      }
+    ],
+    zerar_redacao: [
+      'Fuga ao tema',
+      'Texto com menos de 15 linhas',
+      'Não observância do padrão dissertativo',
+      'Identificação'
+    ],
+    observacao: 'O Mackenzie costuma apresentar reflexões sobre ética, convivência social e cultura contemporânea.'
+  },
+
+  puc_sp: {
+    id: 'puc_sp',
+    nome: 'PUC-SP',
+    tipo_texto: 'dissertativo-argumentativo',
+    nota_maxima: 100,
+    escala_por_competencia: 25,
+    exige_proposta_intervencao: false,
+    limite_linhas: 30,
+    competencias: [
+      {
+        id: 1,
+        nome: 'Compreensão temática e problematização crítica',
+        criterios: 'Leitura atenta dos textos motivadores e formulação de tese com sensibilidade social e perspectiva humanística (0 a 25 pts).'
+      },
+      {
+        id: 2,
+        nome: 'Repertório sociocultural e consistência argumentativa',
+        criterios: 'Argumentação fundamentada em conceitos históricos, filosóficos e sociológicos; articulação coerente e autoria (0 a 25 pts).'
+      },
+      {
+        id: 3,
+        nome: 'Estrutura dissertativa, coesão e progressão textual',
+        criterios: 'Organização em parágrafos bem estruturados, transições lógicas entre ideias e conclusão reflexiva (0 a 25 pts).'
+      },
+      {
+        id: 4,
+        nome: 'Domínio da norma padrão da língua portuguesa',
+        criterios: 'Correção gramatical, pontuação, acentuação, precisão lexical e clareza sintática (0 a 25 pts).'
+      }
+    ],
+    zerar_redacao: [
+      'Fuga total ao tema',
+      'Menos de 15 linhas',
+      'Desrespeito à tipologia dissertativa',
+      'Identificação'
+    ],
+    observacao: 'A PUC-SP avalia a redação na escala de 0 a 100 pontos, destacando a dimensão ética e a cidadania.'
+  },
+
+  unifesp: {
+    id: 'unifesp',
+    nome: 'UNIFESP',
+    tipo_texto: 'dissertativo-argumentativo (Padrão VUNESP)',
+    nota_maxima: 100,
+    escala_por_competencia: null,
+    exige_proposta_intervencao: false,
+    limite_linhas: 30,
+    competencias: [
+      {
+        id: 1,
+        nome: 'Tema e abordagem crítica reflexiva',
+        criterios: 'Compreensão integral do tema proposto, pertinência da abordagem e sustentação de ponto de vista claro (0 a 30 pts).'
+      },
+      {
+        id: 2,
+        nome: 'Estrutura, gênero dissertativo e consistência da tese',
+        criterios: 'Organização macrotextual dissertativa, consistência dos argumentos e profundidade reflexiva (0 a 40 pts).'
+      },
+      {
+        id: 3,
+        nome: 'Coesão textual e domínio da norma culta formal',
+        criterios: 'Emprego correto dos recursos de coesão, correção gramatical, sintaxe clara e precisão vocabular (0 a 30 pts).'
+      }
+    ],
+    zerar_redacao: [
+      'Fuga total ao tema',
+      'Não atendimento ao gênero dissertativo',
+      'Menos de 15 linhas',
+      'Identificação do candidato'
+    ],
+    observacao: 'No Vestibular Misto da UNIFESP, a prova dissertativa é formulada pela VUNESP com alto nível de exigência conceitual, especialmente em temas éticos, sociais e biomédicos.'
   }
 };
 
@@ -241,9 +467,28 @@ export class CorretorRedacaoService {
   /**
    * Validações mecânicas pré-IA para economizar tokens e tempo
    */
+  static normalizarBancaKey(bancaKey: string): string {
+    const k = (bancaKey || '').toLowerCase().trim().replace(/[-_]/g, '');
+    if (k.includes('enem')) return 'enem';
+    if (k.includes('fuvest') || k.includes('usp')) return 'fuvest';
+    if (k.includes('unicamp') || k.includes('comvest')) return 'unicamp';
+    if (k.includes('unesp') || k.includes('vunesp')) return 'unesp';
+    if (k.includes('uerj')) return 'uerj';
+    if (k.includes('ita')) return 'ita';
+    if (k.includes('ime')) return 'ime';
+    if (k.includes('fgv')) return 'fgv';
+    if (k.includes('mackenzie')) return 'mackenzie';
+    if (k.includes('puc')) return 'puc_sp';
+    if (k.includes('unifesp')) return 'unifesp';
+    return (bancaKey || '').toLowerCase().trim();
+  }
+
+  /**
+   * Validações mecânicas pré-IA para economizar tokens e tempo
+   */
   static validarSubmissao(bancaKey: string, texto: string): string[] {
     const erros: string[] = [];
-    const normalizedKey = (bancaKey || '').toLowerCase().trim();
+    const normalizedKey = this.normalizarBancaKey(bancaKey);
 
     if (!RUBRICAS[normalizedKey]) {
       erros.push(`Banca inválida. Opções aceitas: ${Object.keys(RUBRICAS).join(', ')}`);
@@ -287,7 +532,7 @@ export class CorretorRedacaoService {
     texto: string,
     propostaNumero?: number
   ): string {
-    const normalizedKey = (bancaKey || 'enem').toLowerCase().trim();
+    const normalizedKey = this.normalizarBancaKey(bancaKey);
     const rubrica = RUBRICAS[normalizedKey] || RUBRICAS.enem;
 
     let competenciasStr = '';
@@ -324,16 +569,27 @@ export class CorretorRedacaoService {
   },
   "parecer_geral": "Parecer holístico detalhado do corretor..."
 }`;
-    } else {
-      instrucaoNota = `A ${rubrica.nome} NÃO divulga nota numérica por critério. Avalie cada competência com um CONCEITO oficial: 'Insuficiente', 'Regular', 'Bom', 'Ótimo' ou 'Excelente'. Calcule também o 'conceito_geral' da redação. Produza um parecer textual detalhado, exatamente como um avaliador experiente da banca faria.`;
+    } else if (rubrica.nota_maxima !== null) {
+      instrucaoNota = `A banca ${rubrica.nome} atribui pontuação oficial na escala de 0 a ${rubrica.nota_maxima}. Avalie cada uma das ${rubrica.competencias.length} competências com uma 'nota' coerente e 'comentario' crítico e fundamentado citando trechos reais. Some as notas para obter a 'nota_final' (de 0 a ${rubrica.nota_maxima}). Calcule também um 'conceito_geral' ('Excelente', 'Ótimo', 'Bom', 'Regular' ou 'Insuficiente'). ${rubrica.exige_proposta_intervencao ? 'Exige proposta de intervenção social.' : 'NÃO exige proposta de intervenção social — valorize a conclusão reflexiva ou síntese dos argumentos.'}`;
       formatoSaida = `{
   "zerada": false,
   "motivo_zeramento": null,
   "competencias": [
-    {"id": 1, "nome": "${rubrica.competencias[0]?.nome || 'Critério 1'}", "conceito": "Bom", "comentario": "..."},
-    {"id": 2, "nome": "${rubrica.competencias[1]?.nome || 'Critério 2'}", "conceito": "Ótimo", "comentario": "..."},
-    {"id": 3, "nome": "${rubrica.competencias[2]?.nome || 'Critério 3'}", "conceito": "Regular", "comentario": "..."},
-    {"id": 4, "nome": "${rubrica.competencias[3]?.nome || 'Critério 4'}", "conceito": "Bom", "comentario": "..."}
+    ${rubrica.competencias.map((c, i) => `{"id": ${c.id}, "nome": "${c.nome}", "nota": ${rubrica.escala_por_competencia || (rubrica.nota_maxima! / rubrica.competencias.length)}, "nota_max": ${rubrica.escala_por_competencia || (rubrica.nota_maxima! / rubrica.competencias.length)}, "comentario": "Comentário detalhado citando o texto..."}`).join(',\n    ')}
+  ],
+  "nota_final": ${rubrica.nota_maxima * 0.8},
+  "conceito_geral": "Ótimo",
+  "pontos_fortes": ["Ponto forte 1", "Ponto forte 2"],
+  "pontos_melhoria": ["Ponto de melhoria 1", "Ponto de melhoria 2"],
+  "parecer_geral": "Parecer aprofundado do corretor da banca..."
+}`;
+    } else {
+      instrucaoNota = `A ${rubrica.nome} avalia cada competência prioritariamente por CONCEITO oficial: 'Insuficiente', 'Regular', 'Bom', 'Ótimo' ou 'Excelente'. Calcule também o 'conceito_geral' da redação e uma nota proporcional estimada. Produza um parecer textual detalhado, exatamente como um avaliador experiente da banca faria.`;
+      formatoSaida = `{
+  "zerada": false,
+  "motivo_zeramento": null,
+  "competencias": [
+    ${rubrica.competencias.map((c, i) => `{"id": ${c.id}, "nome": "${c.nome}", "conceito": "Bom", "comentario": "..."}`).join(',\n    ')}
   ],
   "conceito_geral": "Bom",
   "pontos_fortes": ["Ponto forte 1", "Ponto forte 2"],

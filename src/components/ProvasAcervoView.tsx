@@ -717,19 +717,25 @@ export default function ProvasAcervoView() {
                               const unespData = getUnespYearItem(item.year);
                               return (
                                 <div className="space-y-3">
+                                  {/* 1ª Fase */}
                                   <div className="space-y-1.5 text-left">
                                     <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">
                                       1ª FASE — Conhecimentos Gerais (VUNESP)
                                     </span>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                       <a
                                         href={unespData?.fase1ProvaUrl || getExamLink(vest, item.year)}
+                                        download={unespData?.fase1ProvaUrl?.startsWith('/assets/')}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-amber-500 text-xs font-bold transition-all group/btn"
                                       >
                                         <div className="flex items-center gap-2">
-                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-500" />
+                                          {unespData?.fase1ProvaUrl?.startsWith('/assets/') ? (
+                                            <Download size={13} className="text-amber-500 shrink-0" />
+                                          ) : (
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-500" />
+                                          )}
                                           <span>Caderno 1ª Fase (PDF)</span>
                                         </div>
                                         <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
@@ -737,12 +743,17 @@ export default function ProvasAcervoView() {
                                       {unespData?.fase1GabaritoUrl && (
                                         <a
                                           href={unespData.fase1GabaritoUrl}
+                                          download={unespData.fase1GabaritoUrl.startsWith('/assets/')}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
                                         >
                                           <div className="flex items-center gap-2">
-                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            {unespData.fase1GabaritoUrl.startsWith('/assets/') ? (
+                                              <Download size={13} className="text-emerald-500 shrink-0" />
+                                            ) : (
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            )}
                                             <span>Gabarito Oficial (PDF)</span>
                                           </div>
                                           <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
@@ -750,6 +761,69 @@ export default function ProvasAcervoView() {
                                       )}
                                     </div>
                                   </div>
+
+                                  {/* 2ª Fase */}
+                                  {(unespData?.fase2Cadernos || unespData?.fase2ProvaUrl) && (
+                                    <div className="space-y-1.5 text-left pt-1 border-t border-[var(--border-light)]">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider">
+                                          2ª FASE — Provas Específicas & Redação
+                                        </span>
+                                        {unespData?.fase2Cadernos && (
+                                          <span className="text-[10px] font-bold text-amber-400/90 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                                            {unespData.fase2Cadernos.length} Cadernos
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {unespData?.fase2Cadernos ? (
+                                          unespData.fase2Cadernos.map((cad) => (
+                                            <a
+                                              key={cad.disciplina}
+                                              href={cad.url}
+                                              download
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="flex items-center justify-between p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 hover:border-amber-500 hover:bg-amber-500/20 text-xs font-bold text-amber-300 transition-all group/btn"
+                                            >
+                                              <div className="flex items-center gap-2 truncate">
+                                                <Download size={12} className="text-amber-400 shrink-0" />
+                                                <span className="truncate">{cad.disciplina}</span>
+                                              </div>
+                                              <ExternalLink size={10} className="opacity-60 group-hover/btn:opacity-100 shrink-0 ml-1" />
+                                            </a>
+                                          ))
+                                        ) : unespData?.fase2ProvaUrl ? (
+                                          <a
+                                            href={unespData.fase2ProvaUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-amber-500 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-500" />
+                                              <span>Prova 2ª Fase (PDF)</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                          </a>
+                                        ) : null}
+                                        {unespData?.fase2GabaritoUrl && (
+                                          <a
+                                            href={unespData.fase2GabaritoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                              <span>Gabarito 2ª Fase</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}
@@ -797,23 +871,24 @@ export default function ProvasAcervoView() {
                             {/* IME Cadernos */}
                             {isIme && (() => {
                               const imeData = getImeYearItem(item.year);
+                              const provaUrl = imeData?.fase1.provaUrl || getExamLink(vest, item.year);
                               return (
-                                <div className="space-y-1.5 text-left">
+                                <div className="space-y-2 text-left">
                                   <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
                                     1ª FASE — Prova Objetiva
                                   </span>
                                   <div className="grid grid-cols-2 gap-2">
                                     <a
-                                      href={imeData?.fase1.provaUrl || getExamLink(vest, item.year)}
+                                      href={provaUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-emerald-500 text-xs font-bold transition-all group/btn"
                                     >
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-2 truncate">
                                         <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
-                                        <span>Prova Objetiva (PDF)</span>
+                                        <span className="truncate">Prova Objetiva (PDF)</span>
                                       </div>
-                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-1" />
                                     </a>
                                     {imeData?.fase1.gabaritoUrl && (
                                       <a
@@ -822,50 +897,157 @@ export default function ProvasAcervoView() {
                                         rel="noopener noreferrer"
                                         className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
                                       >
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 truncate">
                                           <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
-                                          <span>Gabarito Oficial (PDF)</span>
+                                          <span className="truncate">Gabarito Oficial (PDF)</span>
                                         </div>
-                                        <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                        <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-1" />
                                       </a>
                                     )}
                                   </div>
+
+                                  {/* 2ª Fase if available */}
+                                  {imeData?.fase2?.discursivas && imeData.fase2.discursivas.length > 0 && (
+                                    <div className="space-y-1.5 pt-1 border-t border-[var(--border-light)]">
+                                      <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
+                                        2ª FASE — Provas Discursivas
+                                      </span>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {imeData.fase2.discursivas.map(disc => (
+                                          <a
+                                            key={disc.nome}
+                                            href={disc.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-emerald-500 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-1.5 truncate">
+                                              <span className={`w-2 h-2 rounded-full shrink-0 ${disc.isGabarito ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                                              <span className="truncate">{disc.nome}</span>
+                                            </div>
+                                            <ExternalLink size={9} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-1" />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}
 
                             {/* ITA Cadernos */}
                             {isIta && (
-                              <div className="space-y-1.5 text-left">
+                              <div className="space-y-2 text-left">
                                 <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">
-                                  CADERNOS OFICIAIS ITA
+                                  CADERNOS OFICIAIS ITA {item.year}
                                 </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <a
-                                    href={getItaExamLink(item.year, '1')}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-blue-500 text-xs font-bold transition-all group/btn"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500" />
-                                      <span>Prova Oficial (PDF)</span>
+                                {item.year === '2027' ? (
+                                  <div className="space-y-2">
+                                    <a
+                                      href={getItaExamLink('2027', '1')}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-blue-500 text-xs font-bold transition-all group/btn"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500" />
+                                        <span>1ª Fase — Prova Objetiva 2027 (PDF)</span>
+                                      </div>
+                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                    </a>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <a
+                                        href={getItaExamLink('2027', '2', 'Matemática')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-amber-500 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2 truncate">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-400" />
+                                          <span className="truncate">2ª Fase Matemática (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-1" />
+                                      </a>
+                                      <a
+                                        href={getItaExamLink('2027', '2', 'Química')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-emerald-500 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2 truncate">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                          <span className="truncate">2ª Fase Química (PDF)</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-1" />
+                                      </a>
                                     </div>
-                                    <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
-                                  </a>
-                                  <a
-                                    href={getItaExamLink(item.year, 'gabarito')}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
-                                      <span>Gabarito Oficial (PDF)</span>
+                                  </div>
+                                ) : (['2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010', '2009'].includes(item.year)) ? (
+                                  <div className="space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {[
+                                        { name: 'Física', dot: 'bg-sky-500' },
+                                        { name: 'Português', dot: 'bg-purple-500' },
+                                        { name: 'Inglês', dot: 'bg-rose-500' },
+                                        { name: 'Matemática', dot: 'bg-amber-400' },
+                                        { name: 'Química', dot: 'bg-emerald-500' },
+                                      ].map((m) => (
+                                        <a
+                                          key={`ita-${item.year}-${m.name}`}
+                                          href={getItaExamLink(item.year, 'unica', m.name)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-blue-500 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 truncate">
+                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${m.dot}`} />
+                                            <span className="truncate">Caderno {m.name}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-1" />
+                                        </a>
+                                      ))}
+                                      <a
+                                        href={getItaExamLink(item.year, 'gabarito')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2 truncate">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                          <span className="truncate">Gabarito Oficial</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-1" />
+                                      </a>
                                     </div>
-                                    <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
-                                  </a>
-                                </div>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <a
+                                      href={getItaExamLink(item.year, '1')}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-blue-500 text-xs font-bold transition-all group/btn"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500" />
+                                        <span>Prova Oficial (PDF)</span>
+                                      </div>
+                                      <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                    </a>
+                                    <a
+                                      href={getItaExamLink(item.year, 'gabarito')}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                        <span>Gabarito Oficial (PDF)</span>
+                                      </div>
+                                      <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                    </a>
+                                  </div>
+                                )}
                               </div>
                             )}
 

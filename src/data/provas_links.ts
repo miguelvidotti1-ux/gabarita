@@ -115,8 +115,16 @@ export const PROVAS_LINKS: Record<string, string> = {
   "ENEM_2010_2_Azul": "https://download.inep.gov.br/educacao_basica/enem/provas/2010/dia2_caderno7_azul.pdf",
   "ENEM_2010_2_Amarelo": "https://download.inep.gov.br/educacao_basica/enem/provas/2010/dia2_caderno5_amarelo.pdf",
   "FUVEST_2025_1_Branco": "https://www.fuvest.br/wp-content/uploads/fuvest_2025_primeira_fase.pdf",
-  // --- ITA (18 Anos: 2009 a 2026) ---
-  // Formato 2 Fases (2019 a 2026)
+  // --- ITA (2009 a 2027) ---
+  // Formato 2 Fases (2019 a 2027)
+  // 2027: 1ª Fase e 2ª Fase (Matemática e Química)
+  "ITA_2027_1_Prova": "https://www.vestibular.ita.br/provas/2027_fase1.pdf",
+  "ITA_2027_1_fase": "https://www.vestibular.ita.br/provas/2027_fase1.pdf",
+  "ITA_2027_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2027_2f.pdf",
+  "ITA_2027_Matemática": "https://www.vestibular.ita.br/provas/matematica_2027_2f.pdf",
+  "ITA_2027_2_Química": "https://www.vestibular.ita.br/provas/quimica_2027_2f.pdf",
+  "ITA_2027_Química": "https://www.vestibular.ita.br/provas/quimica_2027_2f.pdf",
+
   // 2026: 2ª Fase com Matemática, Física, Química e Português
   "ITA_2026_1_Prova": "https://www.vestibular.ita.br/provas/2026_fase1.pdf",
   "ITA_2026_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2026_2f.pdf",
@@ -354,7 +362,248 @@ export const PROVAS_LINKS: Record<string, string> = {
   "ITA_2012_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2012.pdf",
   "ITA_2012_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2012.pdf",
   "ITA_2012_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2012.pdf",
-  "ITA_2011_unica_Prova": "https://www.vestibular.ita.br/provas/2011_prova.pdf",
-  "ITA_2010_unica_Prova": "https://www.vestibular.ita.br/provas/2010_prova.pdf",
-  "ITA_2009_unica_Prova": "https://www.vestibular.ita.br/provas/2009_prova.pdf"
+  // 2011: Provas por matéria (Física, Português, Inglês, Matemática, Química)
+  "ITA_2011_Física": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
+  "ITA_2011_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
+  "ITA_2011_2_Física": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
+  "ITA_2011_Fisica": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
+  "ITA_2011_unica_Fisica": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
+
+  "ITA_2011_Português": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
+  "ITA_2011_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
+  "ITA_2011_2_Português": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
+  "ITA_2011_Portugues": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
+  "ITA_2011_unica_Portugues": "https://www.vestibular.ita.br/provas/portugues_2011.pdf",
+
+  "ITA_2011_Inglês": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
+  "ITA_2011_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
+  "ITA_2011_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
+  "ITA_2011_Ingles": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
+  "ITA_2011_unica_Ingles": "https://www.vestibular.ita.br/provas/ingles_2011.pdf",
+
+  "ITA_2011_Matemática": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
+  "ITA_2011_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
+  "ITA_2011_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
+  "ITA_2011_Matematica": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
+  "ITA_2011_unica_Matematica": "https://www.vestibular.ita.br/provas/matematica_2011.pdf",
+
+  "ITA_2011_Química": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
+  "ITA_2011_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
+  "ITA_2011_2_Química": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
+  "ITA_2011_Quimica": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
+  "ITA_2011_unica_Quimica": "https://www.vestibular.ita.br/provas/quimica_2011.pdf",
+
+  "ITA_2011_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2011.pdf",
+  "ITA_2011_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2011.pdf",
+  "ITA_2011_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2011.pdf",
+
+  // 2010: Provas por matéria (Física, Português, Inglês, Matemática, Química)
+  "ITA_2010_Física": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
+  "ITA_2010_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
+  "ITA_2010_2_Física": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
+  "ITA_2010_Fisica": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
+  "ITA_2010_unica_Fisica": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
+
+  "ITA_2010_Português": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
+  "ITA_2010_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
+  "ITA_2010_2_Português": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
+  "ITA_2010_Portugues": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
+  "ITA_2010_unica_Portugues": "https://www.vestibular.ita.br/provas/portugues_2010.pdf",
+
+  "ITA_2010_Inglês": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
+  "ITA_2010_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
+  "ITA_2010_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
+  "ITA_2010_Ingles": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
+  "ITA_2010_unica_Ingles": "https://www.vestibular.ita.br/provas/ingles_2010.pdf",
+
+  "ITA_2010_Matemática": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
+  "ITA_2010_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
+  "ITA_2010_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
+  "ITA_2010_Matematica": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
+  "ITA_2010_unica_Matematica": "https://www.vestibular.ita.br/provas/matematica_2010.pdf",
+
+  "ITA_2010_Química": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
+  "ITA_2010_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
+  "ITA_2010_2_Química": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
+  "ITA_2010_Quimica": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
+  "ITA_2010_unica_Quimica": "https://www.vestibular.ita.br/provas/quimica_2010.pdf",
+
+  "ITA_2010_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2010.pdf",
+  "ITA_2010_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2010.pdf",
+  "ITA_2010_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2010.pdf",
+
+  // 2009: Provas por matéria (Física, Português, Inglês, Matemática, Química)
+  "ITA_2009_Física": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
+  "ITA_2009_unica_Física": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
+  "ITA_2009_2_Física": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
+  "ITA_2009_Fisica": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
+  "ITA_2009_unica_Fisica": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
+
+  "ITA_2009_Português": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
+  "ITA_2009_unica_Português": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
+  "ITA_2009_2_Português": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
+  "ITA_2009_Portugues": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
+  "ITA_2009_unica_Portugues": "https://www.vestibular.ita.br/provas/portugues_2009.pdf",
+
+  "ITA_2009_Inglês": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
+  "ITA_2009_unica_Inglês": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
+  "ITA_2009_2_Inglês": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
+  "ITA_2009_Ingles": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
+  "ITA_2009_unica_Ingles": "https://www.vestibular.ita.br/provas/ingles_2009.pdf",
+
+  "ITA_2009_Matemática": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
+  "ITA_2009_unica_Matemática": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
+  "ITA_2009_2_Matemática": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
+  "ITA_2009_Matematica": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
+  "ITA_2009_unica_Matematica": "https://www.vestibular.ita.br/provas/matematica_2009.pdf",
+
+  "ITA_2009_Química": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
+  "ITA_2009_unica_Química": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
+  "ITA_2009_2_Química": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
+  "ITA_2009_Quimica": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
+  "ITA_2009_unica_Quimica": "https://www.vestibular.ita.br/provas/quimica_2009.pdf",
+
+  "ITA_2009_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2009.pdf",
+  "ITA_2009_unica_Gabarito": "https://www.vestibular.ita.br/provas/gabarito_2009.pdf",
+  "ITA_2009_unica_Prova": "https://www.vestibular.ita.br/provas/fisica_2009.pdf",
+
+  // --- UNESP (VUNESP) ACERVO LOCAL ---
+  "UNESP_2020_1_Prova": "/assets/aistudio/unesp_caderno_de_questoes_prova_de_conhecimentos_gerais_15_nov_2019__v1_6f85d56a.pdf",
+  "UNESP_2020_1_Gabarito": "/assets/aistudio/unesp_gabarito_prova_de_conhecimentos_gerais_15_nov_2019__v1_570623fc.pdf",
+  "UNESP_2020_2_Humanas": "/assets/aistudio/unesp-2a-fase-2020-caderno_ciencias_humanas_b8770a34.pdf",
+  "UNESP_2020_2_Natureza_Matematica": "/assets/aistudio/unesp-2a-fase-2020-caderno_ciencias_natur_matem_4c8f2c55.pdf",
+  "UNESP_2020_2_Linguagens": "/assets/aistudio/unesp-2a-fase-2020-caderno-linguagens_23bb3b48.pdf",
+
+  "UNESP_2019_1_Prova": "/assets/aistudio/caderno-cg-1a-fase-versao-1-2019_dbeba965.pdf",
+  "UNESP_2019_1_Gabarito": "/assets/aistudio/gabarito-cg-1a-fase-versao-1-2019_4d9f3c51.pdf",
+  "UNESP_2019_2_Humanas": "/assets/aistudio/2fase_caderno_ci_humanas_a371e8f5.pdf",
+  "UNESP_2019_2_Natureza_Matematica": "/assets/aistudio/2fase_caderno_c_natureza_e_matematica_395599e1.pdf",
+  "UNESP_2019_2_Linguagens": "/assets/aistudio/2fase_caderno_linguagens_d8965cee.pdf",
+
+  // --- IME (Instituto Militar de Engenharia) ---
+  // 2026/2027
+  "IME_2026/2027_1_Prova": "https://inscricoes.ime.eb.br/documentos/Prova_Objetiva.pdf",
+  "IME_2026_2027_1_Prova": "https://inscricoes.ime.eb.br/documentos/Prova_Objetiva.pdf",
+  "IME_2027_1_Prova": "https://inscricoes.ime.eb.br/documentos/Prova_Objetiva.pdf",
+  "IME_2026/2027_Prova": "https://inscricoes.ime.eb.br/documentos/Prova_Objetiva.pdf",
+  "IME_2027_Prova": "https://inscricoes.ime.eb.br/documentos/Prova_Objetiva.pdf",
+
+  // 2025/2026
+  "IME_2025/2026_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2025-2026/Prova1fase2025OBJETIVA.pdf",
+  "IME_2025_2026_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2025-2026/Prova1fase2025OBJETIVA.pdf",
+  "IME_2026_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2025-2026/Prova1fase2025OBJETIVA.pdf",
+  "IME_2025/2026_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2025-2026/Prova1fase2025OBJETIVA.pdf",
+  "IME_2026_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2025-2026/Prova1fase2025OBJETIVA.pdf",
+
+  // 2024/2025
+  "IME_2024/2025_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2024-2025/CFG_Objetiva_24_25.pdf",
+  "IME_2024_2025_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2024-2025/CFG_Objetiva_24_25.pdf",
+  "IME_2025_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2024-2025/CFG_Objetiva_24_25.pdf",
+  "IME_2024/2025_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2024-2025/CFG_Objetiva_24_25.pdf",
+  "IME_2025_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2024-2025/CFG_Objetiva_24_25.pdf",
+
+  // 2023/2024
+  "IME_2023/2024_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2023-2024/Prova_Objetiva_1_FASE.pdf",
+  "IME_2023_2024_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2023-2024/Prova_Objetiva_1_FASE.pdf",
+  "IME_2024_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2023-2024/Prova_Objetiva_1_FASE.pdf",
+  "IME_2023/2024_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2023-2024/Prova_Objetiva_1_FASE.pdf",
+  "IME_2024_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2023-2024/Prova_Objetiva_1_FASE.pdf",
+
+  // 2022/2023
+  "IME_2022/2023_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/provaobjetiva2022.pdf",
+  "IME_2022_2023_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/provaobjetiva2022.pdf",
+  "IME_2023_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/provaobjetiva2022.pdf",
+  "IME_2022/2023_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/provaobjetiva2022.pdf",
+  "IME_2023_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/provaobjetiva2022.pdf",
+
+  // 2021/2022
+  "IME_2021/2022_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/CFG1fase2021.pdf",
+  "IME_2021_2022_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/CFG1fase2021.pdf",
+  "IME_2022_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/CFG1fase2021.pdf",
+  "IME_2021/2022_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/CFG1fase2021.pdf",
+  "IME_2022_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/CFG1fase2021.pdf",
+
+  // 2020/2021
+  "IME_2020/2021_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1_FASE.pdf",
+  "IME_2020_2021_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1_FASE.pdf",
+  "IME_2021_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1_FASE.pdf",
+  "IME_2020/2021_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1_FASE.pdf",
+  "IME_2021_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1_FASE.pdf",
+
+  // 2019/2020
+  "IME_2019/2020_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/CFG_PROVA_OBJETIVA_2019_20.pdf",
+  "IME_2019_2020_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/CFG_PROVA_OBJETIVA_2019_20.pdf",
+  "IME_2020_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/CFG_PROVA_OBJETIVA_2019_20.pdf",
+  "IME_2019/2020_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/CFG_PROVA_OBJETIVA_2019_20.pdf",
+  "IME_2020_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/CFG_PROVA_OBJETIVA_2019_20.pdf",
+
+  // 2018/2019
+  "IME_2018/2019_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/CFG_Prova_Objetiva_2018_2019.pdf",
+  "IME_2018_2019_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/CFG_Prova_Objetiva_2018_2019.pdf",
+  "IME_2019_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/CFG_Prova_Objetiva_2018_2019.pdf",
+  "IME_2018/2019_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/CFG_Prova_Objetiva_2018_2019.pdf",
+  "IME_2019_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/CFG_Prova_Objetiva_2018_2019.pdf",
+
+  // 2017/2018
+  "IME_2017/2018_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/CFG_Prova_Objetiva_2017_2018.pdf",
+  "IME_2017_2018_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/CFG_Prova_Objetiva_2017_2018.pdf",
+  "IME_2018_1_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/CFG_Prova_Objetiva_2017_2018.pdf",
+  "IME_2017/2018_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/CFG_Prova_Objetiva_2017_2018.pdf",
+  "IME_2018_Prova": "https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/CFG_Prova_Objetiva_2017_2018.pdf",
+
+  // 2016/2017
+  "IME_2016/2017_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas16_17/CFG-Objetiva-2016-2017.pdf",
+  "IME_2016_2017_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas16_17/CFG-Objetiva-2016-2017.pdf",
+  "IME_2017_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas16_17/CFG-Objetiva-2016-2017.pdf",
+  "IME_2016/2017_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas16_17/CFG-Objetiva-2016-2017.pdf",
+  "IME_2017_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas16_17/CFG-Objetiva-2016-2017.pdf",
+
+  // 2015/2016
+  "IME_2015/2016_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas15_16/CFG-Objetiva-2015-2016.pdf",
+  "IME_2015_2016_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas15_16/CFG-Objetiva-2015-2016.pdf",
+  "IME_2016_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas15_16/CFG-Objetiva-2015-2016.pdf",
+  "IME_2015/2016_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas15_16/CFG-Objetiva-2015-2016.pdf",
+  "IME_2016_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas15_16/CFG-Objetiva-2015-2016.pdf",
+
+  // 2014/2015
+  "IME_2014/2015_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas14_15/CFG-Objetiva-2014-2015.pdf",
+  "IME_2014_2015_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas14_15/CFG-Objetiva-2014-2015.pdf",
+  "IME_2015_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas14_15/CFG-Objetiva-2014-2015.pdf",
+  "IME_2014/2015_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas14_15/CFG-Objetiva-2014-2015.pdf",
+  "IME_2015_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas14_15/CFG-Objetiva-2014-2015.pdf",
+
+  // 2013/2014
+  "IME_2013/2014_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas13_14/CFG-Objetiva-2013-2014.pdf",
+  "IME_2013_2014_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas13_14/CFG-Objetiva-2013-2014.pdf",
+  "IME_2014_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas13_14/CFG-Objetiva-2013-2014.pdf",
+  "IME_2013/2014_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas13_14/CFG-Objetiva-2013-2014.pdf",
+  "IME_2014_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas13_14/CFG-Objetiva-2013-2014.pdf",
+
+  // 2012/2013
+  "IME_2012/2013_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Provas_Objetivas_CFG.pdf",
+  "IME_2012_2013_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Provas_Objetivas_CFG.pdf",
+  "IME_2013_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Provas_Objetivas_CFG.pdf",
+  "IME_2012/2013_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Provas_Objetivas_CFG.pdf",
+  "IME_2013_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Provas_Objetivas_CFG.pdf",
+
+  // 2011/2012
+  "IME_2011/2012_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas11_12/ProvaObjetiva_CA_CFG_2011_2012.pdf",
+  "IME_2011_2012_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas11_12/ProvaObjetiva_CA_CFG_2011_2012.pdf",
+  "IME_2012_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas11_12/ProvaObjetiva_CA_CFG_2011_2012.pdf",
+  "IME_2011/2012_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas11_12/ProvaObjetiva_CA_CFG_2011_2012.pdf",
+  "IME_2012_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas11_12/ProvaObjetiva_CA_CFG_2011_2012.pdf",
+
+  // 2010/2011
+  "IME_2010/2011_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas10_11/Objetiva.pdf",
+  "IME_2010_2011_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas10_11/Objetiva.pdf",
+  "IME_2011_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas10_11/Objetiva.pdf",
+  "IME_2010/2011_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas10_11/Objetiva.pdf",
+  "IME_2011_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas10_11/Objetiva.pdf",
+
+  // 2009/2010
+  "IME_2009/2010_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas09_10/Objetiva_Final_Formato_A3_02-10.pdf",
+  "IME_2009_2010_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas09_10/Objetiva_Final_Formato_A3_02-10.pdf",
+  "IME_2010_1_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas09_10/Objetiva_Final_Formato_A3_02-10.pdf",
+  "IME_2009/2010_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas09_10/Objetiva_Final_Formato_A3_02-10.pdf",
+  "IME_2010_Prova": "https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas09_10/Objetiva_Final_Formato_A3_02-10.pdf"
 };

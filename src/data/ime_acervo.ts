@@ -20,6 +20,17 @@ export interface ImeConcursoItem {
 }
 
 export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
+  // 2026/2027
+  {
+    concurso: '2026/2027',
+    anoIngresso: 2027,
+    fase1: {
+      provaUrl: 'https://inscricoes.ime.eb.br/documentos/Prova_Objetiva.pdf'
+    },
+    fase2: {
+      discursivas: []
+    }
+  },
   // 2025/2026
   {
     concurso: '2025/2026',
@@ -79,7 +90,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2022/2023',
     anoIngresso: 2023,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/Prova_1_FASE_CACFG_2022_2023.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/provaobjetiva2022.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2022-2023/GABARITO_FINAL_1_FASE_CACFG_2022_2023.pdf'
     },
     fase2: {
@@ -97,7 +108,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2021/2022',
     anoIngresso: 2022,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/PROVA_OBJETIVA_CA_CFG_2021_2022.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/CFG1fase2021.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2021-2022/GABARITO_DEFINITIVO_PROVA_OBJETIVA_CA_CFG_2021_2022.pdf'
     },
     fase2: {
@@ -115,7 +126,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2020/2021',
     anoIngresso: 2021,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1a_Fase_CFG_2020_2021.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Prova_Objetiva_1_FASE.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2020-2021/Gabarito_Definitivo_Prova_Objetiva_1a_Fase_CFG_2020_2021.pdf'
     },
     fase2: {
@@ -133,7 +144,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2019/2020',
     anoIngresso: 2020,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/prova_objetiva_cfg_2019_2020.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/CFG_PROVA_OBJETIVA_2019_20.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2019-2020/gabarito_definitivo_prova_objetiva_cfg_2019_2020.pdf'
     },
     fase2: {
@@ -151,7 +162,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2018/2019',
     anoIngresso: 2019,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/prova_objetiva_cfg_2018_2019.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/CFG_Prova_Objetiva_2018_2019.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2018-2019/gabarito_definitivo_objetiva_cfg_2018_2019.pdf'
     },
     fase2: {
@@ -169,7 +180,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2017/2018',
     anoIngresso: 2018,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2017-2018/Prova_Objetiva_CFG_2017_2018.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/CFG_Prova_Objetiva_2017_2018.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2017-2018/Gabarito_Definitivo_Objetiva_CFG_2017_2018.pdf'
     },
     fase2: {
@@ -187,7 +198,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2016/2017',
     anoIngresso: 2017,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2016-2017/prova_objetiva_cfg_2016_2017.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas16_17/CFG-Objetiva-2016-2017.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2016-2017/gabarito_definitivo_objetiva_cfg_2016_2017.pdf'
     },
     fase2: {
@@ -205,7 +216,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2015/2016',
     anoIngresso: 2016,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2015-2016/prova_objetiva_cfg_2015_2016.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas15_16/CFG-Objetiva-2015-2016.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2015-2016/gabarito_definitivo_objetiva_cfg_2015_2016.pdf'
     },
     fase2: {
@@ -223,7 +234,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2014/2015',
     anoIngresso: 2015,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2014-2015/prova_objetiva_cfg_2014_2015.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas14_15/CFG-Objetiva-2014-2015.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2014-2015/gabarito_definitivo_objetiva_cfg_2014_2015.pdf'
     },
     fase2: {
@@ -241,7 +252,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2013/2014',
     anoIngresso: 2014,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2013-2014/prova_objetiva_cfg_2013_2014.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas13_14/CFG-Objetiva-2013-2014.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/images/arquivos/admissao/cfg/provas-anteriores/2013-2014/gabarito_definitivo_objetiva_cfg_2013_2014.pdf'
     },
     fase2: {
@@ -259,7 +270,7 @@ export const IME_ACERVO_TABLE: ImeConcursoItem[] = [
     concurso: '2012/2013',
     anoIngresso: 2013,
     fase1: {
-      provaUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Prova_Objetiva_CFG_2012_2013.pdf',
+      provaUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Provas_Anteriores/provas12_13/Provas_Objetivas_CFG.pdf',
       gabaritoUrl: 'https://www.ime.eb.mil.br/arquivos/Admissao/Vestibular_CFG/Resultados/2012-2013/gabarito_definitivo_objetiva_2012_2013.pdf'
     },
     fase2: {

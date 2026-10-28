@@ -98,11 +98,16 @@ export default function UnespAcervoTable({ onSelectYear }: Props) {
                     {item.fase1ProvaUrl ? (
                       <a
                         href={item.fase1ProvaUrl}
+                        download
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/25 transition-all"
                       >
-                        <FileText size={12} />
+                        {item.fase1ProvaUrl.startsWith('/assets/') ? (
+                          <Download size={12} className="text-amber-400" />
+                        ) : (
+                          <FileText size={12} />
+                        )}
                         <span>Caderno 1ª F</span>
                         <ExternalLink size={10} />
                       </a>
@@ -115,11 +120,16 @@ export default function UnespAcervoTable({ onSelectYear }: Props) {
                     {item.fase1GabaritoUrl ? (
                       <a
                         href={item.fase1GabaritoUrl}
+                        download
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25 transition-all"
                       >
-                        <CheckCircle2 size={12} />
+                        {item.fase1GabaritoUrl.startsWith('/assets/') ? (
+                          <Download size={12} className="text-emerald-400" />
+                        ) : (
+                          <CheckCircle2 size={12} />
+                        )}
                         <span>Gabarito Oficial</span>
                         <ExternalLink size={10} />
                       </a>
@@ -130,30 +140,50 @@ export default function UnespAcervoTable({ onSelectYear }: Props) {
 
                   <td className="py-3.5 px-4">
                     <div className="flex flex-col gap-1 items-start">
-                      {item.fase2ProvaUrl && (
-                        <a
-                          href={item.fase2ProvaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:underline"
-                        >
-                          <FileText size={11} />
-                          <span>Prova 2ª Fase</span>
-                        </a>
-                      )}
-                      {item.fase2GabaritoUrl && (
-                        <a
-                          href={item.fase2GabaritoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-300 hover:underline"
-                        >
-                          <CheckCircle2 size={11} />
-                          <span>Gabarito 2ª F</span>
-                        </a>
-                      )}
-                      {!item.fase2ProvaUrl && !item.fase2GabaritoUrl && (
-                        <span className="text-[var(--text-label)] italic text-[11px]">No pacote ZIP / Portal</span>
+                      {item.fase2Cadernos && item.fase2Cadernos.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {item.fase2Cadernos.map((cad) => (
+                            <a
+                              key={cad.disciplina}
+                              href={cad.url}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
+                            >
+                              <Download size={10} className="text-amber-400 shrink-0" />
+                              <span className="truncate">{cad.disciplina}</span>
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <>
+                          {item.fase2ProvaUrl && (
+                            <a
+                              href={item.fase2ProvaUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:underline"
+                            >
+                              <FileText size={11} />
+                              <span>Prova 2ª Fase</span>
+                            </a>
+                          )}
+                          {item.fase2GabaritoUrl && (
+                            <a
+                              href={item.fase2GabaritoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-300 hover:underline"
+                            >
+                              <CheckCircle2 size={11} />
+                              <span>Gabarito 2ª F</span>
+                            </a>
+                          )}
+                          {!item.fase2ProvaUrl && !item.fase2GabaritoUrl && (
+                            <span className="text-[var(--text-label)] italic text-[11px]">No pacote ZIP / Portal</span>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

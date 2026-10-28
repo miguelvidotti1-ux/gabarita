@@ -71,10 +71,34 @@ async function generateQuestionsInternal(
   return res.json();
 }
 
+export interface GenerateEssayThemeOptions {
+  baseTheme?: string;
+  similarTo?: string;
+  thematicAxis?: string;
+}
+
+export interface GeneratedEssayThemeResult {
+  theme: string;
+  eixo?: string;
+  justificativa?: string;
+  similares?: string[];
+  isFallback?: boolean;
+}
+
 export async function generateEssayTheme(
   vestibular: Vestibular,
-  previousThemes: { year: number | string; theme: string }[]
+  previousThemes: { year: number | string; theme: string }[],
+  options?: GenerateEssayThemeOptions
 ): Promise<string> {
+  const result = await generateDetailedEssayTheme(vestibular, previousThemes, options);
+  return result.theme;
+}
+
+export async function generateDetailedEssayTheme(
+  vestibular: Vestibular,
+  previousThemes: { year: number | string; theme: string }[],
+  options?: GenerateEssayThemeOptions
+): Promise<GeneratedEssayThemeResult> {
   const themesContext = previousThemes
     .map((t) => `${t.year}: ${t.theme}`)
     .join("\n");
@@ -83,13 +107,25 @@ export async function generateEssayTheme(
     const res = await fetch('/api/gemini/essay-theme', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vestibular, themesContext }),
+      body: JSON.stringify({
+        vestibular,
+        themesContext,
+        baseTheme: options?.baseTheme,
+        similarTo: options?.similarTo,
+        thematicAxis: options?.thematicAxis
+      }),
     });
 
     if (res.ok) {
       const data = await res.json();
       if (data && data.theme) {
-        return data.theme;
+        return {
+          theme: data.theme,
+          eixo: data.eixo,
+          justificativa: data.justificativa,
+          similares: Array.isArray(data.similares) ? data.similares : [],
+          isFallback: Boolean(data.isFallback)
+        };
       }
     } else {
       console.warn(`[Tema Redação] Status ${res.status} ao contactar API.`);
@@ -111,16 +147,66 @@ export async function generateEssayTheme(
     [Vestibular.FUVEST]: [
       "O papel da dúvida na construção do conhecimento científico contemporâneo",
       "A mercantilização do tempo e do afeto nas sociedades conectadas",
-      "Utopia e distopia: os rumos da imaginação humana no século XXI"
+      "Utopia e distopia: os rumos da imaginação humana no século XXI",
+      "A banalização da memória e a hiperaceleração do esquecimento na era digital"
     ],
     [Vestibular.UNICAMP]: [
       "A linguagem como instrumento de poder e exclusão social no Brasil",
+      "O papel dos arquivos e da memória coletiva na preservação da democracia",
       "A cultura do cancelamento e os limites do debate público na internet"
+    ],
+    [Vestibular.UNESP]: [
+      "A polarização no ambiente virtual e os desafios para o diálogo democrático",
+      "Transição energética e justiça ambiental: dilemas para o desenvolvimento",
+      "A velocidade da inovação tecnológica anula o pensamento crítico humano?",
+      "Inteligência artificial e criatividade: o que resta de exclusivamente humano?"
+    ],
+    [Vestibular.UERJ]: [
+      "A solidariedade social em tempos de crise e o papel das instituições públicas",
+      "A busca pela igualdade em sociedades historicamente desiguais",
+      "A dignidade humana diante da burocracia e do abandono institucional"
+    ],
+    [Vestibular.ITA]: [
+      "Os limites éticos da inteligência artificial militar e a soberania aeroespacial",
+      "A tecnociência como vetor de autonomia ou dependência geopolítica das nações",
+      "A responsabilidade social e moral do engenheiro diante de catástrofes climáticas"
+    ],
+    [Vestibular.IME]: [
+      "O papel da engenharia militar e da inovação autóctone na defesa da soberania nacional",
+      "Cibersegurança e proteção de infraestruturas críticas em um mundo hiperconectado",
+      "A corrida espacial contemporânea: cooperação pacífica ou militarização orbital?"
+    ],
+    [Vestibular.FGV]: [
+      "O impacto da inteligência artificial generativa na produtividade e na desigualdade de renda",
+      "A regulação das plataformas digitais e a preservação da concorrência econômica",
+      "A reforma tributária como instrumento de redistribuição e justiça fiscal no Brasil"
+    ],
+    [Vestibular.MACKENZIE]: [
+      "Cidadania digital, liberdade de expressão e a responsabilidade civil na rede",
+      "O papel da família e da comunidade escolar na formação ética das novas gerações",
+      "Sustentabilidade e consumo consciente: da retórica à prática individual e corporativa"
+    ],
+    [Vestibular.PUC_SP]: [
+      "Justiça restaurativa e os direitos humanos no sistema penal brasileiro",
+      "A precarização do trabalho mediado por aplicativos e a dignidade do trabalhador",
+      "O direito à cidade e a segregação socioespacial nas metrópoles contemporâneas"
+    ],
+    [Vestibular.UNIFESP]: [
+      "Bioética e edição genética: onde residem os limites da intervenção na vida humana?",
+      "A crise de saúde mental entre os jovens e a sobrecarga de desempenho social",
+      "Acesso equitativo a medicamentos de alto custo e a judicialização da saúde no SUS"
     ]
   };
 
   const pool = fallbackThemes[vestibular] || fallbackThemes[Vestibular.ENEM];
-  return pool[Math.floor(Math.random() * pool.length)];
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  return {
+    theme: chosen,
+    eixo: "Eixo Temático Transversal",
+    justificativa: "Tema curricular oficial selecionado do banco da banca.",
+    similares: pool.filter(t => t !== chosen).slice(0, 2),
+    isFallback: true
+  };
 }
 
 export interface StudyMaterial {
