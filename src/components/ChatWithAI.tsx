@@ -11,7 +11,8 @@ import {
   Lightbulb, 
   RotateCcw,
   Plus,
-  ArrowRight
+  ArrowRight,
+  MessageSquare
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { motion } from 'motion/react';
@@ -35,26 +36,31 @@ const SUGGESTED_QUESTIONS = [
   {
     topic: 'Redação',
     icon: '📝',
+    badgeClass: 'bg-rose-50 text-rose-600 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/40',
     text: 'Como estruturar uma proposta de intervenção completa no ENEM?'
   },
   {
     topic: 'Física',
     icon: '⚡',
+    badgeClass: 'bg-indigo-50 text-indigo-600 border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800/40',
     text: 'Explique a conservação da quantidade de movimento com um exemplo prático.'
   },
   {
     topic: 'Química',
     icon: '🧪',
+    badgeClass: 'bg-cyan-50 text-cyan-600 border-cyan-200/80 dark:bg-cyan-950/40 dark:text-cyan-400 dark:border-cyan-800/40',
     text: 'Qual a diferença entre forças intermoleculares e ligações químicas?'
   },
   {
     topic: 'Literatura',
     icon: '📚',
+    badgeClass: 'bg-pink-50 text-pink-600 border-pink-200/80 dark:bg-pink-950/40 dark:text-pink-400 dark:border-pink-800/40',
     text: 'Quais os temas centrais de "Angústia" de Graciliano Ramos?'
   },
   {
     topic: 'Matemática',
     icon: '📐',
+    badgeClass: 'bg-blue-50 text-blue-600 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800/40',
     text: 'Dicas para resolver questões de probabilidade condicional sem se perder.'
   }
 ];
@@ -320,29 +326,110 @@ export default function ChatWithAI() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-2 sm:py-4 px-2 sm:px-4 font-sans">
+    <div className="space-y-6 sm:space-y-8 select-none max-w-7xl mx-auto font-sans transition-colors duration-200">
       
+      {/* HERO BANNER — PADRÃO UNIFICADO (IGUAL ÀS DEMAIS ABAS DO GABARITA) */}
+      <div 
+        style={{ backgroundColor: '#10141d' }}
+        className="p-6 sm:p-8 md:p-10 rounded-3xl border border-[#10141d] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+      >
+        <div className="space-y-3 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <div 
+              style={{ backgroundColor: '#1e3a8a' }}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-blue-500/30 text-xs font-bold uppercase tracking-wider"
+            >
+              <Sparkles size={14} style={{ color: '#b4c5ea' }} />
+              <span style={{ color: '#8ca8f9' }}>Tutor Inteligente de Estudos</span>
+            </div>
+            <div 
+              style={{ backgroundColor: '#1e3a8a' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-blue-500/30 text-xs font-bold"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span style={{ color: '#02fe4a' }}>Online • Respostas Imediatas</span>
+            </div>
+          </div>
+
+          <h1 
+            style={{ color: '#6281cc' }}
+            className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight"
+          >
+            Conversar com IA
+          </h1>
+
+          <p 
+            style={{ color: '#91a6c5' }}
+            className="text-sm sm:text-base leading-relaxed"
+          >
+            Tire dúvidas sobre todas as matérias, resolva questões passo a passo e receba orientações didáticas em tempo real para os vestibulares.
+          </p>
+        </div>
+
+        {/* WIDGET LATERAL — SESSÕES ATIVAS */}
+        <div 
+          style={{ backgroundColor: '#10141d', borderColor: '#10141d' }}
+          className="shrink-0 p-4 rounded-2xl border flex items-center gap-4 shadow-xs"
+        >
+          <div 
+            style={{ backgroundColor: '#10141d' }}
+            className="w-12 h-12 rounded-xl text-blue-400 flex items-center justify-center border border-blue-500/20"
+          >
+            <MessageSquare size={22} />
+          </div>
+          <div>
+            <p 
+              style={{ color: '#dce7f6' }}
+              className="text-[10px] uppercase font-bold tracking-widest"
+            >
+              Conversas Salvas
+            </p>
+            <p className="text-lg font-black text-white flex items-center gap-1.5">
+              {conversas.length} <span className="text-xs text-blue-400 font-bold">{conversas.length === 1 ? 'sessão' : 'sessões'}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* CHAT MAIN CARD */}
-      <div className="flex flex-col h-[750px] max-h-[85vh] bg-white dark:bg-[#15171C] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xl overflow-hidden transition-colors">
+      <div 
+        style={{ backgroundColor: '#10141d', borderColor: '#10141d' }}
+        className="flex flex-col h-[720px] max-h-[82vh] rounded-3xl border shadow-sm overflow-hidden transition-colors"
+      >
         
-        {/* HEADER */}
-        <div className="px-5 sm:px-7 py-4 border-b border-slate-100 dark:border-white/10 bg-slate-50/70 dark:bg-[#181A20] flex items-center justify-between gap-4">
+        {/* HEADER DO CHAT */}
+        <div 
+          style={{ backgroundColor: '#10141d', borderColor: '#10141d' }}
+          className="px-5 sm:px-7 py-4 border-b flex items-center justify-between gap-4"
+        >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600 dark:bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
-              <Sparkles size={20} />
+            <div 
+              style={{ backgroundColor: '#10141d', borderColor: '#1e3a8a' }}
+              className="w-11 h-11 rounded-2xl border flex items-center justify-center shadow-xs shrink-0"
+            >
+              <Sparkles size={20} style={{ color: '#7590d4' }} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                  Conversar com IA
+                <h2 
+                  style={{ color: '#7590d4' }}
+                  className="text-base sm:text-lg font-black tracking-tight"
+                >
+                  Tutor IA • Assistente de Estudos
                 </h2>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
+                <span 
+                  style={{ backgroundColor: '#1e3a8a' }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-blue-500/30 text-[11px] font-bold"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span style={{ color: '#02fe4a' }}>Online</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Tutor inteligente de estudos • Respostas rápidas e didáticas para todas as suas dúvidas
+              <p 
+                style={{ color: '#7b9ac7' }}
+                className="text-xs"
+              >
+                Respostas rápidas, didáticas e detalhadas para qualquer dúvida acadêmica
               </p>
             </div>
           </div>
@@ -351,25 +438,28 @@ export default function ChatWithAI() {
             <button
               type="button"
               onClick={handleClearHistory}
-              title="Apagar conversa ou reiniciar"
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+              title="Apagar conversa ativa"
+              className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition-all cursor-pointer"
             >
-              <RotateCcw size={16} />
+              <RotateCcw size={16} style={{ color: '#ffffff' }} />
             </button>
           </div>
         </div>
 
         {/* TOOLBAR CONV-BAR — GERENCIADOR DE CONVERSAS */}
-        <div className="conv-bar px-4 sm:px-6 py-2.5 border-b border-slate-200/80 dark:border-white/10 bg-slate-100/60 dark:bg-[#121419] flex items-center justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+        <div 
+          style={{ backgroundColor: '#10141d', borderColor: '#000000' }}
+          className="conv-bar px-5 sm:px-7 py-3 border-b flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap"
+        >
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
             <button
               type="button"
               onClick={novaConversa}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm shadow-blue-500/20 transition-all active:scale-95 cursor-pointer shrink-0"
               title="Criar nova conversa"
             >
               <Plus size={14} className="stroke-[2.5]" />
-              <span>＋ Nova conversa</span>
+              <span>Nova conversa</span>
             </button>
 
             <div className="flex-1 min-w-[140px] relative">
@@ -381,13 +471,14 @@ export default function ChatWithAI() {
                   if (val) abrirConversa(val);
                 }}
                 disabled={carregandoConversas}
-                className="w-full bg-white dark:bg-[#1A1D24] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-zinc-200 text-xs rounded-xl px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium cursor-pointer transition-colors shadow-2xs truncate"
+                style={{ color: '#ffffff', backgroundColor: '#10141d' }}
+                className="w-full border border-slate-700/60 hover:border-blue-400 text-xs rounded-xl px-3.5 py-2 outline-none font-semibold cursor-pointer transition-colors shadow-2xs truncate"
               >
                 {conversas.length === 0 ? (
-                  <option value="">Nova conversa (vazia)</option>
+                  <option value="" style={{ backgroundColor: '#10141d', color: '#ffffff' }}>Nova conversa (vazia)</option>
                 ) : (
                   conversas.map((conv) => (
-                    <option key={conv.id} value={conv.id}>
+                    <option key={conv.id} value={conv.id} style={{ backgroundColor: '#10141d', color: '#ffffff' }}>
                       {conv.titulo || 'Nova conversa'} {conv.total_mensagens > 0 ? `(${conv.total_mensagens} msgs)` : ''}
                     </option>
                   ))
@@ -402,7 +493,7 @@ export default function ChatWithAI() {
               onClick={apagarConversaAtual}
               disabled={!activeConversaId || conversas.length === 0}
               title="Apagar conversa atual"
-              className="p-1.5 rounded-xl text-slate-400 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 border border-transparent hover:border-red-200 dark:hover:border-red-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 border border-white/10 hover:border-rose-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <Trash2 size={16} />
             </button>
@@ -410,26 +501,34 @@ export default function ChatWithAI() {
         </div>
 
         {/* MESSAGES VIEWPORT */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-50/40 dark:bg-[#0E1015]">
+        <div 
+          style={{ backgroundColor: '#10141d' }}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5"
+        >
           
-          {/* SUGGESTIONS PILLS WHEN CHAT IS FRESH */}
+          {/* SUGESTÕES DE PERGUNTAS ESTILIZADAS COM AS CORES DAS MATÉRIAS */}
           {messages.length <= 1 && (
-            <div className="mb-4 p-4 rounded-2xl bg-white dark:bg-[#181A20] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-zinc-300">
-                <Lightbulb size={15} className="text-amber-500" />
+            <div 
+              style={{ backgroundColor: '#10141d', borderColor: '#1e2534' }}
+              className="mb-4 p-5 rounded-2xl border shadow-xs space-y-3.5"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                <Lightbulb size={16} className="text-amber-500" />
                 <span>Sugestões de perguntas para começar:</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {SUGGESTED_QUESTIONS.map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSend(item.text)}
-                    className="p-2.5 text-left rounded-xl bg-slate-50 dark:bg-[#20232B] hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/70 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all text-xs text-slate-700 dark:text-zinc-200 flex items-start gap-2 group cursor-pointer"
+                    className="p-3 text-left rounded-xl bg-[#141924] hover:bg-blue-950/40 border border-[#1e2534] hover:border-blue-500/40 transition-all text-xs text-zinc-200 flex items-start gap-2.5 group cursor-pointer"
                   >
-                    <span className="text-sm shrink-0">{item.icon}</span>
-                    <span className="flex-1 line-clamp-2 leading-relaxed">{item.text}</span>
-                    <ArrowRight size={13} className="text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${item.badgeClass}`}>
+                      {item.icon} {item.topic}
+                    </span>
+                    <span className="flex-1 line-clamp-2 leading-relaxed font-medium">{item.text}</span>
+                    <ArrowRight size={14} className="text-slate-400 group-hover:text-blue-400 shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
               </div>
@@ -449,8 +548,11 @@ export default function ChatWithAI() {
               >
                 {/* AI Avatar */}
                 {!isUser && (
-                  <div className="w-8 h-8 rounded-xl bg-blue-600 dark:bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                    <Bot size={16} />
+                  <div 
+                    style={{ backgroundColor: '#10141d', borderColor: '#1e3a8a' }}
+                    className="w-9 h-9 rounded-xl text-blue-400 border flex items-center justify-center shrink-0 shadow-2xs mt-0.5"
+                  >
+                    <Bot size={18} />
                   </div>
                 )}
 
@@ -458,11 +560,12 @@ export default function ChatWithAI() {
                 <div className={`max-w-[85%] sm:max-w-[78%] space-y-1.5 ${isUser ? 'items-end' : 'items-start'}`}>
                   
                   <div
+                    style={!isUser ? { backgroundColor: '#10141d', borderColor: '#10141d' } : undefined}
                     className={`
-                      p-4 rounded-2xl text-xs sm:text-sm leading-relaxed transition-colors relative group
+                      p-4 sm:p-5 rounded-2xl text-xs sm:text-sm leading-relaxed transition-colors relative group
                       ${isUser 
-                        ? 'bg-blue-600 text-white rounded-tr-xs shadow-md shadow-blue-500/10' 
-                        : 'bg-white dark:bg-[#1A1D24] text-slate-800 dark:text-zinc-200 rounded-tl-xs border border-slate-200/80 dark:border-white/10 shadow-xs'
+                        ? 'bg-blue-600 text-white rounded-tr-xs shadow-sm shadow-blue-500/15 font-medium' 
+                        : 'text-white rounded-tl-xs border shadow-xs'
                       }
                     `}
                   >
@@ -470,27 +573,30 @@ export default function ChatWithAI() {
                       <p className="whitespace-pre-wrap">{message.text}</p>
                     ) : (
                       <div className="space-y-2">
-                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-code:text-blue-600 dark:prose-code:text-blue-400">
+                        <div 
+                          style={{ color: '#ffffff' }}
+                          className="prose prose-sm prose-invert max-w-none prose-p:leading-relaxed prose-p:text-white prose-headings:text-white prose-strong:text-white prose-pre:bg-black/60 prose-pre:text-slate-100 prose-code:text-blue-300 font-sans"
+                        >
                           <Markdown>{message.text}</Markdown>
                         </div>
 
                         {/* AI Bubble Action Bar */}
-                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500">
+                        <div className="pt-2 mt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-400">
                           <span>{message.timestamp}</span>
                           <button
                             type="button"
                             onClick={() => handleCopy(message.id, message.text)}
-                            className="inline-flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer px-1.5 py-0.5 rounded"
+                            className="inline-flex items-center gap-1 text-white hover:text-blue-300 hover:bg-white/5 px-2 py-1 rounded-md transition-colors cursor-pointer"
                           >
                             {copiedId === message.id ? (
                               <>
-                                <Check size={11} className="text-emerald-500" />
-                                <span className="text-emerald-500 font-bold">Copiado</span>
+                                <Check size={12} className="text-emerald-400" />
+                                <span className="text-emerald-400 font-bold">Copiado</span>
                               </>
                             ) : (
                               <>
-                                <Copy size={11} />
-                                <span>Copiar</span>
+                                <Copy size={12} style={{ color: '#ffffff' }} />
+                                <span style={{ color: '#ffffff' }}>Copiar</span>
                               </>
                             )}
                           </button>
@@ -500,7 +606,7 @@ export default function ChatWithAI() {
                   </div>
 
                   {isUser && message.timestamp && (
-                    <div className="text-[10px] text-slate-400 dark:text-zinc-500 text-right px-1">
+                    <div className="text-[10px] text-zinc-400 text-right px-1 font-medium">
                       {message.timestamp}
                     </div>
                   )}
@@ -509,8 +615,8 @@ export default function ChatWithAI() {
 
                 {/* User Avatar */}
                 {isUser && (
-                  <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-[#222630] text-slate-700 dark:text-zinc-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <User size={16} />
+                  <div className="w-9 h-9 rounded-xl bg-[#20232B] border border-white/10 text-zinc-300 flex items-center justify-center shrink-0 mt-0.5">
+                    <User size={18} />
                   </div>
                 )}
               </motion.div>
@@ -524,17 +630,23 @@ export default function ChatWithAI() {
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-3"
             >
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5">
-                <Bot size={16} />
+              <div 
+                style={{ backgroundColor: '#10141d', borderColor: '#1e3a8a' }}
+                className="w-9 h-9 rounded-xl text-blue-400 border flex items-center justify-center shrink-0 mt-0.5"
+              >
+                <Bot size={18} />
               </div>
-              <div className="p-4 bg-white dark:bg-[#1A1D24] border border-slate-200/80 dark:border-white/10 rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-3">
+              <div 
+                style={{ backgroundColor: '#10141d', borderColor: '#1e2534' }}
+                className="p-4 border rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-3"
+              >
                 <div className="flex gap-1.5 items-center">
-                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-xs text-slate-500 dark:text-zinc-400">
-                  VestBot formulando resposta...
+                <span className="text-xs font-medium text-zinc-300">
+                  Formulando resposta com IA...
                 </span>
               </div>
             </motion.div>
@@ -544,8 +656,14 @@ export default function ChatWithAI() {
         </div>
 
         {/* INPUT CONTAINER */}
-        <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-[#15171C]">
-          <div className="relative flex items-end gap-2 bg-slate-50 dark:bg-[#1A1D24] border border-slate-300/80 dark:border-white/15 rounded-2xl p-2 focus-within:border-blue-600 dark:focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/15 transition-all">
+        <div 
+          style={{ backgroundColor: '#10141d', borderColor: '#10141d' }}
+          className="p-4 sm:p-5 border-t"
+        >
+          <div 
+            style={{ backgroundColor: '#10141d' }}
+            className="relative flex items-end gap-2 border border-slate-700/60 rounded-2xl p-2 sm:p-2.5 focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/10 transition-all"
+          >
             <textarea
               ref={textareaRef}
               rows={1}
@@ -553,7 +671,8 @@ export default function ChatWithAI() {
               onChange={handleTextareaInput}
               onKeyDown={handleKeyDown}
               placeholder="Digite qualquer dúvida ou use o microfone para falar..."
-              className="flex-1 bg-transparent border-0 resize-none px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-zinc-100 outline-none max-h-32 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
+              style={{ color: '#f9f9f9' }}
+              className="flex-1 bg-transparent border-0 resize-none px-3 py-2 text-xs sm:text-sm outline-none max-h-32 placeholder:text-zinc-500 font-medium"
             />
 
             <AudioTranscriber
@@ -574,7 +693,7 @@ export default function ChatWithAI() {
               type="button"
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
-              className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer shrink-0"
+              className="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-[#1E222B] disabled:text-zinc-600 disabled:border disabled:border-white/10 text-white rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer shrink-0 disabled:shadow-none disabled:cursor-not-allowed"
               title="Enviar mensagem"
             >
               {loading ? (
@@ -585,9 +704,11 @@ export default function ChatWithAI() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-zinc-500 mt-2 px-1">
-            <span>Pressione <strong className="font-semibold text-slate-600 dark:text-zinc-400">Enter</strong> para enviar, <strong className="font-semibold text-slate-600 dark:text-zinc-400">Shift + Enter</strong> para nova linha</span>
-            <span className="hidden sm:inline">IA Gabarita • Respostas didáticas para qualquer dúvida</span>
+          <div className="flex items-center justify-between text-[11px] text-zinc-400 mt-2 px-1">
+            <span>Pressione <strong className="font-semibold text-zinc-300">Enter</strong> para enviar, <strong className="font-semibold text-zinc-300">Shift + Enter</strong> para nova linha</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-950/40 text-blue-400 border border-blue-500/30 font-semibold text-[10px]">
+              <Sparkles size={11} /> Gabarita IA
+            </span>
           </div>
         </div>
 

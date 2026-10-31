@@ -247,25 +247,10 @@ export default function AudioTranscriber({
           <button
             type="button"
             onClick={startRecording}
-            style={{ color: '#aaa5a5', backgroundColor: '#aaa5a5' }}
-            className="p-2 sm:p-2.5 rounded-xl text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all active:scale-95 cursor-pointer"
+            className="p-2.5 rounded-xl text-slate-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 bg-white dark:bg-[#1E222B] hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/80 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all active:scale-95 cursor-pointer shadow-2xs shrink-0"
             title="Gravar áudio pelo microfone e transcrever com IA"
           >
-            <svg 
-              viewBox="0 0 24 24" 
-              width="16" 
-              height="16" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              style={{ borderColor: '#212223' }}
-            >
-              <rect x="9" y="2" width="6" height="11" rx="3" style={{ color: '#090a0a' }} />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" style={{ color: '#0f0f10' }} />
-              <path d="M12 19v4m-4 0h8" style={{ color: '#0f0f10' }} />
-            </svg>
+            <Mic size={16} className="transition-transform group-hover:scale-110" />
           </button>
         )}
 
