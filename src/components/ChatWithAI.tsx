@@ -10,13 +10,11 @@ import {
   Check, 
   Lightbulb, 
   RotateCcw,
-  Zap,
-  HelpCircle,
-  BookOpen,
+  Plus,
   ArrowRight
 } from 'lucide-react';
 import Markdown from 'react-markdown';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import AudioTranscriber from './AudioTranscriber';
 
 interface Message {
@@ -24,6 +22,13 @@ interface Message {
   role: 'user' | 'ai';
   text: string;
   timestamp?: string;
+}
+
+interface ConversaItem {
+  id: number;
+  titulo: string;
+  atualizada_em: string;
+  total_mensagens: number;
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -54,15 +59,19 @@ const SUGGESTED_QUESTIONS = [
   }
 ];
 
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome-msg',
+  role: 'ai',
+  text: 'Olá! Sou o seu **Tutor de IA do Gabarita**. 🎓\n\nEstou à sua disposição para responder a qualquer dúvida: matérias escolares, vestibulares, redação, exercícios, explicações passo a passo ou qualquer outro tema que você quiser explorar.\n\nComo posso te ajudar hoje?',
+  timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+};
+
 export default function ChatWithAI() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome-msg',
-      role: 'ai',
-      text: 'Olá! Sou o seu **Tutor de IA do Gabarita**. 🎓\n\nEstou aqui para tirar dúvidas sobre matérias do ENEM e dos principais vestibulares (FUVEST, UNICAMP, UNESP, etc.), explicar resoluções passo a passo ou dar dicas de redação.\n\nComo posso te ajudar hoje?',
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
+  const [conversas, setConversas] = useState<ConversaItem[]>([]);
+  const [activeConversaId, setActiveConversaId] = useState<number | null>(null);
+  const [carregandoConversas, setCarregandoConversas] = useState(false);
+
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -77,6 +86,116 @@ export default function ChatWithAI() {
     scrollToBottom();
   }, [messages, loading]);
 
+  // Carrega as conversas salvas no início
+  useEffect(() => {
+    carregarConversas();
+  }, []);
+
+  const carregarConversas = async (preferredId?: number) => {
+    try {
+      setCarregandoConversas(true);
+      const res = await fetch('/api/chat/conversas');
+      if (!res.ok) return;
+      const data = await res.json();
+      const list: ConversaItem[] = data.conversas || [];
+      setConversas(list);
+
+      const savedLocal = localStorage.getItem('gabarita_conversa_id');
+      const savedId = preferredId || (savedLocal ? Number(savedLocal) : null);
+
+      if (list.length > 0) {
+        const found = savedId ? list.find(c => c.id === savedId) : null;
+        const targetId = found ? found.id : list[0].id;
+        setActiveConversaId(targetId);
+        localStorage.setItem('gabarita_conversa_id', String(targetId));
+        await abrirConversa(targetId);
+      } else {
+        await novaConversa();
+      }
+    } catch (err) {
+      console.error('Erro ao listar conversas:', err);
+    } finally {
+      setCarregandoConversas(false);
+    }
+  };
+
+  const abrirConversa = async (cid: number) => {
+    try {
+      setActiveConversaId(cid);
+      localStorage.setItem('gabarita_conversa_id', String(cid));
+
+      const res = await fetch(`/api/chat/conversas/${cid}/mensagens`);
+      if (!res.ok) return;
+
+      const data = await res.json();
+      if (data && Array.isArray(data.mensagens)) {
+        if (data.mensagens.length === 0) {
+          setMessages([WELCOME_MESSAGE]);
+        } else {
+          const loaded: Message[] = data.mensagens.map((m: any) => ({
+            id: String(m.id || Math.random()),
+            role: m.role === 'assistant' ? 'ai' : 'user',
+            text: m.content,
+            timestamp: m.data ? new Date(m.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : undefined
+          }));
+          setMessages(loaded);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao carregar mensagens da conversa:', err);
+    }
+  };
+
+  const novaConversa = async () => {
+    try {
+      const res = await fetch('/api/chat/conversas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: 'Nova conversa' })
+      });
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const nova: ConversaItem = {
+        id: data.conversa_id,
+        titulo: data.titulo || 'Nova conversa',
+        atualizada_em: new Date().toISOString(),
+        total_mensagens: 0
+      };
+
+      setConversas(prev => [nova, ...prev.filter(c => c.id !== nova.id)]);
+      setActiveConversaId(nova.id);
+      localStorage.setItem('gabarita_conversa_id', String(nova.id));
+      setMessages([WELCOME_MESSAGE]);
+    } catch (err) {
+      console.error('Erro ao criar nova conversa:', err);
+    }
+  };
+
+  const apagarConversaAtual = async () => {
+    if (!activeConversaId) return;
+
+    try {
+      const cidToDelete = activeConversaId;
+      await fetch(`/api/chat/conversas/${cidToDelete}`, { method: 'DELETE' });
+
+      const restantes = conversas.filter(c => c.id !== cidToDelete);
+      setConversas(restantes);
+
+      if (restantes.length > 0) {
+        const proxima = restantes[0].id;
+        setActiveConversaId(proxima);
+        localStorage.setItem('gabarita_conversa_id', String(proxima));
+        await abrirConversa(proxima);
+      } else {
+        localStorage.removeItem('gabarita_conversa_id');
+        await novaConversa();
+      }
+    } catch (err) {
+      console.error('Erro ao excluir conversa:', err);
+    }
+  };
+
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -84,14 +203,11 @@ export default function ChatWithAI() {
   };
 
   const handleClearHistory = () => {
-    setMessages([
-      {
-        id: 'welcome-reset-' + Date.now(),
-        role: 'ai',
-        text: 'Histórico limpo! Pode me enviar uma nova pergunta quando quiser. 🚀',
-        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
+    if (activeConversaId) {
+      apagarConversaAtual();
+    } else {
+      setMessages([WELCOME_MESSAGE]);
+    }
   };
 
   const handleSend = async (messageToSend?: string) => {
@@ -114,23 +230,52 @@ export default function ChatWithAI() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/gemini/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: text,
-          history: messages.map(m => ({ role: m.role, text: m.text })).slice(-10),
+          pergunta: text,
+          conversa_id: activeConversaId,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || `HTTP error! status: ${response.status}`);
+        throw new Error(data?.erro || data?.error || `HTTP error! status: ${response.status}`);
       }
 
-      const aiResponse = data.text || 'Desculpe, não consegui processar sua dúvida agora.';
+      const aiResponse = data.resposta || data.text || 'Desculpe, não consegui processar sua dúvida agora.';
       
+      // Atualiza ID ativo e salva no localStorage
+      if (data.conversa_id) {
+        setActiveConversaId(data.conversa_id);
+        localStorage.setItem('gabarita_conversa_id', String(data.conversa_id));
+        
+        // Se o backend atualizou o título (da primeira pergunta), reflete na lista
+        if (data.titulo) {
+          setConversas(prev => {
+            const exists = prev.some(c => c.id === data.conversa_id);
+            if (exists) {
+              return prev.map(c => c.id === data.conversa_id 
+                ? { ...c, titulo: data.titulo, total_mensagens: c.total_mensagens + 2 } 
+                : c
+              );
+            } else {
+              return [
+                {
+                  id: data.conversa_id,
+                  titulo: data.titulo,
+                  atualizada_em: new Date().toISOString(),
+                  total_mensagens: 2
+                },
+                ...prev
+              ];
+            }
+          });
+        }
+      }
+
       setMessages(prev => [
         ...prev, 
         { 
@@ -197,7 +342,7 @@ export default function ChatWithAI() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Tutor inteligente de estudos • Respostas rápidas e didáticas
+                Tutor inteligente de estudos • Respostas rápidas e didáticas para todas as suas dúvidas
               </p>
             </div>
           </div>
@@ -206,10 +351,60 @@ export default function ChatWithAI() {
             <button
               type="button"
               onClick={handleClearHistory}
-              title="Limpar histórico de conversa"
+              title="Apagar conversa ou reiniciar"
               className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
             >
               <RotateCcw size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* TOOLBAR CONV-BAR — GERENCIADOR DE CONVERSAS */}
+        <div className="conv-bar px-4 sm:px-6 py-2.5 border-b border-slate-200/80 dark:border-white/10 bg-slate-100/60 dark:bg-[#121419] flex items-center justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+            <button
+              type="button"
+              onClick={novaConversa}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+              title="Criar nova conversa"
+            >
+              <Plus size={14} className="stroke-[2.5]" />
+              <span>＋ Nova conversa</span>
+            </button>
+
+            <div className="flex-1 min-w-[140px] relative">
+              <select
+                id="conv-select"
+                value={activeConversaId ?? ''}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (val) abrirConversa(val);
+                }}
+                disabled={carregandoConversas}
+                className="w-full bg-white dark:bg-[#1A1D24] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-zinc-200 text-xs rounded-xl px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium cursor-pointer transition-colors shadow-2xs truncate"
+              >
+                {conversas.length === 0 ? (
+                  <option value="">Nova conversa (vazia)</option>
+                ) : (
+                  conversas.map((conv) => (
+                    <option key={conv.id} value={conv.id}>
+                      {conv.titulo || 'Nova conversa'} {conv.total_mensagens > 0 ? `(${conv.total_mensagens} msgs)` : ''}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={apagarConversaAtual}
+              disabled={!activeConversaId || conversas.length === 0}
+              title="Apagar conversa atual"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 border border-transparent hover:border-red-200 dark:hover:border-red-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Trash2 size={16} />
             </button>
           </div>
         </div>
@@ -218,7 +413,7 @@ export default function ChatWithAI() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-50/40 dark:bg-[#0E1015]">
           
           {/* SUGGESTIONS PILLS WHEN CHAT IS FRESH */}
-          {messages.length <= 2 && (
+          {messages.length <= 1 && (
             <div className="mb-4 p-4 rounded-2xl bg-white dark:bg-[#181A20] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-zinc-300">
                 <Lightbulb size={15} className="text-amber-500" />
@@ -339,7 +534,7 @@ export default function ChatWithAI() {
                   <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
                 <span className="text-xs text-slate-500 dark:text-zinc-400">
-                  Formulando resposta...
+                  VestBot formulando resposta...
                 </span>
               </div>
             </motion.div>
@@ -357,7 +552,7 @@ export default function ChatWithAI() {
               value={input}
               onChange={handleTextareaInput}
               onKeyDown={handleKeyDown}
-              placeholder="Digite sua dúvida ou use o microfone para falar..."
+              placeholder="Digite qualquer dúvida ou use o microfone para falar..."
               className="flex-1 bg-transparent border-0 resize-none px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-zinc-100 outline-none max-h-32 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             />
 
@@ -392,7 +587,7 @@ export default function ChatWithAI() {
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-zinc-500 mt-2 px-1">
             <span>Pressione <strong className="font-semibold text-slate-600 dark:text-zinc-400">Enter</strong> para enviar, <strong className="font-semibold text-slate-600 dark:text-zinc-400">Shift + Enter</strong> para nova linha</span>
-            <span className="hidden sm:inline">IA Gabarita • Respostas didáticas</span>
+            <span className="hidden sm:inline">IA Gabarita • Respostas didáticas para qualquer dúvida</span>
           </div>
         </div>
 

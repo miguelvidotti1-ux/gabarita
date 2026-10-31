@@ -11,6 +11,7 @@ import {
   REDACAO_TEMPERATURE,
   REDACAO_LIMITE_CARACTERES,
 } from "./server/corretorRedacao";
+import { chatStore } from "./server/chatStore";
 
 async function startServer() {
   const app = express();
@@ -162,172 +163,175 @@ async function startServer() {
     ]
   };
 
-  // ========== SYSTEM PROMPT — RESTRIÇÃO DE TÓPICO VESTBOT ==========
-  const SYSTEM_PROMPT_VESTBOT = `Você é o VestBot, assistente especializado em vestibulares brasileiros.
+  // ========== SYSTEM PROMPT — TUTOR INTELIGENTE / VESTBOT (SEM RESTRIÇÃO DE TÓPICO) ==========
+  const SYSTEM_PROMPT_VESTBOT = `Você é o Tutor de IA do Gabarita (VestBot), um assistente educacional completo, inteligente, prestativo e amigável.
+Você tem liberdade total para responder a qualquer dúvida e pergunta do usuário, sobre todos os temas:
+- Conteúdo acadêmico, matérias escolares e disciplinas (Matemática, Física, Química, Biologia, História, Geografia, Filosofia, Sociologia, Literatura, Português, Inglês, Redação, etc.)
+- Vestibulares brasileiros e exames (ENEM, FUVEST, UNICAMP, UNESP, IME, ITA, UERJ, etc.)
+- Resoluções de questões, explicações passo a passo, resumos e macetes de estudo
+- Temas de ciências, tecnologia, artes, curiosidades gerais e perguntas cotidianas que o usuário fizer
 
-REGRAS ABSOLUTAS:
-1. Você SÓ responde perguntas sobre vestibulares e temas diretamente relacionados.
-2. Se a pergunta NÃO for sobre vestibulares, recuse educadamente.
-3. Nunca invente dados. Se não souber, diga que não tem a informação atualizada.
+DIRETRIZES:
+- Responda prontamente com entusiasmo e sem recusas por tópico.
+- Seja claro, didático, didaticamente estruturado e empático.
+- Use formatação Markdown (negrito, listas, tópicos, código ou fórmulas) sempre que facilitar o entendimento.`;
 
-TÓPICOS PERMITIDOS:
-- Conteúdo programático (matérias, disciplinas, temas que caem)
-- Datas das provas (ENEM, FUVEST, UNICAMP, UNESP, etc.)
-- Sistema de notas (como funciona a nota do ENEM, TRI, etc.)
-- Funcionamento de cada vestibular (fases, formatos, questões)
-- Notas de corte em faculdades (médias mínimas por curso/universidade)
-- Dicas de estudo e preparação para vestibulares
-- Editais, inscrições e regras dos exames
-- Cotas, sisu, fuvest, vagas
-
-RECUSA PADRÃO (use exatamente esta frase):
-"Desculpe, eu só respondo perguntas sobre vestibulares. Posso ajudar com conteúdo das provas, datas, sistema de notas, funcionamento dos exames ou notas de corte. O que você gostaria de saber?"
-
-FORMATO DE RESPOSTA:
-- Seja direto e objetivo
-- Use linguagem acessível para estudantes
-- Cite fontes quando mencionar dados específicos
-- Para notas de corte, sempre diga que valores podem mudar a cada ano
-- Máximo 4 parágrafos por resposta`;
-
-  const RECUSA_PADRAO = "Desculpe, eu só respondo perguntas sobre vestibulares. Posso ajudar com conteúdo das provas, datas, sistema de notas, funcionamento dos exames ou notas de corte. O que você gostaria de saber?";
-
-  // ========== PALAVRAS-CHAVE DE VESTIBULAR ==========
-  const PALAVRAS_CHAVE = [
-    // Exames
-    'enem', 'fuvest', 'unicamp', 'unesp', 'vestibular', 'vestibulares',
-    'fuvesp', 'puc', 'mackenzie', 'fgv', 'ufrj', 'ufmg', 'ufsc', 'ufpr',
-    'ufba', 'ufpe', 'unb', 'ufrgs', 'ufscar',
-    // Processos
-    'sisu', 'prouni', 'fies', 'cotas', 'vagas', 'inscrição', 'inscricao',
-    'edital', 'resultado', 'chamada', 'lista de espera',
-    // Conteúdo
-    'prova', 'questão', 'questao', 'questões', 'questoes', 'gabarito',
-    'redação', 'redacao', 'dissertação', 'dissertacao',
-    'matemática', 'matematica', 'português', 'portugues', 'física', 'fisica',
-    'química', 'quimica', 'biologia', 'história', 'historia', 'geografia',
-    'filosofia', 'sociologia', 'inglês', 'ingles', 'espanhol', 'literatura',
-    'linguagens', 'ciências', 'ciencias', 'humanas', 'natureza',
-    // Notas e avaliação
-    'nota', 'notas', 'nota de corte', 'tri', 'média', 'media', 'médias',
-    'pontuação', 'pontuacao', 'acerto', 'acertos', 'erro', 'erros',
-    'desempenho', 'treineiro', 'treineiros',
-    // Datas e preparação
-    'data', 'datas', 'dia', 'dias', 'calendário', 'calendario',
-    'simulado', 'simulados', 'estudar', 'estudo', 'estudos', 'revisão',
-    'revisao', 'cronograma', 'plano de estudo',
-    // Faculdades e cursos
-    'faculdade', 'faculdades', 'universidade', 'universidades',
-    'curso', 'cursos', 'medicina', 'direito', 'engenharia', 'computação',
-    'computacao', 'administração', 'administracao', 'odontologia',
-    'enfermagem', 'arquitetura', 'psicologia', 'veterinária', 'veterinaria',
-    // Termos gerais
-    'aprovado', 'aprovação', 'aprovacao', 'reprovado', 'reprovação',
-    'classificação', 'classificacao', 'ranking', 'desempate',
-    'segunda fase', 'primeira fase', 'fase única', 'fase unica',
-    'conhecimentos gerais', 'específica', 'especifica',
-    'composição', 'composicao', 'prova objetiva', 'discursiva'
-  ];
-
-  // ========== PALAVRAS DE BLOQUEIO (OFF-TOPIC) ==========
-  const PALAVRAS_BLOQUEIO = [
-    'receita', 'receitas', 'cozinhar', 'comida', 'restaurante',
-    'filme', 'filmes', 'série', 'series', 'netflix', 'cinema',
-    'jogo', 'jogos', 'videogame', 'playstation', 'xbox',
-    'futebol', 'vôlei', 'volei', 'basquete', 'esporte',
-    'namoro', 'relacionamento', 'paquera',
-    'previsão', 'previsao', 'clima', 'tempo', 'chuva',
-    'cotação', 'cotacao', 'dólar', 'dolar', 'bitcoin', 'ação', 'acoes',
-    'carro', 'moto', 'veículo', 'veiculo',
-    'viagem', 'passagem', 'hotel', 'resort',
-    'dieta', 'exercício', 'exercicio', 'academia', 'musculação',
-    'política', 'politica', 'eleição', 'eleicao', 'partido', 'governo',
-    'celebridade', 'famoso', 'famosa', 'influencer',
-    'música', 'musica', 'banda', 'show', 'concerto',
-    'comprar', 'vender', 'preço', 'preco', 'desconto',
-    'horóscopo', 'horoscopo', 'astrologia', 'signo',
-    'piada', 'charada', 'adivinha'
-  ];
-
-  function isPerguntaVestibular(texto: string): boolean {
-    const textoLower = texto.toLowerCase();
-
-    // 1. Verificar palavras de bloqueio primeiro
-    for (const palavra of PALAVRAS_BLOQUEIO) {
-      if (textoLower.includes(palavra)) {
-        // Exceção: se também tem palavra de vestibular, permite
-        const temVestibular = PALAVRAS_CHAVE.some((p) => textoLower.includes(p));
-        if (!temVestibular) {
-          return false;
-        }
-      }
+  // Helper para identificar o usuário (suporta auth token, header customizado ou fallback de sessão)
+  const getUsuarioId = (req: express.Request): string => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7).trim();
+      if (token) return token.slice(0, 32);
     }
-
-    // 2. Verificar se tem pelo menos uma palavra-chave de vestibular
-    for (const palavra of PALAVRAS_CHAVE) {
-      if (textoLower.includes(palavra)) {
-        return true;
-      }
+    const headerId = req.headers['x-usuario-id'];
+    if (typeof headerId === 'string' && headerId.trim()) {
+      return headerId.trim();
     }
-
-    // 3. Verificar padrões de pergunta sobre vestibular
-    const padroes = [
-      /como\s+funciona\s+(o\s+)?(enem|fuvest|unicamp|unesp|vestibular)/i,
-      /nota\s+de\s+corte/i,
-      /quando\s+(é|será|vai\s+ser)\s+(a\s+)?prova/i,
-      /quais\s+(são\s+)?as\s+(matérias|materias|disciplinas)/i,
-      /quantas\s+(questões|questoes)/i,
-      /quanto\s+(vale|pesa)/i,
-      /preciso\s+de\s+quantos\s+acertos/i,
-      /como\s+(é|eh)\s+a\s+prova/i,
-      /como\s+(estudar|se\s+preparar)/i,
-      /qual\s+a\s+(nota|média|media)\s+(mínima|minima)/i,
-    ];
-    for (const padrao of padroes) {
-      if (padrao.test(textoLower)) {
-        return true;
-      }
+    if (req.cookies && req.cookies.gabarita_usuario_id) {
+      return req.cookies.gabarita_usuario_id;
     }
+    return 'usuario_padrao';
+  };
 
-    // 4. Se não tem nenhuma palavra-chave nem padrão, bloqueia
-    return false;
-  }
+  // Limite máximo de caracteres/tokens enviado à IA por conversa
+  const LIMITE_MENSAGENS = 5000;
 
-  // Handler compartilhado para /api/chat e /api/gemini/chat
+  // ---------- CHAT: CONVERSAS SALVAS ----------
+
+  // Lista as conversas do usuário, da mais recente para a mais antiga
+  app.get('/api/chat/conversas', (req: express.Request, res: express.Response) => {
+    try {
+      const usuarioId = getUsuarioId(req);
+      const conversas = chatStore.listarConversas(usuarioId);
+      res.json({ conversas });
+    } catch (err: any) {
+      console.error('Erro ao listar conversas:', err);
+      res.status(500).json({ erro: 'Erro ao listar conversas' });
+    }
+  });
+
+  // Cria uma nova conversa vazia
+  app.post('/api/chat/conversas', (req: express.Request, res: express.Response) => {
+    try {
+      const usuarioId = getUsuarioId(req);
+      const titulo = (req.body?.titulo || 'Nova conversa').trim();
+      const nova = chatStore.criarConversa(usuarioId, titulo || 'Nova conversa');
+      res.status(201).json({ conversa_id: nova.id, titulo: nova.titulo });
+    } catch (err: any) {
+      console.error('Erro ao criar conversa:', err);
+      res.status(500).json({ erro: 'Erro ao criar conversa' });
+    }
+  });
+
+  // Restaura toda a conversa ao voltar para a página
+  app.get('/api/chat/conversas/:cid/mensagens', (req: express.Request, res: express.Response) => {
+    try {
+      const usuarioId = getUsuarioId(req);
+      const cid = parseInt(req.params.cid, 10);
+      if (isNaN(cid)) {
+        return res.status(400).json({ erro: 'ID de conversa inválido' });
+      }
+
+      const dados = chatStore.obterMensagens(cid, usuarioId);
+      if (!dados) {
+        return res.status(404).json({ erro: 'Conversa não encontrada' });
+      }
+
+      res.json(dados);
+    } catch (err: any) {
+      console.error('Erro ao obter mensagens da conversa:', err);
+      res.status(500).json({ erro: 'Erro ao obter mensagens' });
+    }
+  });
+
+  // Exclui uma conversa e suas mensagens
+  app.delete('/api/chat/conversas/:cid', (req: express.Request, res: express.Response) => {
+    try {
+      const usuarioId = getUsuarioId(req);
+      const cid = parseInt(req.params.cid, 10);
+      if (isNaN(cid)) {
+        return res.status(400).json({ erro: 'ID de conversa inválido' });
+      }
+
+      const sucesso = chatStore.excluirConversa(cid, usuarioId);
+      if (!sucesso) {
+        return res.status(404).json({ erro: 'Conversa não encontrada' });
+      }
+
+      res.json({ sucesso: true, mensagem: 'Conversa excluída' });
+    } catch (err: any) {
+      console.error('Erro ao excluir conversa:', err);
+      res.status(500).json({ erro: 'Erro ao excluir conversa' });
+    }
+  });
+
+  // Handler para processamento de mensagens no VestBot com histórico persistido
   const handleChatRequest = async (req: express.Request, res: express.Response) => {
     try {
-      const { pergunta, message, historico, history } = req.body;
+      const usuarioId = getUsuarioId(req);
+      const { pergunta, message, historico, history, conversa_id } = req.body;
       const questionText = (pergunta || message || '').trim();
-      const rawHistoryList = Array.isArray(historico) ? historico : (Array.isArray(history) ? history : []);
 
       if (!questionText) {
         return res.status(400).json({ erro: 'Pergunta vazia', error: 'Pergunta vazia' });
       }
 
-      // VALIDAÇÃO: verificar se é sobre vestibular
-      if (!isPerguntaVestibular(questionText)) {
-        return res.json({
-          resposta: RECUSA_PADRAO,
-          text: RECUSA_PADRAO,
-          bloqueado: true,
-          topico: 'off-topic',
-        });
+      // 1. Obter ou criar a conversa correspondente
+      let cid = conversa_id ? parseInt(String(conversa_id), 10) : null;
+      let conversa = (cid && !isNaN(cid)) ? chatStore.obterConversa(cid, usuarioId) : null;
+
+      if (!conversa) {
+        conversa = chatStore.criarConversa(usuarioId, 'Nova conversa');
+        cid = conversa.id;
       }
 
-      const rawHistory = rawHistoryList
+      // 2. Se a conversa ainda tiver o título padrão, gerar título baseado na 1ª pergunta
+      if (conversa.titulo === 'Nova conversa' || !conversa.titulo.trim()) {
+        const tituloSugerido = questionText.length > 55 ? questionText.slice(0, 52) + '...' : questionText;
+        chatStore.atualizarTitulo(conversa.id, usuarioId, tituloSugerido);
+        conversa.titulo = tituloSugerido;
+      }
+
+      // 3. Salvar pergunta do usuário
+      chatStore.adicionarMensagem(conversa.id, usuarioId, 'user', questionText);
+
+      // 4. Histórico para a IA respeitando LIMITE_MENSAGENS
+      // Prioriza mensagens salvas da conversa (excluindo a pergunta atual recém adicionada)
+      const anteriores = conversa.mensagens.slice(0, -1);
+      const mensagensSelecionadas: typeof anteriores = [];
+      let totalCaracteres = 0;
+
+      for (let i = anteriores.length - 1; i >= 0; i--) {
+        const m = anteriores[i];
+        if (totalCaracteres + m.content.length > LIMITE_MENSAGENS) {
+          break;
+        }
+        totalCaracteres += m.content.length;
+        mensagensSelecionadas.unshift(m);
+      }
+
+      // Se não havia mensagens salvas suficientes mas veio raw history no payload, usa como fallback
+      const rawFallback = (Array.isArray(historico) ? historico : (Array.isArray(history) ? history : []))
         .map((msg: any) => ({
           role: msg.role === 'ai' || msg.role === 'assistant' || msg.role === 'model' ? 'model' : 'user',
           parts: [{ text: msg.content || msg.text || '' }],
         }))
         .filter((item: any) => item.parts[0].text.trim().length > 0);
 
-      // Garantir que a primeira mensagem não seja do model (exigência da API)
-      while (rawHistory.length > 0 && rawHistory[0].role === 'model') {
-        rawHistory.shift();
+      const contentsFromDB = mensagensSelecionadas.map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+
+      const baseHistory = contentsFromDB.length > 0 ? contentsFromDB : rawFallback;
+
+      // Garantir que a primeira mensagem não seja do model
+      while (baseHistory.length > 0 && baseHistory[0].role === 'model') {
+        baseHistory.shift();
       }
 
       const formattedContents = [
-        ...rawHistory,
+        ...baseHistory,
         {
           role: 'user',
           parts: [{ text: questionText }],
@@ -341,15 +345,25 @@ FORMATO DE RESPOSTA:
         },
       });
 
+      const respostaTexto = response.text || 'Desculpe, não consegui formular uma resposta no momento.';
+
+      // 6. Salvar resposta do assistente no banco
+      chatStore.adicionarMensagem(conversa.id, usuarioId, 'assistant', respostaTexto);
+
       res.json({
-        resposta: response.text,
-        text: response.text,
+        resposta: respostaTexto,
+        text: respostaTexto,
+        conversa_id: conversa.id,
+        titulo: conversa.titulo,
         bloqueado: false,
         topico: 'vestibular',
       });
     } catch (err: any) {
       console.error('Erro no chat com IA:', err);
-      res.status(500).json({ erro: 'Erro ao processar: ' + (err?.message || ''), error: err?.message || 'Erro ao processar mensagem' });
+      res.status(500).json({
+        erro: 'Erro ao processar: ' + (err?.message || ''),
+        error: err?.message || 'Erro ao processar mensagem',
+      });
     }
   };
 
