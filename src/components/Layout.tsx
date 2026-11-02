@@ -121,7 +121,6 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
         { id: 'dashboard', label: 'Meu Painel', icon: LayoutDashboard },
         { id: 'agenda', label: 'Cronograma', icon: Calendar },
         { id: 'vestibulares', label: 'Vestibulares', icon: GraduationCap },
-        { id: 'provas', label: 'Provas', icon: FileText },
         { id: 'gabaritos', label: 'Gabaritos', icon: CheckCircle },
       ]
     },
@@ -140,7 +139,6 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
         { id: 'redacao', label: 'Redação IA', icon: FileText },
         { id: 'conteudos', label: 'Matérias', icon: BookOpen },
         { id: 'videos', label: 'Vídeo-Aulas', icon: Video },
-        { id: 'desafio', label: 'Desafio Semanal', icon: Trophy },
         { id: 'chat', label: 'Conversar com IA', icon: Sparkles },
         { id: 'transcricao', label: 'Transcrever Áudio', icon: Mic },
       ]

@@ -142,16 +142,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       iconColor: 'text-purple-400'
     },
     {
-      id: 'provas',
-      title: 'Acervo de Provas',
-      desc: 'Cadernos de provas originais em PDF com design padrão ENEM para todos os vestibulares.',
-      icon: BookOpen,
-      badge: 'PDFs Oficiais',
-      gradient: 'from-blue-500/10 to-teal-500/10',
-      borderGlow: 'hover:border-blue-500/40',
-      iconColor: 'text-blue-400'
-    },
-    {
       id: 'gabaritos',
       title: 'Gabaritos Oficiais',
       desc: 'Acervo completo de resoluções comentadas passo a passo de todas as disciplinas.',
@@ -170,16 +160,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       gradient: 'from-amber-500/10 to-orange-500/10',
       borderGlow: 'hover:border-amber-500/40',
       iconColor: 'text-amber-400'
-    },
-    {
-      id: 'desafio',
-      title: 'Desafio Semanal',
-      desc: 'Teste seus conhecimentos contra milhares de vestibulandos e ganhe XP bônus.',
-      icon: Flame,
-      badge: 'Ranking XP',
-      gradient: 'from-rose-500/10 to-amber-500/10',
-      borderGlow: 'hover:border-rose-500/40',
-      iconColor: 'text-rose-400'
     }
   ];
 

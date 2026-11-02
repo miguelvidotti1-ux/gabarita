@@ -20,11 +20,9 @@ import Biblioteca from './components/Biblioteca';
 import Sobre from './components/Sobre';
 import DailyMissions from './components/DailyMissions';
 import ErrorBoundary from './components/ErrorBoundary';
-import DesafioSemanalComponent from './components/DesafioSemanal';
 import CronogramaVestibulares from './components/CronogramaVestibulares';
 import SistemasConquistasMetas from './components/SistemasConquistasMetas';
 import GabaritosOficiais from './components/GabaritosOficiais';
-import ProvasAcervoView from './components/ProvasAcervoView';
 import SkillSwipe from './components/SkillSwipe';
 import HomeView from './components/HomeView';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -179,8 +177,6 @@ export default function App() {
             onStartQuiz={(questions, isFull, timeLimit) => startQuiz(questions, isFull, timeLimit)}
           />
         );
-      case 'desafio':
-        return <DesafioSemanalComponent vestibular={selectedVestibular} onStartQuiz={(questions, isFull, timeLimit) => startQuiz(questions, isFull, timeLimit)} />;
       case 'agenda':
         return <CronogramaVestibulares />;
       case 'conquistas':
@@ -232,8 +228,6 @@ export default function App() {
             </div>
           </div>
         );
-      case 'provas':
-        return <ProvasAcervoView />;
       case 'gabaritos':
         return <GabaritosOficiais />;
       case 'redacao':
