@@ -152,6 +152,12 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
           icon: Settings,
           onClick: () => setIsConfigOpen(true)
         },
+        { 
+          id: 'onboarding', 
+          label: 'Diagnóstico & Metas', 
+          icon: Sparkles,
+          onClick: () => window.dispatchEvent(new CustomEvent('abrir-onboarding'))
+        },
         { id: 'planos', label: 'Plano & Assinatura', icon: Crown },
         { id: 'sobre', label: 'Sobre o App', icon: Info },
       ]

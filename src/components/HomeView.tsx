@@ -24,6 +24,7 @@ import DailyMissions from './DailyMissions';
 import SpotifyStudyHub from './SpotifyStudyHub';
 import ToastFeedback, { ToastData } from './ToastFeedback';
 import { Vestibular } from '../types';
+import { PlanejamentoSemanalService, PlanejamentoSemanalData } from '../services/planejamentoSemanalService';
 
 interface HomeViewProps {
   setActiveTab: (tab: string) => void;
@@ -101,6 +102,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
 }) => {
   const [focoExame, setFocoExame] = useState<string>('ENEM');
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [planoSemanal, setPlanoSemanal] = useState<PlanejamentoSemanalData | null>(() => {
+    return PlanejamentoSemanalService.carregar();
+  });
+
+  React.useEffect(() => {
+    const data = PlanejamentoSemanalService.carregar();
+    if (data) setPlanoSemanal(data);
+  }, []);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -265,6 +274,96 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </button>
           </div>
         </div>
+      </section>
+
+      {/* ===== PLANEJAMENTO SEMANAL ATIVO ===== */}
+      <section className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-light)] shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <span>Meu Planejamento Semanal</span>
+                {planoSemanal && (
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-400">
+                    {planoSemanal.periodoEstudo}
+                  </span>
+                )}
+              </h3>
+            </div>
+            <p className="text-xs text-[var(--text-muted)]">
+              {planoSemanal 
+                ? `Rotina organizada para o seu turno de estudos com foco em ${planoSemanal.horarioPico}`
+                : 'Defina seu turno e preferências para gerar sua grade personalizada'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setActiveTab('agenda');
+                setTimeout(() => window.dispatchEvent(new CustomEvent('abrir-rotina-semanal')), 100);
+              }}
+              className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <span>Abrir Cronograma Completo</span>
+              <ArrowRight size={14} />
+            </button>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('abrir-onboarding'))}
+              className="px-3.5 py-2 bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-white text-xs font-semibold rounded-xl border border-[var(--border-light)] transition-all cursor-pointer"
+            >
+              Recalibrar
+            </button>
+          </div>
+        </div>
+
+        {planoSemanal ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            {planoSemanal.dias[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]?.slots.slice(0, 3).map((slot) => (
+              <div
+                key={slot.id}
+                onClick={() => {
+                  const updated = PlanejamentoSemanalService.toggleSlot(slot.id);
+                  if (updated) setPlanoSemanal({ ...updated });
+                }}
+                className={`p-3.5 rounded-xl border text-xs cursor-pointer transition-all flex items-start justify-between gap-3 ${
+                  slot.concluido
+                    ? 'bg-[#151A24]/40 border-emerald-500/20 opacity-70 line-through text-[var(--text-muted)]'
+                    : slot.prioritaria
+                    ? 'bg-[#151A24] border-blue-500/30 text-[var(--text-main)] shadow-sm'
+                    : 'bg-[#151A24] border-[#1E2534] text-[var(--text-main)]'
+                }`}
+              >
+                <div className="space-y-1 overflow-hidden">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-blue-400">{slot.horario}</span>
+                    {slot.prioritaria && <span className="text-amber-400 text-[10px]">⭐ Prioritária</span>}
+                  </div>
+                  <p className="font-bold truncate">{slot.materia}</p>
+                  <p className="text-[11px] text-[var(--text-muted)] truncate">{slot.conteudo}</p>
+                </div>
+                <div className="mt-0.5 shrink-0">
+                  {slot.concluido ? (
+                    <CheckCircle2 size={18} className="text-emerald-400" />
+                  ) : (
+                    <span className="w-4 h-4 rounded-full border border-[#737373] block" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-[#151A24] border border-[#1E2534] flex items-center justify-between">
+            <span className="text-xs text-[var(--text-muted)]">Nenhum planejamento semanal ativo ainda.</span>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('abrir-onboarding'))}
+              className="text-xs font-bold text-blue-400 hover:underline"
+            >
+              Gerar agora com IA →
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ===== SEÇÃO SPOTIFY — MÚSICAS PARA ESTUDAR ===== */}

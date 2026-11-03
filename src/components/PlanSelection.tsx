@@ -18,10 +18,15 @@ import {
   Calendar,
   Info,
   ChevronRight,
-  Zap
+  Zap,
+  ExternalLink,
+  Lock,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { MercadoPagoService, PixPaymentResponse } from '../services/mercadoPagoService';
 
 interface PlanSelectionProps {
   onComplete?: () => void;
@@ -106,6 +111,7 @@ const PLANS: PlanOption[] = [
 
 export const PlanSelection: React.FC<PlanSelectionProps> = ({ 
   onComplete, 
+  userEmail,
   userName,
   currentPlanId = 'semestral'
 }) => {
@@ -124,10 +130,72 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
 
   // UI States
   const [loading, setLoading] = useState(false);
+  const [loadingMpCheckout, setLoadingMpCheckout] = useState(false);
+  const [loadingPix, setLoadingPix] = useState(false);
+  const [mpPixData, setMpPixData] = useState<PixPaymentResponse | null>(null);
+  const [mpPaymentId, setMpPaymentId] = useState<string | number | null>(null);
+  const [mpSuccessMessage, setMpSuccessMessage] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning' | 'success'; message: string } | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+
+  // Check URL params for Mercado Pago return (approved, pending, etc.)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get('status') || params.get('mp_status');
+      const plan = params.get('plan');
+      if (status === 'approved' && plan && ['mensal', 'trimestral', 'semestral', 'anual'].includes(plan)) {
+        const matchedPlan = PLANS.find(p => p.id === plan);
+        if (matchedPlan) {
+          setActivePlanId(matchedPlan.id);
+          setSelectedPlanForMigration(matchedPlan);
+          setScreen('success');
+          setMpSuccessMessage('Pagamento confirmado pelo Mercado Pago! Seu plano foi ativado.');
+          if (auth.currentUser) {
+            updateDoc(doc(db, 'users', auth.currentUser.uid), {
+              activePlanId: matchedPlan.id,
+              planUpdatedAt: new Date().toISOString(),
+              paymentProvider: 'mercadopago',
+            }).catch(console.error);
+          }
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (e) {
+      console.error('Error reading MP status params:', e);
+    }
+  }, []);
+
+  // Poll for PIX payment confirmation if generated
+  useEffect(() => {
+    if (!mpPaymentId) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await MercadoPagoService.consultarPagamento(mpPaymentId);
+        if (res.status === 'approved') {
+          clearInterval(interval);
+          if (selectedPlanForMigration) {
+            setActivePlanId(selectedPlanForMigration.id);
+            if (auth.currentUser) {
+              updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                activePlanId: selectedPlanForMigration.id,
+                planUpdatedAt: new Date().toISOString(),
+                paymentProvider: 'mercadopago',
+              }).catch(console.error);
+            }
+          }
+          setScreen('success');
+          setMpSuccessMessage('Pagamento PIX confirmado com sucesso pelo Mercado Pago!');
+        }
+      } catch (e) {
+        // Silently continue polling
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [mpPaymentId, selectedPlanForMigration]);
 
   // Sync plan from Firestore if available
   useEffect(() => {
@@ -147,6 +215,66 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
   }, []);
 
   const activePlanObj = PLANS.find(p => p.id === activePlanId) || PLANS[2];
+
+  // Mercado Pago Checkout Pro
+  const handleMercadoPagoCheckout = async (plan: PlanOption) => {
+    setLoadingMpCheckout(true);
+    setFeedback(null);
+    try {
+      const pref = await MercadoPagoService.criarPreferencia({
+        planId: plan.id,
+        planName: plan.name,
+        price: plan.price,
+        userEmail: userEmail || auth.currentUser?.email || undefined,
+        userName: userName || auth.currentUser?.displayName || undefined,
+      });
+
+      if (pref.init_point) {
+        window.location.href = pref.init_point;
+      } else {
+        throw new Error('Link de checkout não recebido do Mercado Pago.');
+      }
+    } catch (err: any) {
+      console.error('Erro Mercado Pago:', err);
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Erro ao conectar ao Mercado Pago. Tente novamente.',
+      });
+    } finally {
+      setLoadingMpCheckout(false);
+    }
+  };
+
+  // Mercado Pago Instant PIX
+  const handleGerarPixMercadoPago = async (plan: PlanOption) => {
+    setLoadingPix(true);
+    setFeedback(null);
+    try {
+      const res = await MercadoPagoService.criarPix({
+        planId: plan.id,
+        planName: plan.name,
+        price: plan.price,
+        userEmail: userEmail || auth.currentUser?.email || undefined,
+        userName: userName || auth.currentUser?.displayName || undefined,
+      });
+
+      if (res.fallbackToCheckout) {
+        await handleMercadoPagoCheckout(plan);
+        return;
+      }
+
+      setMpPixData(res);
+      if (res.id) {
+        setMpPaymentId(res.id);
+      }
+    } catch (err: any) {
+      console.error('Erro ao gerar PIX direto:', err);
+      // Fallback directly to Checkout Pro
+      await handleMercadoPagoCheckout(plan);
+    } finally {
+      setLoadingPix(false);
+    }
+  };
 
   // Card Formatters
   const handleCardNumberChange = (val: string) => {
@@ -499,24 +627,39 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                       </div>
 
                       {/* Action Button */}
-                      <div>
+                      <div className="space-y-1.5">
                         {isActive ? (
                           <div className="w-full py-2.5 px-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-bold text-center border border-emerald-500/20">
                             ✓ Seu plano ativo
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleInitiatePlanChange(plan)}
-                            className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98] ${
-                              isUpgrade 
-                                ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500' 
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-zinc-200'
-                            }`}
-                          >
-                            <span>{isUpgrade ? 'Fazer Upgrade' : 'Mudar para este'}</span>
-                            <ChevronRight size={14} />
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleInitiatePlanChange(plan)}
+                              className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98] ${
+                                isUpgrade 
+                                  ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500' 
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-zinc-200'
+                              }`}
+                            >
+                              <span>{isUpgrade ? 'Fazer Upgrade' : 'Mudar para este'}</span>
+                              <ChevronRight size={14} />
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={loadingMpCheckout}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMercadoPagoCheckout(plan);
+                              }}
+                              className="w-full py-1.5 px-2.5 rounded-lg text-[10px] font-bold bg-[#009EE3]/10 hover:bg-[#009EE3]/20 text-[#0089c7] dark:text-[#38bdf8] border border-[#009EE3]/25 transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
+                            >
+                              <ExternalLink size={11} />
+                              <span>Pagar com Mercado Pago</span>
+                            </button>
+                          </>
                         )}
                       </div>
 
@@ -588,6 +731,47 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
               </div>
             </div>
 
+            {/* MERCADO PAGO QUICK ACTION BANNER */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#009EE3]/15 via-blue-500/10 to-indigo-500/10 border border-[#009EE3]/30 dark:border-[#009EE3]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#009EE3] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md shadow-[#009EE3]/25">
+                  MP
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>Checkout Oficial Mercado Pago</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-[#009EE3] text-white">RECOMENDADO</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-zinc-400">
+                    Cartão em até 12x, PIX Instantâneo, Boleto ou Saldo Mercado Pago com liberação imediata.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={loadingMpCheckout}
+                onClick={() => handleMercadoPagoCheckout(selectedPlanForMigration)}
+                className="px-4 py-2.5 bg-[#009EE3] hover:bg-[#0089c7] text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-md shadow-[#009EE3]/25 active:scale-95 cursor-pointer shrink-0 disabled:opacity-50"
+              >
+                {loadingMpCheckout ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <>
+                    <ExternalLink size={14} />
+                    <span>Pagar no Mercado Pago</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+              <span className="flex-shrink mx-3 text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase">
+                Ou selecione a forma abaixo
+              </span>
+              <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+            </div>
+
             {/* PAYMENT METHOD SELECTOR */}
             <div className="grid grid-cols-3 gap-2.5">
               <button
@@ -613,7 +797,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 }`}
               >
                 <QrCode size={22} />
-                <span className="text-xs">PIX</span>
+                <span className="text-xs">PIX Mercado Pago</span>
               </button>
 
               <button
@@ -680,36 +864,109 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                     />
                   </div>
                 </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    disabled={loadingMpCheckout}
+                    onClick={() => handleMercadoPagoCheckout(selectedPlanForMigration)}
+                    className="w-full py-3 bg-[#009EE3] hover:bg-[#0089c7] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-[#009EE3]/20 active:scale-[0.99] cursor-pointer mb-2"
+                  >
+                    {loadingMpCheckout ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <>
+                        <ExternalLink size={15} />
+                        <span>Pagar em até 12x via Mercado Pago</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
             {/* FORM PIX */}
             {paymentMethod === 'pix' && (
               <div className="text-center p-6 space-y-4 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10">
-                <div className="w-40 h-40 mx-auto bg-white p-3 rounded-xl border border-slate-200 dark:border-zinc-700 flex items-center justify-center">
-                  <QrCode size={120} className="text-slate-900" />
-                </div>
+                {mpPixData?.qr_code_base64 ? (
+                  <div className="space-y-3">
+                    <div className="w-48 h-48 mx-auto bg-white p-3 rounded-2xl border-2 border-[#009EE3] shadow-lg flex items-center justify-center">
+                      <img
+                        src={`data:image/png;base64,${mpPixData.qr_code_base64}`}
+                        alt="QR Code PIX Mercado Pago"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span>Aguardando pagamento... Liberação automática imediata</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-40 h-40 mx-auto bg-white p-3 rounded-xl border border-slate-200 dark:border-zinc-700 flex items-center justify-center">
+                    <QrCode size={120} className="text-slate-900" />
+                  </div>
+                )}
+
                 <p className="text-xs text-slate-600 dark:text-zinc-400">
-                  Escaneie o QR Code ou copie a chave PIX para confirmar a troca de plano:
+                  {mpPixData?.qr_code
+                    ? 'Copie o código PIX abaixo ou escaneie o QR Code no app do seu banco:'
+                    : 'Gere um QR Code oficial do Mercado Pago para pagar com PIX instantâneo:'}
                 </p>
-                <button
-                  type="button"
-                  onClick={handleCopyPix}
-                  className="py-2.5 px-5 bg-white dark:bg-[#20232B] border border-slate-300 dark:border-white/15 rounded-xl text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-all inline-flex items-center gap-2 cursor-pointer"
-                >
-                  <Copy size={14} />
-                  <span>{copiedPix ? 'Código PIX copiado!' : 'Copiar código PIX'}</span>
-                </button>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                  {!mpPixData ? (
+                    <button
+                      type="button"
+                      disabled={loadingPix}
+                      onClick={() => handleGerarPixMercadoPago(selectedPlanForMigration)}
+                      className="py-2.5 px-5 bg-[#009EE3] hover:bg-[#0089c7] text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-md shadow-[#009EE3]/20 active:scale-95 disabled:opacity-50"
+                    >
+                      {loadingPix ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <QrCode size={15} />
+                      )}
+                      <span>Gerar PIX Oficial Mercado Pago</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (mpPixData?.qr_code) {
+                          navigator.clipboard.writeText(mpPixData.qr_code);
+                          setCopiedPix(true);
+                          setTimeout(() => setCopiedPix(false), 2500);
+                        } else {
+                          handleCopyPix();
+                        }
+                      }}
+                      className="py-2.5 px-5 bg-white dark:bg-[#20232B] border border-slate-300 dark:border-white/15 rounded-xl text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      <Copy size={14} />
+                      <span>{copiedPix ? 'Código PIX copiado!' : 'Copiar Chave Copia e Cola'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
             {/* FORM BOLETO */}
             {paymentMethod === 'boleto' && (
-              <div className="text-center p-6 space-y-3 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10">
+              <div className="text-center p-6 space-y-4 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10">
                 <FileText size={44} className="mx-auto text-slate-400 dark:text-zinc-500" />
-                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-                  Ao selecionar boleto, o novo plano será ativado após a compensação bancária.
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
+                  Para pagar via boleto com segurança e registro bancário imediato, utilize o Checkout Oficial do Mercado Pago.
                 </p>
+                <button
+                  type="button"
+                  disabled={loadingMpCheckout}
+                  onClick={() => handleMercadoPagoCheckout(selectedPlanForMigration)}
+                  className="py-2.5 px-5 bg-[#009EE3] hover:bg-[#0089c7] text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-md shadow-[#009EE3]/20"
+                >
+                  {loadingMpCheckout ? <Loader2 size={15} className="animate-spin" /> : <ExternalLink size={14} />}
+                  <span>Gerar Boleto no Mercado Pago</span>
+                </button>
               </div>
             )}
 
@@ -724,11 +981,23 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Confirmar Mudança de Plano</span>
+                  <span>Confirmar e Ativar Imediatamente</span>
                   <ArrowRight size={16} />
                 </>
               )}
             </button>
+
+            {/* SECURITY ASSURANCE */}
+            <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500 dark:text-zinc-400 pt-1">
+              <div className="flex items-center gap-1">
+                <Lock size={12} className="text-emerald-500" />
+                <span>Criptografia 256-bit</span>
+              </div>
+              <span>•</span>
+              <span>Processamento Mercado Pago</span>
+              <span>•</span>
+              <span>Garantia de 7 dias</span>
+            </div>
 
             <div className="text-center">
               <button
@@ -759,8 +1028,16 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 Plano atualizado com sucesso!
               </h2>
               <p className="text-sm text-slate-500 dark:text-zinc-400">
-                Sua migração para o <span className="font-bold text-slate-900 dark:text-white">Plano {selectedPlanForMigration.name}</span> foi concluída.
+                {mpSuccessMessage || (
+                  <>Sua migração para o <span className="font-bold text-slate-900 dark:text-white">Plano {selectedPlanForMigration.name}</span> foi concluída.</>
+                )}
               </p>
+              {mpSuccessMessage && (
+                <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-semibold">
+                  <CheckCircle2 size={14} />
+                  <span>Transação autenticada via Mercado Pago</span>
+                </div>
+              )}
             </div>
 
             <div className="p-5 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10 text-xs space-y-2.5 text-left">

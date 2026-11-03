@@ -1,0 +1,38 @@
+{
+  "teste123": {
+    "uid": "teste123",
+    "email": "teste123@vestibularpro.com",
+    "nome": "Estudante",
+    "onboarding_completo": true,
+    "perfil_json": "{\"etapa\":\"cursinho\",\"vestibulares\":[\"ENEM\",\"FUVEST\"],\"prazo\":\"2026\",\"piores_materias\":[\"matematica\",\"fisica\"],\"autoavaliacao\":4,\"horas_semana\":\"3a4\",\"horas_fds\":\"4a6\"}",
+    "piores_materias": [
+      "matematica",
+      "fisica"
+    ],
+    "vestibulares_alvo": [
+      "ENEM",
+      "FUVEST"
+    ],
+    "atualizado_em": "2026-11-02T02:48:23.027Z",
+    "resumo_plano": {
+      "total_horas_semanais": 28,
+      "horas_uteis_semana": 17.5,
+      "horas_fds_semana": 10,
+      "media_diaria": 4,
+      "vestibulares": [
+        "ENEM",
+        "FUVEST (USP)"
+      ],
+      "cursos": [],
+      "materias_foco_prioritario": [
+        "Matemática",
+        "Física"
+      ],
+      "materias_revisao_rapida": [],
+      "base_inicial": "Intermediária (Equilíbrio Teoria + Prática de Provas Anteriores)",
+      "ritmo": "equilibrado",
+      "prazo": "2026",
+      "mensagem_motivacional": "Seu cronograma adaptativo foi calibrado! Focaremos estrategicamente nas suas maiores dificuldades mantendo o ritmo de alta aprovação."
+    }
+  }
+}

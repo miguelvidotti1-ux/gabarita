@@ -1,0 +1,15 @@
+{
+  "nextId": 2,
+  "boletins": [
+    {
+      "id": 1,
+      "usuario_id": "teste123",
+      "origem": "manual",
+      "media_escola": 6,
+      "media_geral": 6.75,
+      "notas_json": "{\"matematica\":4.5,\"fisica\":5,\"quimica\":8.5,\"biologia\":9}",
+      "analise_json": "{\"media_geral\":6.75,\"media_escola\":6,\"por_materia\":[{\"materia\":\"matematica\",\"nome\":\"Matemática\",\"nota\":4.5,\"classe\":\"critica\",\"confirmada\":true,\"peso\":7},{\"materia\":\"fisica\",\"nome\":\"Física\",\"nota\":5,\"classe\":\"atencao\",\"confirmada\":true,\"peso\":6.5},{\"materia\":\"quimica\",\"nome\":\"Química\",\"nota\":8.5,\"classe\":\"forte\",\"confirmada\":false,\"peso\":1.5},{\"materia\":\"biologia\",\"nome\":\"Biologia\",\"nota\":9,\"classe\":\"forte\",\"confirmada\":false,\"peso\":1}],\"prioridades\":[\"matematica\",\"fisica\",\"quimica\"],\"resumo\":\"Sua média geral é 6.8 (escala 0–10) — na média da sua escola. Reforço equilibrado. Matérias críticas: Matemática.\"}",
+      "data": "2026-11-02T02:56:57.016Z"
+    }
+  ]
+}

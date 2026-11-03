@@ -29,6 +29,7 @@ import {
   VestibularEvent,
   VestibularList,
 } from "../services/vestibularEventService";
+import PlanejamentoSemanalView from "./PlanejamentoSemanalView";
 
 interface ExamVenue {
   name: string;
@@ -178,12 +179,30 @@ const getVenuesForEvent = (event: VestibularEvent): ExamVenue[] => {
   return POPULAR_VENUES["OUTROS"];
 };
 
-export default function CronogramaVestibulares() {
+interface CronogramaVestibularesProps {
+  onNavegarParaAba?: (aba: string) => void;
+}
+
+export default function CronogramaVestibulares({ onNavegarParaAba }: CronogramaVestibularesProps = {}) {
   const [events, setEvents] = useState<VestibularList>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<"calendar" | "list">("calendar");
+  const [activeView, setActiveView] = useState<"calendar" | "list" | "weekly">(() => {
+    try {
+      if (localStorage.getItem("vestibularpro_abrir_rotina") === "true") {
+        localStorage.removeItem("vestibularpro_abrir_rotina");
+        return "weekly";
+      }
+    } catch (e) {}
+    return "weekly";
+  });
   const [searchText, setSearchText] = useState("");
   const [selectedInstFilter, setSelectedInstFilter] = useState<string>("Todos");
+
+  useEffect(() => {
+    const handleAbrirRotina = () => setActiveView("weekly");
+    window.addEventListener("abrir-rotina-semanal", handleAbrirRotina);
+    return () => window.removeEventListener("abrir-rotina-semanal", handleAbrirRotina);
+  }, []);
 
   // Initialize to current month and year dynamically
   const todayDate = new Date();
@@ -777,10 +796,21 @@ export default function CronogramaVestibulares() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           {/* Calendar view selector */}
-          <div className="flex bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--card-border)] shrink-0">
+          <div className="flex flex-wrap bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--card-border)] shrink-0 gap-1">
+            <button
+              onClick={() => setActiveView("weekly")}
+              className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeView === "weekly"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              <Sparkles size={13} className={activeView === "weekly" ? "text-white animate-pulse" : "text-blue-400"} />
+              <span>Planejamento Semanal (IA)</span>
+            </button>
             <button
               onClick={() => setActiveView("calendar")}
-              className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+              className={`px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
                 activeView === "calendar"
                   ? "bg-[var(--card-bg)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -790,7 +820,7 @@ export default function CronogramaVestibulares() {
             </button>
             <button
               onClick={() => setActiveView("list")}
-              className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+              className={`px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
                 activeView === "list"
                   ? "bg-[var(--card-bg)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -874,6 +904,18 @@ export default function CronogramaVestibulares() {
                 Organizando datas e lembretes...
               </p>
             </div>
+          ) : activeView === "weekly" ? (
+            <motion.div
+              key="weekly"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <PlanejamentoSemanalView
+                onAbrirDiagnostico={() => window.dispatchEvent(new CustomEvent('abrir-onboarding'))}
+                onNavegarParaAba={onNavegarParaAba}
+              />
+            </motion.div>
           ) : activeView === "calendar" ? (
             <motion.div
               key="calendar"

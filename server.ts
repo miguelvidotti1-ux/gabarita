@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
@@ -12,6 +13,10 @@ import {
   REDACAO_LIMITE_CARACTERES,
 } from "./server/corretorRedacao";
 import { chatStore } from "./server/chatStore";
+import { onboardingStore, PERGUNTAS_ONBOARDING, MATERIAS, HORAS_MAP } from "./server/onboardingStore";
+import { boletimStore, ServicoBoletim, ServicoAnaliseNotas } from "./server/boletimStore";
+import multer from "multer";
+import { mercadoPagoRouter } from "./server/mercadoPagoRoutes";
 
 async function startServer() {
   const app = express();
@@ -21,6 +26,9 @@ async function startServer() {
 
   // Mount Spotify OAuth 2.0 API routes
   app.use("/api/spotify", spotifyRouter);
+
+  // Mount Mercado Pago API routes
+  app.use("/api/mercadopago", mercadoPagoRouter);
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY || "",
@@ -1135,6 +1143,297 @@ Retorne exclusivamente um JSON com este formato:
       mensagem: "Chave VIP resgatada com sucesso! Acesso Pro ativado.",
       nivel: "vip_pro",
     });
+  });
+
+  // ========== ROTAS DE ONBOARDING E PERFIL ==========
+  function extractUsuarioId(req: express.Request): string {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const raw = authHeader.substring(7).trim();
+      if (raw.startsWith("auth_vesthub_")) {
+        try {
+          const decoded = Buffer.from(raw.replace("auth_vesthub_", ""), "base64").toString("utf-8");
+          const email = decoded.split(":")[0];
+          if (email) return email;
+        } catch (e) {}
+      }
+      return raw;
+    }
+    if (req.headers["x-usuario-id"]) {
+      return String(req.headers["x-usuario-id"]);
+    }
+    if (req.cookies && req.cookies.usuario_id) {
+      return String(req.cookies.usuario_id);
+    }
+    if (req.query?.usuario_id) {
+      return String(req.query.usuario_id);
+    }
+    return "usuario_padrao";
+  }
+
+  // 1. Obter perguntas estruturadas do questionário
+  app.get("/api/auth/onboarding/perguntas", (_req, res) => {
+    return res.json({ perguntas: PERGUNTAS_ONBOARDING });
+  });
+
+  // 2. Salvar respostas do onboarding e calcular resumo
+  app.post("/api/auth/onboarding", (req, res) => {
+    try {
+      const respostas = req.body?.respostas || req.body || {};
+      const uid = String(req.body?.usuario_id || extractUsuarioId(req));
+      const email = req.body?.email || (uid.includes("@") ? uid : undefined);
+      const nome = req.body?.nome;
+
+      // Validação de campos obrigatórios
+      const requiredFields = ["etapa", "vestibulares", "prazo", "piores_materias", "autoavaliacao", "horas_semana", "horas_fds"];
+      const missing = requiredFields.filter((field) => {
+        const val = respostas[field];
+        if (val === undefined || val === null || val === "") return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        return false;
+      });
+
+      if (missing.length > 0) {
+        return res.status(400).json({
+          sucesso: false,
+          erro: `Campos obrigatórios não preenchidos: ${missing.join(", ")}`
+        });
+      }
+
+      const result = onboardingStore.salvarOnboarding(uid, respostas, { email, nome });
+      return res.json(result);
+    } catch (err: any) {
+      console.error("[Onboarding API] Erro ao salvar respostas:", err);
+      return res.status(500).json({ sucesso: false, erro: err?.message || "Erro interno ao salvar onboarding." });
+    }
+  });
+
+  // 3. Obter perfil e status de onboarding do usuário logado
+  app.get("/api/auth/me", (req, res) => {
+    const uid = extractUsuarioId(req);
+    const user = onboardingStore.getOrCreateUser(uid);
+    let parsedPerfil = null;
+    if (user.perfil_json) {
+      try {
+        parsedPerfil = JSON.parse(user.perfil_json);
+      } catch (e) {}
+    }
+    return res.json({
+      uid: user.uid,
+      nome: user.nome,
+      email: user.email,
+      onboarding_completo: user.onboarding_completo,
+      perfil: parsedPerfil,
+      piores_materias: user.piores_materias,
+      vestibulares_alvo: user.vestibulares_alvo,
+      resumo_plano: user.resumo_plano || null
+    });
+  });
+
+  // 4. Relatório administrativo do usuário
+  app.get("/api/admin/usuario/:uid/relatorio", (req, res) => {
+    const uid = req.params.uid;
+    const user = onboardingStore.obterUsuario(uid);
+    if (!user) {
+      return res.status(404).json({ erro: "Usuário não encontrado." });
+    }
+    let parsedRelatorio = null;
+    if (user.perfil_json) {
+      try {
+        parsedRelatorio = JSON.parse(user.perfil_json);
+      } catch (e) {}
+    }
+    return res.json({
+      uid: user.uid,
+      nome: user.nome,
+      email: user.email,
+      onboarding_completo: user.onboarding_completo,
+      relatorio: parsedRelatorio,
+      resumo: user.resumo_plano || null,
+      piores_materias: user.piores_materias,
+      vestibulares_alvo: user.vestibulares_alvo,
+      atualizado_em: user.atualizado_em
+    });
+  });
+
+  // ========== ROTAS DE BOLETIM ESCOLAR E CALIBRAÇÃO DE NOTAS ==========
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 } // 8 MB
+  });
+
+  const ALLOWED_FOTO = new Set(["png", "jpg", "jpeg", "webp"]);
+
+  // 1. Extração de notas a partir da foto do boletim com IA
+  app.post("/api/onboarding/notas/foto", upload.single("boletim"), async (req, res) => {
+    try {
+      let fileBuffer: Buffer | null = null;
+      let mimetype = "image/jpeg";
+
+      if (req.file) {
+        const ext = (req.file.originalname.split(".").pop() || "").toLowerCase();
+        if (!ALLOWED_FOTO.has(ext)) {
+          return res.status(400).json({ erro: "Formato inválido. Use PNG, JPG ou WEBP" });
+        }
+        fileBuffer = req.file.buffer;
+        mimetype = req.file.mimetype;
+      } else if (req.body?.foto || req.body?.boletim) {
+        const raw = String(req.body.foto || req.body.boletim);
+        const match = raw.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+        if (match) {
+          mimetype = match[1];
+          fileBuffer = Buffer.from(match[2], "base64");
+        } else {
+          fileBuffer = Buffer.from(raw, "base64");
+        }
+      }
+
+      if (!fileBuffer || fileBuffer.length === 0) {
+        return res.status(400).json({ erro: "Envie a foto do boletim" });
+      }
+
+      if (fileBuffer.length > 8 * 1024 * 1024) {
+        return res.status(400).json({ erro: "Imagem muito grande (máx. 8 MB)" });
+      }
+
+      const resultado = await ServicoBoletim.extrairDaFoto(fileBuffer, mimetype, ai);
+      if (resultado.erro) {
+        return res.status(422).json(resultado);
+      }
+
+      const extraidas: { materia: string; nome: string; nota: number }[] = [];
+      const nao: string[] = [];
+
+      for (const [nome, nota] of Object.entries(resultado.notas || {})) {
+        const chave = ServicoBoletim.mapear(nome);
+        if (chave && MATERIAS[chave]) {
+          try {
+            extraidas.push({
+              materia: chave,
+              nome: MATERIAS[chave],
+              nota: ServicoAnaliseNotas.normalizar(nota)
+            });
+          } catch (e) {}
+        } else {
+          nao.push(nome);
+        }
+      }
+
+      return res.json({
+        notas_extraidas: extraidas,
+        nao_identificadas: nao.slice(0, 8),
+        media_boletim: resultado.media_boletim
+      });
+    } catch (err: any) {
+      console.error("[Boletim Foto] Erro:", err);
+      return res.status(500).json({ erro: "Falha ao processar boletim. Tente digitar manualmente.", fallback: "manual" });
+    }
+  });
+
+  // 2. Salvar notas confirmadas (da foto ou digitadas) e calcular análise
+  app.post("/api/onboarding/notas", (req, res) => {
+    try {
+      const d = req.body || {};
+      const origem = d.origem === "foto" ? "foto" : "manual";
+      let me: number | null = null;
+      if (d.media_escola !== undefined && d.media_escola !== null && d.media_escola !== "") {
+        me = ServicoAnaliseNotas.normalizar(d.media_escola);
+      }
+
+      const notas: Record<string, number> = {};
+      for (const [k, v] of Object.entries(d.notas || {})) {
+        if (!MATERIAS[k]) continue;
+        try {
+          const val = ServicoAnaliseNotas.normalizar(v);
+          if (val >= 0) notas[k] = val;
+        } catch (e) {}
+      }
+
+      if (Object.keys(notas).length < 3) {
+        return res.status(400).json({ erro: "Informe notas de pelo menos 3 matérias (escala 0–10)" });
+      }
+
+      const uid = String(d.usuario_id || extractUsuarioId(req));
+      const usuario = onboardingStore.obterUsuario(uid);
+      const analise = ServicoAnaliseNotas.analisar(notas, me, usuario);
+
+      if (!analise) {
+        return res.status(400).json({ erro: "Nenhuma matéria válida analisada." });
+      }
+
+      boletimStore.salvarBoletim(uid, origem, me, notas, analise);
+      return res.json({ sucesso: true, analise });
+    } catch (err: any) {
+      console.error("[Salvar Notas] Erro:", err);
+      return res.status(500).json({ erro: err?.message || "Erro ao salvar notas do boletim." });
+    }
+  });
+
+  // 3. Ver última análise do boletim do usuário
+  app.get("/api/onboarding/notas/analise", (req, res) => {
+    const uid = extractUsuarioId(req);
+    const b = boletimStore.obterUltimoBoletim(uid);
+    if (!b) {
+      return res.json({ existe: false });
+    }
+    let parsedAnalise = null;
+    try {
+      parsedAnalise = JSON.parse(b.analise_json);
+    } catch (e) {}
+    return res.json({
+      existe: true,
+      origem: b.origem,
+      media_geral: b.media_geral,
+      media_escola: b.media_escola,
+      analise: parsedAnalise
+    });
+  });
+
+  // 4. Plano calibrado por questionário + notas do boletim
+  app.get("/api/onboarding/plano", (req, res) => {
+    try {
+      const uid = extractUsuarioId(req);
+      const u = onboardingStore.obterUsuario(uid);
+      let perfil: any = {};
+      if (u?.perfil_json) {
+        try {
+          perfil = JSON.parse(u.perfil_json);
+        } catch (e) {}
+      }
+
+      const hs = (HORAS_MAP[String(perfil.horas_semana)] || 1.5) * 5 + (HORAS_MAP[String(perfil.horas_fds)] || 3) * 2;
+      const b = boletimStore.obterUltimoBoletim(uid);
+
+      if (!b) {
+        return res.json({
+          com_notas: false,
+          horas_semanais: Math.round(hs * 10) / 10
+        });
+      }
+
+      let analise: any = null;
+      try {
+        analise = JSON.parse(b.analise_json);
+      } catch (e) {}
+
+      if (!analise) {
+        return res.json({
+          com_notas: false,
+          horas_semanais: Math.round(hs * 10) / 10
+        });
+      }
+
+      const distribuicao = ServicoAnaliseNotas.distribuir(analise, perfil, Math.round(hs));
+      return res.json({
+        com_notas: true,
+        horas_semanais: Math.round(hs * 10) / 10,
+        resumo: analise.resumo,
+        distribuicao
+      });
+    } catch (err: any) {
+      console.error("[Onboarding Plano] Erro:", err);
+      return res.status(500).json({ erro: "Erro ao gerar distribuição do plano." });
+    }
   });
 
   // Vite middleware for development
