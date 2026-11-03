@@ -132,6 +132,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
   const [loading, setLoading] = useState(false);
   const [loadingMpCheckout, setLoadingMpCheckout] = useState(false);
   const [loadingPix, setLoadingPix] = useState(false);
+  const [mpCheckoutUrl, setMpCheckoutUrl] = useState<string | null>(null);
   const [mpPixData, setMpPixData] = useState<PixPaymentResponse | null>(null);
   const [mpPaymentId, setMpPaymentId] = useState<string | number | null>(null);
   const [mpSuccessMessage, setMpSuccessMessage] = useState<string | null>(null);
@@ -230,7 +231,11 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
       });
 
       if (pref.init_point) {
-        window.location.href = pref.init_point;
+        setMpCheckoutUrl(pref.init_point);
+        const isInIframe = window.self !== window.top;
+        if (!isInIframe) {
+          window.location.href = pref.init_point;
+        }
       } else {
         throw new Error('Link de checkout não recebido do Mercado Pago.');
       }
@@ -881,6 +886,23 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                       </>
                     )}
                   </button>
+
+                  {mpCheckoutUrl && (
+                    <div className="mt-3 p-3.5 bg-[#009EE3]/10 border border-[#009EE3]/30 rounded-xl text-center space-y-2">
+                      <p className="text-xs text-slate-700 dark:text-zinc-300 font-medium">
+                        Link de checkout gerado com sucesso!
+                      </p>
+                      <a
+                        href={mpCheckoutUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#009EE3] hover:bg-[#0089c7] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                      >
+                        <ExternalLink size={14} />
+                        <span>Abrir Checkout Oficial do Mercado Pago</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
