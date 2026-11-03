@@ -46,6 +46,44 @@ interface PlanOption {
   features: { text: string; enabled: boolean }[];
 }
 
+export const PLAN_PIX_KEYS: Record<
+  'mensal' | 'trimestral' | 'semestral' | 'anual',
+  { code: string; price: number; formattedPrice: string; beneficiary: string; city: string; txid: string }
+> = {
+  mensal: {
+    price: 39.90,
+    formattedPrice: 'R$ 39,90',
+    beneficiary: 'Luiz De Luca',
+    city: 'São Paulo',
+    txid: '1745077504960226',
+    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540539.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077504960226304EDA0'
+  },
+  trimestral: {
+    price: 99.90,
+    formattedPrice: 'R$ 99,90',
+    beneficiary: 'Luiz De Luca',
+    city: 'São Paulo',
+    txid: '1745077506510046',
+    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540590.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077506510046304EE43'
+  },
+  semestral: {
+    price: 179.90,
+    formattedPrice: 'R$ 179,90',
+    beneficiary: 'Luiz De Luca',
+    city: 'São Paulo',
+    txid: '1745077507226366',
+    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406179.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr17450775072263663049663'
+  },
+  anual: {
+    price: 299.90,
+    formattedPrice: 'R$ 299,90',
+    beneficiary: 'Luiz De Luca',
+    city: 'São Paulo',
+    txid: '1745077507570396',
+    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406299.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077507570396304CDF1'
+  }
+};
+
 const PLANS: PlanOption[] = [
   {
     id: 'mensal',
@@ -296,9 +334,10 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
     setCardExpiry(clean.substring(0, 5));
   };
 
-  const handleCopyPix = () => {
-    const pixCode = "00020126580014BR.GOV.BCB.PIX0136a6295348-2f8c-4f4e-9d5a-3b8e1c7f4d2a5204000053039865802BR5913VESTHUB6009SAOPAULO62070503***6304A2B3";
-    navigator.clipboard.writeText(pixCode);
+  const handleCopyPix = (customCode?: string) => {
+    const planKey = (selectedPlanForMigration?.id || activePlanId) as 'mensal' | 'trimestral' | 'semestral' | 'anual';
+    const targetCode = customCode || PLAN_PIX_KEYS[planKey]?.code || PLAN_PIX_KEYS.anual.code;
+    navigator.clipboard.writeText(targetCode);
     setCopiedPix(true);
     setTimeout(() => setCopiedPix(false), 2500);
   };
@@ -913,70 +952,112 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
             )}
 
             {/* FORM PIX */}
-            {paymentMethod === 'pix' && (
-              <div className="text-center p-6 space-y-4 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10">
-                {mpPixData?.qr_code_base64 ? (
-                  <div className="space-y-3">
-                    <div className="w-48 h-48 mx-auto bg-white p-3 rounded-2xl border-2 border-[#009EE3] shadow-lg flex items-center justify-center">
+            {paymentMethod === 'pix' && (() => {
+              const currentTargetPlan = selectedPlanForMigration || activePlanObj;
+              const targetKey = (currentTargetPlan.id || 'anual') as 'mensal' | 'trimestral' | 'semestral' | 'anual';
+              const currentPix = PLAN_PIX_KEYS[targetKey] || PLAN_PIX_KEYS.anual;
+              const qrImageUrl = mpPixData?.qr_code_base64
+                ? `data:image/png;base64,${mpPixData.qr_code_base64}`
+                : `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=${encodeURIComponent(currentPix.code)}`;
+              const activePixCode = mpPixData?.qr_code || currentPix.code;
+
+              return (
+                <div className="p-6 space-y-5 bg-slate-50 dark:bg-[#181A20] rounded-2xl border border-slate-200 dark:border-white/10 text-left">
+                  {/* Plan & Beneficiary Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/10">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>PIX Oficial Mercado Pago · {currentPix.formattedPrice}</span>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1">
+                        Plano {currentTargetPlan.name}
+                      </h4>
+                    </div>
+
+                    <div className="text-xs text-slate-600 dark:text-zinc-400 sm:text-right space-y-0.5">
+                      <div>Beneficiário: <strong className="text-slate-900 dark:text-white">{currentPix.beneficiary}</strong></div>
+                      <div>Cidade: <strong className="text-slate-900 dark:text-white">{currentPix.city}</strong></div>
+                    </div>
+                  </div>
+
+                  {/* QR Code Container */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div className="w-48 h-48 sm:w-52 sm:h-52 bg-white p-3 rounded-2xl border-2 border-emerald-500/40 shadow-lg flex items-center justify-center shrink-0">
                       <img
-                        src={`data:image/png;base64,${mpPixData.qr_code_base64}`}
+                        src={qrImageUrl}
                         alt="QR Code PIX Mercado Pago"
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span>Aguardando pagamento... Liberação automática imediata</span>
+
+                    <div className="space-y-3 flex-1 text-center sm:text-left">
+                      <div className="space-y-1">
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-center sm:justify-start gap-1.5">
+                          <CheckCircle2 size={15} className="text-emerald-500" />
+                          <span>Como pagar:</span>
+                        </div>
+                        <ol className="text-xs text-slate-600 dark:text-zinc-400 space-y-1 list-decimal list-inside leading-relaxed">
+                          <li>Abra o aplicativo do seu banco (qualquer banco com PIX)</li>
+                          <li>Escolha <strong>Pagar com QR Code</strong> ou <strong>PIX Copia e Cola</strong></li>
+                          <li>Confirme o valor de <strong>{currentPix.formattedPrice}</strong> para <strong>{currentPix.beneficiary}</strong></li>
+                        </ol>
+                      </div>
+
+                      {/* Copia e Cola Input */}
+                      <div className="space-y-1.5 pt-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
+                          Código PIX Copia e Cola:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={activePixCode}
+                            className="w-full px-3 py-2 bg-white dark:bg-[#121418] border border-slate-300 dark:border-white/15 rounded-xl text-xs font-mono text-slate-700 dark:text-zinc-300 select-all outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPix(activePixCode)}
+                            className="px-4 py-2 bg-[#009EE3] hover:bg-[#0089c7] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+                          >
+                            <Copy size={13} />
+                            <span>{copiedPix ? 'Copiado!' : 'Copiar'}</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="w-40 h-40 mx-auto bg-white p-3 rounded-xl border border-slate-200 dark:border-zinc-700 flex items-center justify-center">
-                    <QrCode size={120} className="text-slate-900" />
-                  </div>
-                )}
 
-                <p className="text-xs text-slate-600 dark:text-zinc-400">
-                  {mpPixData?.qr_code
-                    ? 'Copie o código PIX abaixo ou escaneie o QR Code no app do seu banco:'
-                    : 'Gere um QR Code oficial do Mercado Pago para pagar com PIX instantâneo:'}
-                </p>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
-                  {!mpPixData ? (
+                  {/* Confirmation & Alternate Checkout */}
+                  <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <button
                       type="button"
-                      disabled={loadingPix}
-                      onClick={() => handleGerarPixMercadoPago(selectedPlanForMigration)}
-                      className="py-2.5 px-5 bg-[#009EE3] hover:bg-[#0089c7] text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-md shadow-[#009EE3]/20 active:scale-95 disabled:opacity-50"
+                      disabled={loading}
+                      onClick={handleConfirmPlanChange}
+                      className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/25 active:scale-95 cursor-pointer disabled:opacity-50"
                     >
-                      {loadingPix ? (
-                        <Loader2 size={15} className="animate-spin" />
+                      {loading ? (
+                        <Loader2 size={16} className="animate-spin" />
                       ) : (
-                        <QrCode size={15} />
+                        <CheckCircle2 size={16} />
                       )}
-                      <span>Gerar PIX Oficial Mercado Pago</span>
+                      <span>Já realizei o pagamento PIX — Ativar Plano</span>
                     </button>
-                  ) : (
+
                     <button
                       type="button"
-                      onClick={() => {
-                        if (mpPixData?.qr_code) {
-                          navigator.clipboard.writeText(mpPixData.qr_code);
-                          setCopiedPix(true);
-                          setTimeout(() => setCopiedPix(false), 2500);
-                        } else {
-                          handleCopyPix();
-                        }
-                      }}
-                      className="py-2.5 px-5 bg-white dark:bg-[#20232B] border border-slate-300 dark:border-white/15 rounded-xl text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                      disabled={loadingMpCheckout}
+                      onClick={() => handleMercadoPagoCheckout(currentTargetPlan)}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-slate-200/70 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Copy size={14} />
-                      <span>{copiedPix ? 'Código PIX copiado!' : 'Copiar Chave Copia e Cola'}</span>
+                      <ExternalLink size={13} />
+                      <span>Ou pagar com Cartão (até 12x)</span>
                     </button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* FORM BOLETO */}
             {paymentMethod === 'boleto' && (

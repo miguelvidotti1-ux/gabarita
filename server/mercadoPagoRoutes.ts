@@ -121,6 +121,49 @@ interface TransactionRecord {
 
 const recentTransactions: Map<string, TransactionRecord> = new Map();
 
+export const PLAN_PIX_KEYS: Record<string, { code: string; price: number; formattedPrice: string; beneficiary: string; city: string; txid: string }> = {
+  mensal: {
+    price: 39.90,
+    formattedPrice: "R$ 39,90",
+    beneficiary: "Luiz De Luca",
+    city: "São Paulo",
+    txid: "1745077504960226",
+    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540539.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077504960226304EDA0"
+  },
+  trimestral: {
+    price: 99.90,
+    formattedPrice: "R$ 99,90",
+    beneficiary: "Luiz De Luca",
+    city: "São Paulo",
+    txid: "1745077506510046",
+    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540590.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077506510046304EE43"
+  },
+  semestral: {
+    price: 179.90,
+    formattedPrice: "R$ 179,90",
+    beneficiary: "Luiz De Luca",
+    city: "São Paulo",
+    txid: "1745077507226366",
+    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406179.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr17450775072263663049663"
+  },
+  anual: {
+    price: 299.90,
+    formattedPrice: "R$ 299,90",
+    beneficiary: "Luiz De Luca",
+    city: "São Paulo",
+    txid: "1745077507570396",
+    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406299.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077507570396304CDF1"
+  }
+};
+
+/**
+ * GET /api/mercadopago/chaves-pix
+ * Returns configured official PIX keys for each plan
+ */
+mercadoPagoRouter.get("/chaves-pix", (_req: Request, res: Response) => {
+  return res.json({ chaves: PLAN_PIX_KEYS });
+});
+
 /**
  * GET /api/mercadopago/config
  * Returns integration status
@@ -275,6 +318,39 @@ mercadoPagoRouter.post("/criar-pix", async (req: Request, res: Response) => {
     const numPrice = Number(price);
     if (!planId || !numPrice || isNaN(numPrice)) {
       return res.status(400).json({ erro: "Dados de plano inválidos." });
+    }
+
+    // Check if an official PIX key is configured for this plan or price
+    const planKey = PLAN_PIX_KEYS[planId] || Object.values(PLAN_PIX_KEYS).find(p => Math.abs(p.price - numPrice) < 0.05);
+    if (planKey) {
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(planKey.code)}`;
+      const txId = `pix_luiz_${planId}_${Date.now()}`;
+      
+      const pixRecord: TransactionRecord = {
+        id: txId,
+        type: "pix",
+        planId,
+        planName: planName || planId,
+        price: planKey.price,
+        userEmail,
+        userName,
+        status: "pending",
+        pixQrCode: planKey.code,
+        createdAt: new Date().toISOString(),
+      };
+      recentTransactions.set(txId, pixRecord);
+
+      return res.json({
+        id: txId,
+        status: "pending",
+        qr_code: planKey.code,
+        qr_code_image_url: qrCodeUrl,
+        beneficiary: planKey.beneficiary,
+        city: planKey.city,
+        price: planKey.price,
+        formatted_price: planKey.formattedPrice,
+        planId,
+      });
     }
 
     const appUrl = getAppUrl(req);
