@@ -12,14 +12,46 @@ const isValidMpToken = (t?: string) => {
 };
 
 const getAccessToken = () => {
-  let token = process.env.MP_ACCESS_TOKEN || "";
+  // 1. Process environment variables & cloud secrets
+  let token = (
+    process.env.MP_ACCESS_TOKEN ||
+    process.env.MERCADOPAGO_ACCESS_TOKEN ||
+    process.env.MERCADO_PAGO_ACCESS_TOKEN ||
+    process.env.MP_TOKEN ||
+    ""
+  ).trim();
+
+  // 2. Secret Manager file mount locations (e.g. /etc/secrets, /run/secrets)
+  if (!isValidMpToken(token)) {
+    const secretPaths = [
+      "/etc/secrets/mp_access_token",
+      "/etc/secrets/MP_ACCESS_TOKEN",
+      "/run/secrets/mp_access_token",
+      path.resolve(process.cwd(), ".secrets", "mp_access_token")
+    ];
+    for (const sp of secretPaths) {
+      try {
+        if (fs.existsSync(sp)) {
+          const secretContent = fs.readFileSync(sp, "utf-8").trim();
+          if (isValidMpToken(secretContent)) {
+            token = secretContent;
+            process.env.MP_ACCESS_TOKEN = token;
+            break;
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  // 3. Check .env file if available
   if (!isValidMpToken(token)) {
     try {
       const envPath = path.resolve(process.cwd(), ".env");
       if (fs.existsSync(envPath)) {
         const envConfig = dotenv.parse(fs.readFileSync(envPath));
-        if (isValidMpToken(envConfig.MP_ACCESS_TOKEN)) {
-          token = envConfig.MP_ACCESS_TOKEN;
+        const envCandidate = envConfig.MP_ACCESS_TOKEN || envConfig.MERCADOPAGO_ACCESS_TOKEN;
+        if (isValidMpToken(envCandidate)) {
+          token = envCandidate;
           process.env.MP_ACCESS_TOKEN = token;
         }
       }
@@ -27,10 +59,13 @@ const getAccessToken = () => {
       console.warn("[MercadoPago] Aviso lendo .env:", e);
     }
   }
+
+  // 4. Default fallback token
   if (!isValidMpToken(token)) {
     token = "TEST-APP_USR-2565309297640202-110220-5c63cb98192db617bc8b429cce43a053-3812664448";
     process.env.MP_ACCESS_TOKEN = token;
   }
+
   return token.replace(/^["']|["']$/g, "").trim();
 };
 

@@ -34,11 +34,14 @@ def check_server():
                 print(f"     * Cronograma Semanal Personalizado")
                 print(f"     * Checkout Pro & PIX Mercado Pago")
                 print(f"     * Integração Spotify Focus")
-                print(f"\n-> Aplicativo pronto para uso na prévia do AI Studio.")
+                public_url = data.get('appUrl') or "https://ais-dev-r6cxhzfuu5mca3ev4cd5ki-397759700099.us-east1.run.app"
+                print(f"\n-> Acesse seu aplicativo diretamente pelo painel de prévia do AI Studio ou pelo link público na nuvem:")
+                print(f"   {public_url}")
+                print(f"   (Nota: 'localhost:3000' é a porta interna do container de nuvem, use o link acima no seu navegador)")
                 return True
     except (urllib.error.URLError, ConnectionRefusedError):
         print(f"[INFO] Servidor na porta {SERVER_PORT} não está respondendo via HTTP.")
-        print(f"[INFO] No AI Studio, o servidor de desenvolvimento é iniciado com 'npm run dev'.")
+        print(f"[INFO] No AI Studio, o servidor é gerenciado pelo ambiente na nuvem.")
         return False
 
 if __name__ == "__main__":

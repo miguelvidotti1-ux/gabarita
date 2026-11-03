@@ -789,7 +789,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 }`}
               >
                 <CreditCard size={22} />
-                <span className="text-xs">Cartão</span>
+                <span className="text-xs text-center leading-tight">Crédito ou Débito</span>
               </button>
 
               <button
@@ -802,7 +802,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 }`}
               >
                 <QrCode size={22} />
-                <span className="text-xs">PIX Mercado Pago</span>
+                <span className="text-xs text-center leading-tight">PIX Instantâneo</span>
               </button>
 
               <button
@@ -815,7 +815,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                 }`}
               >
                 <FileText size={22} />
-                <span className="text-xs">Boleto</span>
+                <span className="text-xs text-center leading-tight">Boleto Bancário</span>
               </button>
             </div>
 
@@ -870,6 +870,11 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                   </div>
                 </div>
 
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-500/20 text-[11px] text-blue-700 dark:text-blue-300">
+                  <CreditCard size={15} className="shrink-0" />
+                  <span>Aceita <strong>Cartão de Crédito</strong> (em até 12x) e <strong>Cartão de Débito</strong> (Visa, Mastercard, Elo) com ativação imediata.</span>
+                </div>
+
                 <div className="pt-2">
                   <button
                     type="button"
@@ -882,7 +887,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                     ) : (
                       <>
                         <ExternalLink size={15} />
-                        <span>Pagar em até 12x via Mercado Pago</span>
+                        <span>Pagar com Cartão (Crédito ou Débito) no Mercado Pago</span>
                       </>
                     )}
                   </button>

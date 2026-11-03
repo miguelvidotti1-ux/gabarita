@@ -1172,12 +1172,14 @@ Retorne exclusivamente um JSON com este formato:
   }
 
   // 1. Obter perguntas estruturadas do questionário
-  app.get("/api/auth/onboarding/perguntas", (_req, res) => {
+  const handleGetPerguntas = (_req: express.Request, res: express.Response) => {
     return res.json({ perguntas: PERGUNTAS_ONBOARDING });
-  });
+  };
+  app.get("/api/auth/onboarding/perguntas", handleGetPerguntas);
+  app.get("/api/onboarding/perguntas", handleGetPerguntas);
 
   // 2. Salvar respostas do onboarding e calcular resumo
-  app.post("/api/auth/onboarding", (req, res) => {
+  const handlePostOnboarding = (req: express.Request, res: express.Response) => {
     try {
       const respostas = req.body?.respostas || req.body || {};
       const uid = String(req.body?.usuario_id || extractUsuarioId(req));
@@ -1206,7 +1208,9 @@ Retorne exclusivamente um JSON com este formato:
       console.error("[Onboarding API] Erro ao salvar respostas:", err);
       return res.status(500).json({ sucesso: false, erro: err?.message || "Erro interno ao salvar onboarding." });
     }
-  });
+  };
+  app.post("/api/auth/onboarding", handlePostOnboarding);
+  app.post("/api/onboarding", handlePostOnboarding);
 
   // 3. Obter perfil e status de onboarding do usuário logado
   app.get("/api/auth/me", (req, res) => {
