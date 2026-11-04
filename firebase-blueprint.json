@@ -26,6 +26,11 @@
         "badge": { "type": "string" },
         "themeColor": { "type": "string" },
         "role": { "type": "string", "enum": ["admin", "user"] },
+        "activePlanId": { "type": "string" },
+        "planUpdatedAt": { "type": "string", "format": "date-time" },
+        "paymentStatus": { "type": "string" },
+        "paymentProvider": { "type": "string" },
+        "paymentId": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

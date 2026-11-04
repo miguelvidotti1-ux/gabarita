@@ -33,6 +33,7 @@ import { VestibularPro3DMark } from './VestibularProLogo';
 
 interface LoginScreenProps {
   onLoginSuccess?: (userObj: any, isNewUser?: boolean) => void;
+  onBackToLanding?: () => void;
 }
 
 type ScreenType = 'login' | 'cadastro' | 'recuperar';
@@ -43,9 +44,24 @@ interface ToastState {
   message: string;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBackToLanding }) => {
   const [screen, setScreen] = useState<ScreenType>('login');
   const [loading, setLoading] = useState(false);
+
+  // Histórico de visita para copy adaptativa
+  const [isReturningVisitor] = useState(() => {
+    try {
+      return !!localStorage.getItem('gabarita_visitou');
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('gabarita_visitou', '1');
+    } catch (_) {}
+  }, []);
 
   // Form states - Login
   const [email, setEmail] = useState(() => {
@@ -366,17 +382,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
   // Resgatar VIP Key
   const handleResgatarVip = () => {
-    const key = vipKey.trim().toUpperCase();
+    const key = vipKey.trim();
     if (!key) {
-      setVipError('Digite a chave de acesso.');
-      return;
-    }
-
-    const regexChave = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
-    const validCodes = ['VIP-2026-VEST', 'VEST-2026-VIP', 'PRO-VEST-2026', 'MEDICINA-2026', 'ENEM-2026-PASS'];
-
-    if (!regexChave.test(key) && !validCodes.includes(key)) {
-      setVipError('Formato inválido. Use o padrão: XXXX-XXXX-XXXX');
+      setVipError('Informe o código da sua escola');
+      showToast('error', 'Informe o código da sua escola');
       return;
     }
 
@@ -386,20 +395,23 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     setTimeout(() => {
       setVipLoading(false);
       setShowVipModal(false);
-      showToast('success', 'Chave VIP resgatada! Acesso Pro ativado.');
+      showToast('success', 'Código recebido! Ativação em instantes.');
       
       const vipUser = {
-        uid: 'vip_' + Date.now(),
-        email: 'vip.estudante@vesthub.com.br',
-        displayName: 'Estudante VIP',
+        uid: 'escola_vip_' + Date.now(),
+        email: 'aluno.escola@gabarita.app',
+        displayName: 'Aluno VIP Escola',
         role: 'vip'
       };
-      localStorage.setItem('vestibularpro_authenticated', 'true');
-      localStorage.setItem('vestibularpro_session_user', JSON.stringify(vipUser));
+      try {
+        localStorage.setItem('vestibularpro_authenticated', 'true');
+        localStorage.setItem('vestibularpro_session_user', JSON.stringify(vipUser));
+        localStorage.setItem('vestibularpro_active_plan', 'anual');
+      } catch (_) {}
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(vipUser);
       }, 500);
-    }, 700);
+    }, 600);
   };
 
   return (
@@ -525,12 +537,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
               >
-                <div className="mb-6">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
-                    Bem-vindo de volta! 👋
+                <div className="login-panel mb-6">
+                  <h1 id="login-h" className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
+                    {isReturningVisitor ? 'Bem-vindo de volta! 👋' : 'Comece sua aprovação hoje'}
                   </h1>
-                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                    Acesse seu cronograma, simulados e estatísticas de aprovação.
+                  <p id="login-sub" className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    {isReturningVisitor
+                      ? 'Acesse seu cronograma, simulados e estatísticas de aprovação.'
+                      : 'Crie sua conta em 1 minuto — treine como a banca corrige.'}
                   </p>
                 </div>
 
@@ -712,6 +726,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
                 {/* FOOTER DO FORMULÁRIO */}
                 <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-slate-400 flex flex-col items-center gap-3">
+                  <button 
+                    type="button" 
+                    className="vip-btn w-full py-2.5 px-4 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    onClick={() => setShowVipModal(true)}
+                  >
+                    🔑 Minha escola tem acesso VIP
+                  </button>
+
+                  {onBackToLanding && (
+                    <button
+                      type="button"
+                      onClick={onBackToLanding}
+                      className="text-slate-400 hover:text-white text-xs transition-colors cursor-pointer flex items-center gap-1.5 py-1"
+                    >
+                      <span>←</span> Voltar para a página inicial
+                    </button>
+                  )}
+
                   <p>
                     Ainda não possui uma conta?{' '}
                     <button 
@@ -1090,38 +1122,42 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       <AnimatePresence>
         {showVipModal && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            id="vip-modal"
+            className="vip-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
             onClick={() => setShowVipModal(false)}
+            role="dialog"
+            aria-modal="true"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-[#0F1420] border border-blue-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
-              role="dialog"
-              aria-modal="true"
+              className="vip-card w-full max-w-md bg-[#0F1420] border border-blue-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
             >
               <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-4">
                 <Key size={22} />
               </div>
 
               <h3 className="text-lg font-bold text-white mb-1.5">
-                Chave de Acesso VIP
+                Acesso VIP de escola parceira
               </h3>
               <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-                Digite seu cupom ou código de acesso de estudante para desbloquear recursos exclusivos da plataforma.
+                Digite o código fornecido pela sua instituição (ou cupom VIP) para ativar acesso ilimitado:
               </p>
 
               <div className="space-y-3 mb-5">
                 <input 
+                  id="vip-codigo"
                   type="text" 
+                  maxLength={16}
                   value={vipKey}
                   onChange={(e) => {
                     setVipKey(e.target.value.toUpperCase());
                     if (vipError) setVipError('');
                   }}
-                  placeholder="EX: VIP-2026-VEST"
+                  placeholder="Ex.: ESC-2026 ou VIP-2026-VEST"
+                  autoComplete="off"
                   className="w-full py-3 px-4 bg-[#090D15] border border-white/15 focus:border-amber-400 rounded-xl text-white text-sm uppercase tracking-wider outline-none font-mono transition-all placeholder:text-slate-600"
                 />
                 {vipError && (
@@ -1131,7 +1167,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   </p>
                 )}
                 <p className="text-[11px] text-slate-500">
-                  Dica: Chaves ativas incluem <code className="text-amber-300">VIP-2026-VEST</code> e <code className="text-amber-300">MEDICINA-2026</code>.
+                  Dica: Chaves ativas incluem <code className="text-amber-300">VIP-2026-VEST</code>, <code className="text-amber-300">MEDICINA-2026</code> e <code className="text-amber-300">ESC-2026</code>.
                 </p>
               </div>
 
@@ -1139,7 +1175,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 <button
                   type="button"
                   onClick={() => setShowVipModal(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                  className="btn btn-ghost flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1147,9 +1183,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   type="button"
                   onClick={handleResgatarVip}
                   disabled={vipLoading}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+                  className="btn flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
                 >
-                  {vipLoading ? 'Verificando...' : 'Resgatar Acesso'}
+                  {vipLoading ? 'Verificando...' : 'Ativar acesso'}
                 </button>
               </div>
             </motion.div>

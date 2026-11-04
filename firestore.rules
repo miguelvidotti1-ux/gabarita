@@ -116,6 +116,11 @@ service cloud.firestore {
              (!('frame' in data) || (data.frame is string && data.frame.size() < 64)) &&
              (!('badge' in data) || (data.badge is string && data.badge.size() < 64)) &&
              (!('themeColor' in data) || (data.themeColor is string && data.themeColor.size() < 64)) &&
+             (!('activePlanId' in data) || (data.activePlanId is string && data.activePlanId.size() < 64)) &&
+             (!('planUpdatedAt' in data) || (data.planUpdatedAt is string && data.planUpdatedAt.size() < 128)) &&
+             (!('paymentStatus' in data) || (data.paymentStatus is string && data.paymentStatus.size() < 64)) &&
+             (!('paymentProvider' in data) || (data.paymentProvider is string && data.paymentProvider.size() < 64)) &&
+             (!('paymentId' in data) || (data.paymentId is string && data.paymentId.size() < 128)) &&
              (!('updatedAt' in data) || (data.updatedAt is string));
     }
 

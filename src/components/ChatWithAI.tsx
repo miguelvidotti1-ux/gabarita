@@ -693,8 +693,9 @@ export default function ChatWithAI() {
               type="button"
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
-              className="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-[#1E222B] disabled:text-zinc-600 disabled:border disabled:border-white/10 text-white rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer shrink-0 disabled:shadow-none disabled:cursor-not-allowed"
+              className="send-b p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-[#1E222B] disabled:text-zinc-600 disabled:border disabled:border-white/10 text-white rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer shrink-0 disabled:shadow-none disabled:cursor-not-allowed"
               title="Enviar mensagem"
+              aria-label="Enviar mensagem"
             >
               {loading ? (
                 <Loader2 size={16} className="animate-spin" />

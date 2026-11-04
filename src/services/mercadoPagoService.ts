@@ -108,4 +108,38 @@ export class MercadoPagoService {
     if (!res.ok) throw new Error(data.erro || 'Não foi possível verificar status do pagamento');
     return data;
   }
+
+  static async verificarStatus(params: {
+    planId: string;
+    paymentId?: string | number | null;
+    userEmail?: string;
+    price?: number;
+  }): Promise<{
+    approved: boolean;
+    status: string;
+    planId?: string;
+    paymentId?: string | number;
+    amount?: number;
+    message?: string;
+    date_approved?: string;
+    payment_method?: string;
+  }> {
+    try {
+      const res = await fetch('/api/mercadopago/verificar-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        return { approved: false, status: 'error', message: 'Erro ao verificar resposta do servidor.' };
+      }
+      return data;
+    } catch (err: any) {
+      return { approved: false, status: 'error', message: err.message || 'Erro ao conectar ao servidor.' };
+    }
+  }
 }

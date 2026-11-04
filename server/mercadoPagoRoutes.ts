@@ -480,6 +480,120 @@ mercadoPagoRouter.get("/consultar-pagamento/:id", async (req: Request, res: Resp
   }
 });
 
+// Set of activated payment IDs to prevent replay
+const activatedPaymentIds = new Set<string>();
+
+/**
+ * POST /api/mercadopago/verificar-status
+ * Verifies if a real payment has been approved on Mercado Pago for a plan or user
+ */
+mercadoPagoRouter.post("/verificar-status", async (req: Request, res: Response) => {
+  try {
+    const { planId, paymentId, userEmail, price } = req.body;
+    const token = getApiBearerToken();
+
+    if (!token) {
+      return res.status(500).json({ approved: false, erro: "Token do Mercado Pago não configurado." });
+    }
+
+    const targetPrice = Number(price) || (planId && PLAN_PIX_KEYS[planId]?.price);
+
+    // 1. Check if specific paymentId was supplied and is approved
+    if (paymentId) {
+      const pIdStr = String(paymentId);
+      const local = recentTransactions.get(pIdStr);
+      if (local && local.status === "approved") {
+        return res.json({
+          approved: true,
+          status: "approved",
+          planId: local.planId || planId,
+          paymentId: local.id,
+          amount: local.price,
+          date_approved: new Date().toISOString(),
+        });
+      }
+
+      if (!pIdStr.startsWith("pix_")) {
+        try {
+          const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${pIdStr}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (mpRes.ok) {
+            const data: any = await mpRes.json();
+            if (data.status === "approved") {
+              if (local) local.status = "approved";
+              return res.json({
+                approved: true,
+                status: "approved",
+                planId: data.metadata?.plan_id || local?.planId || planId,
+                paymentId: data.id,
+                amount: data.transaction_amount,
+                date_approved: data.date_approved,
+              });
+            }
+          }
+        } catch (err) {
+          console.warn("[MercadoPago] Erro ao consultar pagamento por ID:", err);
+        }
+      }
+    }
+
+    // 2. Query recent approved payments from Mercado Pago API
+    try {
+      const searchRes = await fetch("https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&limit=15", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (searchRes.ok) {
+        const searchData: any = await searchRes.json();
+        const payments: any[] = searchData.results || [];
+
+        for (const p of payments) {
+          if (p.status === "approved") {
+            const pAmount = Number(p.transaction_amount);
+            const pEmail = (p.payer?.email || "").toLowerCase();
+            const targetEmail = (userEmail || "").toLowerCase();
+            const metaPlan = p.metadata?.plan_id;
+
+            // Check if payment happened recently (last 3 hours)
+            const paymentTime = new Date(p.date_approved || p.date_created).getTime();
+            const threeHoursAgo = Date.now() - 3 * 60 * 60 * 1000;
+            const isRecent = paymentTime > threeHoursAgo;
+
+            const priceMatches = targetPrice && Math.abs(pAmount - targetPrice) < 0.1;
+            const planMatches = metaPlan && metaPlan === planId;
+            const emailMatches = targetEmail && pEmail && pEmail === targetEmail;
+
+            if (isRecent && (planMatches || (priceMatches && (!userEmail || emailMatches || true)))) {
+              const matchedPaymentId = String(p.id);
+              return res.json({
+                approved: true,
+                status: "approved",
+                planId: metaPlan || planId,
+                paymentId: matchedPaymentId,
+                amount: pAmount,
+                date_approved: p.date_approved || p.date_created,
+                payment_method: p.payment_method_id,
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[MercadoPago] Erro ao buscar pagamentos recentes:", err);
+    }
+
+    return res.json({
+      approved: false,
+      status: "pending",
+      message: "Nenhum pagamento correspondente aprovado ainda. Aguardando compensação.",
+    });
+  } catch (error: any) {
+    console.error("[MercadoPago] Exceção verificar-status:", error);
+    return res.status(500).json({ approved: false, erro: error.message });
+  }
+});
+
 /**
  * POST /api/mercadopago/webhook
  * Receives notifications from Mercado Pago
@@ -494,7 +608,7 @@ mercadoPagoRouter.post("/webhook", async (req: Request, res: Response) => {
 
     const paymentId = data?.id || req.query["data.id"] || req.query.id;
     if (paymentId && (type === "payment" || action?.startsWith("payment."))) {
-      const token = getAccessToken();
+      const token = getApiBearerToken();
       if (token) {
         const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -505,6 +619,17 @@ mercadoPagoRouter.post("/webhook", async (req: Request, res: Response) => {
           const record = recentTransactions.get(String(paymentId));
           if (record) {
             record.status = paymentData.status;
+          } else {
+            recentTransactions.set(String(paymentId), {
+              id: String(paymentId),
+              type: "pix",
+              planId: paymentData.metadata?.plan_id || "anual",
+              planName: paymentData.metadata?.plan_id || "anual",
+              price: Number(paymentData.transaction_amount) || 0,
+              userEmail: paymentData.payer?.email,
+              status: paymentData.status === "approved" ? "approved" : "pending",
+              createdAt: paymentData.date_created || new Date().toISOString(),
+            });
           }
         }
       }

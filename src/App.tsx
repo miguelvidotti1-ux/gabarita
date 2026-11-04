@@ -31,6 +31,7 @@ import { GraduationCap, LogIn, Sparkles, BookOpen, Target, Award, Trophy, Zap, C
 import { motion } from 'motion/react';
 
 import LoginScreen from './components/LoginScreen';
+import { LandingPublica } from './components/LandingPublica';
 import PlanSelection from './components/PlanSelection';
 import SpotifyStudyHub from './components/SpotifyStudyHub';
 import PomodoroTimer from './components/PomodoroTimer';
@@ -61,6 +62,7 @@ export default function App() {
   const [isFullExam, setIsFullExam] = React.useState(false);
   const [quizTimeLimit, setQuizTimeLimit] = React.useState<number | undefined>(undefined);
   const [showOnboarding, setShowOnboarding] = React.useState(false);
+  const [showLogin, setShowLogin] = React.useState(false);
 
   React.useEffect(() => {
     async function testConnection() {
@@ -160,6 +162,7 @@ export default function App() {
       sessionStorage.removeItem('auth_token');
     } catch (e) {}
     setUser(null);
+    setShowLogin(false);
     setActiveTab('home');
   };
 
@@ -332,20 +335,27 @@ export default function App() {
         </div>
       ) : !user ? (
         <ErrorBoundary>
-          <LoginScreen
-            onLoginSuccess={(userObj, isNewUser) => {
-              setUser(userObj);
-              try {
-                localStorage.setItem('vestibularpro_authenticated', 'true');
-                localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
-              } catch (e) {}
-              if (isNewUser) {
-                setActiveTab('planos');
-              } else {
-                setActiveTab('home');
-              }
-            }}
-          />
+          {!showLogin ? (
+            <LandingPublica 
+              onGoToLogin={() => setShowLogin(true)} 
+            />
+          ) : (
+            <LoginScreen
+              onBackToLanding={() => setShowLogin(false)}
+              onLoginSuccess={(userObj, isNewUser) => {
+                setUser(userObj);
+                try {
+                  localStorage.setItem('vestibularpro_authenticated', 'true');
+                  localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
+                } catch (e) {}
+                if (isNewUser) {
+                  setActiveTab('planos');
+                } else {
+                  setActiveTab('home');
+                }
+              }}
+            />
+          )}
         </ErrorBoundary>
       ) : (
         <ErrorBoundary>

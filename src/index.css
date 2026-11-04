@@ -1001,3 +1001,37 @@ body {
   }
 }
 
+/* Foco visível em todo o app */
+:focus-visible {
+  outline: 2px solid #60A5FA;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respeita quem reduz animações no sistema */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Skip link para acessibilidade */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #1E3A8A;
+  color: #FFFFFF;
+  padding: 10px 18px;
+  z-index: 9999;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
