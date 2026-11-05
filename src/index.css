@@ -14,7 +14,7 @@
 
 /* ========== TEMA ÚNICO — PREMIUM DARK MODE ========== */
 :root, [data-theme="dark"], .dark {
-  /* ===== TEMA VESTIBULAR PRO — #000000 + #10141D ===== */
+  /* ===== TEMA GABARITA — #000000 + #10141D ===== */
   --bg: #000000;        /* fundo principal de todas as abas (era #0A0A0A) */
   --bg2: #10141D;       /* sidebar e superfícies secundárias (era #141414) */
   --card: #10141D;      /* cards, modais, inputs e chat (era #1A1A1A) */
@@ -1033,5 +1033,39 @@ body {
 
 .skip-link:focus {
   left: 0;
+}
+
+/* Planos e Tags da Landing */
+.land-planos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.land-plano {
+  position: relative;
+}
+.land-tag {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1E3A8A;
+  color: #FFF;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 10px;
+}
+@media (max-width: 760px) {
+  .land-planos {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .land-planos {
+    grid-template-columns: 1fr;
+  }
 }
 

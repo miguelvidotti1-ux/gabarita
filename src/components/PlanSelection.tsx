@@ -40,6 +40,10 @@ interface PlanOption {
   id: 'mensal' | 'trimestral' | 'semestral' | 'anual';
   name: string;
   price: number;
+  preco_centavos: number;
+  duracao_dias: number;
+  descricao: string;
+  subtext: string;
   periodLabel: string;
   cycleLabel: string;
   savings?: string;
@@ -90,60 +94,76 @@ const PLANS: PlanOption[] = [
     id: 'mensal',
     name: 'Mensal',
     price: 39.90,
-    periodLabel: 'por mês',
-    cycleLabel: 'Cobrança mensal recorrente',
+    preco_centavos: 3990,
+    duracao_dias: 30,
+    descricao: 'Tudo ilimitado por 30 dias: IA, correções, simulados e playlists',
+    subtext: 'Acesso completo por 30 dias, sem fidelidade',
+    periodLabel: '/mês (30 dias)',
+    cycleLabel: 'Cobrança por 30 dias',
     features: [
-      { text: 'Acesso a todas as provas e vestibulares', enabled: true },
-      { text: 'Gabaritos comentados detalhados', enabled: true },
-      { text: 'Simulados ilimitados com cronômetro', enabled: true },
-      { text: 'Análise de desempenho por disciplina', enabled: false },
-      { text: 'Suporte prioritário e mentorias', enabled: false },
+      { text: 'Acesso completo por 30 dias sem fidelidade', enabled: true },
+      { text: 'IA de vestibular e VestBot 24h', enabled: true },
+      { text: 'Correções ilimitadas no padrão ENEM e bancas', enabled: true },
+      { text: 'Simulados com diagnóstico TRI', enabled: true },
+      { text: 'Playlists de foco com letras', enabled: true },
     ]
   },
   {
     id: 'trimestral',
     name: 'Trimestral',
     price: 99.90,
-    periodLabel: 'a cada 3 meses',
-    cycleLabel: 'Cobrança a cada 3 meses',
-    savings: 'Economize 16%',
+    preco_centavos: 9990,
+    duracao_dias: 90,
+    descricao: '3 meses de acesso completo — economia de R$ 19,80',
+    subtext: 'Economia de R$ 19,80 — ideal para o reta final',
+    periodLabel: '/3 meses (90 dias)',
+    cycleLabel: 'Cobrança a cada 90 dias',
+    savings: 'Economia de R$ 19,80',
     features: [
-      { text: 'Acesso a todas as provas e vestibulares', enabled: true },
-      { text: 'Gabaritos comentados detalhados', enabled: true },
-      { text: 'Simulados ilimitados com cronômetro', enabled: true },
-      { text: 'Análise de desempenho por disciplina', enabled: true },
-      { text: 'Suporte prioritário e mentorias', enabled: false },
+      { text: '3 meses de acesso completo (90 dias)', enabled: true },
+      { text: 'Economia de R$ 19,80 no período', enabled: true },
+      { text: 'Ideal para o reta final dos vestibulares', enabled: true },
+      { text: 'Tudo ilimitado: IA, correções, simulados e playlists', enabled: true },
+      { text: 'Diagnóstico TRI e plano do boletim', enabled: true },
     ]
   },
   {
     id: 'semestral',
     name: 'Semestral',
     price: 179.90,
-    periodLabel: 'a cada 6 meses',
-    cycleLabel: 'Cobrança a cada 6 meses',
-    savings: 'Economize 25%',
+    preco_centavos: 17990,
+    duracao_dias: 180,
+    descricao: '6 meses de acesso completo — economia de R$ 59,50',
+    subtext: 'Economia de R$ 59,50 — acompanha o ciclo completo de simulados',
+    periodLabel: '/6 meses (180 dias)',
+    cycleLabel: 'Cobrança a cada 180 dias',
+    savings: 'Economia de R$ 59,50',
     popular: true,
     features: [
-      { text: 'Acesso a todas as provas e vestibulares', enabled: true },
-      { text: 'Gabaritos comentados detalhados', enabled: true },
-      { text: 'Simulados ilimitados com cronômetro', enabled: true },
-      { text: 'Análise de desempenho por disciplina', enabled: true },
-      { text: 'Suporte prioritário com tiradúvidas', enabled: true },
+      { text: '6 meses de acesso completo (180 dias)', enabled: true },
+      { text: 'Economia de R$ 59,50 no período', enabled: true },
+      { text: 'Acompanha o ciclo completo de simulados', enabled: true },
+      { text: 'Mais escolhido pelos vestibulandos', enabled: true },
+      { text: 'Tudo ilimitado: IA, correções, simulados e suporte', enabled: true },
     ]
   },
   {
     id: 'anual',
-    name: 'Anual Premium',
+    name: 'Anual',
     price: 299.90,
-    periodLabel: 'por ano',
-    cycleLabel: 'Cobrança anual única',
-    savings: 'Economize 37%',
+    preco_centavos: 29990,
+    duracao_dias: 365,
+    descricao: 'Acesso completo por 12 meses — equivalente a R$ 24,99/mês',
+    subtext: 'Equivalente a R$ 24,99/mês — do início do ano até a prova',
+    periodLabel: '/ano (365 dias)',
+    cycleLabel: 'Cobrança anual única (365 dias)',
+    savings: 'R$ 24,99/mês',
     features: [
-      { text: 'Acesso a todas as provas e vestibulares', enabled: true },
-      { text: 'Gabaritos comentados detalhados', enabled: true },
-      { text: 'Simulados ilimitados com cronômetro', enabled: true },
-      { text: 'Análise de desempenho avançada com IA', enabled: true },
-      { text: 'Suporte prioritário + mentorias exclusivas', enabled: true },
+      { text: 'Acesso completo por 12 meses (365 dias)', enabled: true },
+      { text: 'Equivalente a R$ 24,99/mês', enabled: true },
+      { text: 'Preparação do início do ano até a prova', enabled: true },
+      { text: 'Tudo ilimitado + mentorias e novidades', enabled: true },
+      { text: 'Acesso VIP garantido durante todo o ano letivo', enabled: true },
     ]
   }
 ];
@@ -372,10 +392,25 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
     setTimeout(() => setCopiedPix(false), 2500);
   };
 
+  const iniciarCheckout = (planId: 'mensal' | 'trimestral' | 'semestral' | 'anual') => {
+    const target = PLANS.find(p => p.id === planId);
+    if (target) {
+      setSelectedPlanForMigration(target);
+      setScreen('payment');
+    }
+  };
+
+  useEffect(() => {
+    (window as any).iniciarCheckout = iniciarCheckout;
+    return () => {
+      try {
+        delete (window as any).iniciarCheckout;
+      } catch (_) {}
+    };
+  }, []);
+
   const handleInitiatePlanChange = (plan: PlanOption) => {
-    if (plan.id === activePlanId) return;
-    setSelectedPlanForMigration(plan);
-    setScreen('payment');
+    iniciarCheckout(plan.id);
   };
 
   const handleVerificarStatusManual = async (showWarning = true) => {
@@ -705,9 +740,13 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                           <span className="text-sm font-semibold text-[var(--text-muted)]">,{cents}</span>
                         </div>
 
-                        <div className="text-xs text-[var(--text-muted)] mb-4">
+                        <div className="text-xs text-[var(--text-muted)] mb-2">
                           {plan.periodLabel}
                         </div>
+
+                        <p className="text-[11px] text-slate-300 leading-snug mb-4">
+                          {plan.subtext || plan.descricao}
+                        </p>
 
                         {/* Features checklist */}
                         <ul className="space-y-2 mb-6 border-t border-[var(--border-light)] pt-4">
@@ -730,14 +769,14 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                           <>
                             <button
                               type="button"
-                              onClick={() => handleInitiatePlanChange(plan)}
-                              className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98] ${
+                              onClick={() => iniciarCheckout(plan.id)}
+                              className={`btn w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98] ${
                                 isTopPick 
                                   ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20' 
                                   : 'bg-[var(--bg-card)] hover:bg-white/10 text-white border border-[var(--border-light)]'
                               }`}
                             >
-                              <span>{isUpgrade ? 'Fazer Upgrade' : 'Mudar para este'}</span>
+                              <span>Assinar {plan.id}</span>
                               <ChevronRight size={14} />
                             </button>
 

@@ -23,7 +23,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
         :root {
-            /* ===== TEMA VESTIBULAR PRO — #000000 + #10141D ===== */
+            /* ===== TEMA GABARITA — #000000 + #10141D ===== */
             --bg: #000000;
             --bg2: #10141D;
             --card: #10141D;
@@ -681,7 +681,7 @@
             mostrarToast('success', 'Redirecionando para autenticação com ' + provedor + '...');
             var mockUser = {
                 uid: provedor + '_' + Date.now(),
-                email: 'estudante.' + provedor + '@vesthub.com.br',
+                email: 'estudante.' + provedor + '@gabarita.com.br',
                 displayName: 'Estudante ' + (provedor.charAt(0).toUpperCase() + provedor.slice(1))
             };
             localStorage.setItem('vestibularpro_session_user', JSON.stringify(mockUser));

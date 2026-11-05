@@ -63,6 +63,7 @@ export default function App() {
   const [quizTimeLimit, setQuizTimeLimit] = React.useState<number | undefined>(undefined);
   const [showOnboarding, setShowOnboarding] = React.useState(false);
   const [showLogin, setShowLogin] = React.useState(false);
+  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = React.useState<'mensal' | 'trimestral' | 'semestral' | 'anual'>('semestral');
 
   React.useEffect(() => {
     async function testConnection() {
@@ -294,7 +295,7 @@ export default function App() {
       case 'dashboard':
         return <Dashboard selectedVestibular={selectedVestibular} />;
       case 'planos':
-        return <PlanSelection onComplete={() => setActiveTab('home')} userEmail={user?.email} userName={user?.displayName} />;
+        return <PlanSelection onComplete={() => setActiveTab('home')} currentPlanId={selectedPlanForCheckout} userEmail={user?.email} userName={user?.displayName} />;
       case 'quiz':
         return <Quiz questions={quizQuestions} isFullExam={isFullExam} onComplete={() => setActiveTab('home')} vestibular={selectedVestibular} timeLimit={quizTimeLimit} />;
       case 'login':
@@ -337,7 +338,21 @@ export default function App() {
         <ErrorBoundary>
           {!showLogin ? (
             <LandingPublica 
-              onGoToLogin={() => setShowLogin(true)} 
+              onGoToLogin={(planId) => {
+                if (planId) {
+                  setSelectedPlanForCheckout(planId);
+                }
+                setShowLogin(true);
+              }}
+              onPaymentSuccess={(planId, userObj) => {
+                setUser(userObj);
+                try {
+                  localStorage.setItem('vestibularpro_authenticated', 'true');
+                  localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
+                  localStorage.setItem('vestibularpro_active_plan', planId);
+                } catch (e) {}
+                setActiveTab('home');
+              }}
             />
           ) : (
             <LoginScreen
@@ -348,7 +363,7 @@ export default function App() {
                   localStorage.setItem('vestibularpro_authenticated', 'true');
                   localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
                 } catch (e) {}
-                if (isNewUser) {
+                if (isNewUser || selectedPlanForCheckout) {
                   setActiveTab('planos');
                 } else {
                   setActiveTab('home');

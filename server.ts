@@ -16,7 +16,7 @@ import { chatStore } from "./server/chatStore";
 import { onboardingStore, PERGUNTAS_ONBOARDING, MATERIAS, HORAS_MAP } from "./server/onboardingStore";
 import { boletimStore, ServicoBoletim, ServicoAnaliseNotas } from "./server/boletimStore";
 import multer from "multer";
-import { mercadoPagoRouter } from "./server/mercadoPagoRoutes";
+import { mercadoPagoRouter, PLANOS_PADRAO } from "./server/mercadoPagoRoutes";
 
 async function startServer() {
   const app = express();
@@ -29,6 +29,11 @@ async function startServer() {
 
   // Mount Mercado Pago API routes
   app.use("/api/mercadopago", mercadoPagoRouter);
+
+  // Endpoint de Planos Padrão
+  app.get("/api/planos", (_req, res) => {
+    res.json({ planos: PLANOS_PADRAO });
+  });
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY || "",

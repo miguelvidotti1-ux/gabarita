@@ -14,8 +14,8 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico'],
         manifest: {
-          name: 'Vestibular Pro',
-          short_name: 'VestPro',
+          name: 'Gabarita',
+          short_name: 'Gabarita',
           description: 'Plataforma de estudos para vestibulares',
           theme_color: '#4f46e5',
           background_color: '#f8fafc',

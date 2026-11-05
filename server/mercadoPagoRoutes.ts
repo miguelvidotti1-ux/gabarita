@@ -79,28 +79,7 @@ const getApiBearerToken = () => {
 };
 
 const getAppUrl = (req?: Request) => {
-  let url = process.env.APP_URL || "";
-  if (!url) {
-    try {
-      const envPath = path.resolve(process.cwd(), ".env");
-      if (fs.existsSync(envPath)) {
-        const envConfig = dotenv.parse(fs.readFileSync(envPath));
-        if (envConfig.APP_URL) {
-          url = envConfig.APP_URL;
-        }
-      }
-    } catch (_) {}
-  }
-
-  if (req) {
-    const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
-    const host = req.headers["x-forwarded-host"] || req.get("host");
-    if (host && !host.includes("localhost")) {
-      return `${proto}://${host}`.replace(/\/+$/, "");
-    }
-  }
-
-  return (url || "https://gabarita.ai.studio").replace(/^["']|["']$/g, "").replace(/\/+$/, "");
+  return (process.env.APP_URL || "https://gabarita.ai.studio").replace(/^["']|["']$/g, "").replace(/\/+$/, "");
 };
 
 // In-memory cache of recent transactions to allow live in-app confirmation
@@ -156,6 +135,50 @@ export const PLAN_PIX_KEYS: Record<string, { code: string; price: number; format
   }
 };
 
+export const PLANOS_PADRAO = [
+  {
+    nome: 'mensal',
+    preco_centavos: 3990,
+    preco_reais: 39.90,
+    duracao_dias: 30,
+    descricao: 'Tudo ilimitado por 30 dias: IA, correções, simulados e playlists',
+    subtext: 'Acesso completo por 30 dias, sem fidelidade'
+  },
+  {
+    nome: 'trimestral',
+    preco_centavos: 9990,
+    preco_reais: 99.90,
+    duracao_dias: 90,
+    descricao: '3 meses de acesso completo — economia de R$ 19,80',
+    subtext: 'Economia de R$ 19,80 — ideal para o reta final'
+  },
+  {
+    nome: 'semestral',
+    preco_centavos: 17990,
+    preco_reais: 179.90,
+    duracao_dias: 180,
+    descricao: '6 meses de acesso completo — economia de R$ 59,50',
+    subtext: 'Economia de R$ 59,50 — acompanha o ciclo completo de simulados',
+    destaque: true
+  },
+  {
+    nome: 'anual',
+    preco_centavos: 29990,
+    preco_reais: 299.90,
+    duracao_dias: 365,
+    descricao: 'Acesso completo por 12 meses — equivalente a R$ 24,99/mês',
+    subtext: 'Equivalente a R$ 24,99/mês — do início do ano até a prova'
+  }
+];
+
+/**
+ * GET /api/mercadopago/planos
+ * Returns configured standard plans
+ */
+mercadoPagoRouter.get("/planos", (_req: Request, res: Response) => {
+  return res.json({ planos: PLANOS_PADRAO });
+});
+
 /**
  * GET /api/mercadopago/chaves-pix
  * Returns configured official PIX keys for each plan
@@ -175,6 +198,41 @@ mercadoPagoRouter.get("/config", (req: Request, res: Response) => {
     appUrl: getAppUrl(req),
     publicKeyAvailable: false,
     environment: token.startsWith("TEST-") ? "sandbox" : "production",
+  });
+});
+
+/**
+ * POST /api/mercadopago/configurar-token
+ * Receives and configures the Mercado Pago Secret Access Token
+ */
+mercadoPagoRouter.post("/configurar-token", (req: Request, res: Response) => {
+  const { token } = req.body;
+  if (!token || typeof token !== "string") {
+    return res.status(400).json({ erro: "Token inválido fornecido." });
+  }
+  const clean = token.replace(/^["']|["']$/g, "").trim();
+  if (!clean.startsWith("APP_USR-") && !clean.startsWith("TEST-")) {
+    return res.status(400).json({ erro: "Formato do Access Token inválido. Deve iniciar com APP_USR- ou TEST-" });
+  }
+  process.env.MP_ACCESS_TOKEN = clean;
+  try {
+    const envPath = path.resolve(process.cwd(), ".env");
+    let content = "";
+    if (fs.existsSync(envPath)) {
+      content = fs.readFileSync(envPath, "utf-8");
+    }
+    if (content.includes("MP_ACCESS_TOKEN=")) {
+      content = content.replace(/MP_ACCESS_TOKEN=.*/g, `MP_ACCESS_TOKEN="${clean}"`);
+    } else {
+      content += `\nMP_ACCESS_TOKEN="${clean}"\n`;
+    }
+    fs.writeFileSync(envPath, content, "utf-8");
+  } catch (_) {}
+
+  return res.json({
+    sucesso: true,
+    mensagem: "Access Token do Mercado Pago atualizado com sucesso na SECRET do sistema.",
+    ambiente: clean.startsWith("TEST-") ? "sandbox" : "production",
   });
 });
 
@@ -219,7 +277,7 @@ mercadoPagoRouter.post("/criar-preferencia", async (req: Request, res: Response)
         pending: `${appUrl}/?status=pending&plan=${planId}`,
         failure: `${appUrl}/?status=failure&plan=${planId}`,
       },
-      auto_return: "approved",
+      auto_return: "all",
       notification_url: `${appUrl}/api/mercadopago/webhook`,
       statement_descriptor: "GABARITA",
       payment_methods: {
