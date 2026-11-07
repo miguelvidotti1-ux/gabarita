@@ -361,7 +361,7 @@ class OnboardingStore {
       const capitalized = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
       this.users[cleanUid] = {
         uid: cleanUid,
-        email: email || `${cleanUid}@vestibularpro.com`,
+        email: email || `${cleanUid}@gabarita.com`,
         nome: capitalized,
         onboarding_completo: false,
         perfil_json: null,

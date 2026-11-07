@@ -1240,6 +1240,7 @@ export default function Redacao({ vestibular, setVestibular }: { vestibular: Ves
                   setCorrection(null);
                 }}
                 rows={15}
+                style={{ color: '#000000' }}
                 className="w-full p-4 sm:p-5 border border-[var(--border-color)] rounded-2xl text-xs sm:text-sm text-[var(--text-main)] bg-[var(--bg-input)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 transition-all resize-vertical leading-relaxed font-sans placeholder-[var(--text-label)]"
                 placeholder="Cole ou digite sua redação completa aqui. Respeite as regras de linhas da banca escolhida..."
               />

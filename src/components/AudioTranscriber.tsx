@@ -34,12 +34,19 @@ export default function AudioTranscriber({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const speechRecognitionRef = useRef<any>(null);
+  const liveTranscriptRef = useRef<string>('');
 
   useEffect(() => {
     return () => {
       stopTracks();
       if (timerRef.current) clearInterval(timerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch (_) {}
+      }
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close().catch(() => {});
       }
@@ -87,8 +94,34 @@ export default function AudioTranscriber({
     setTranscriptionError(null);
     audioChunksRef.current = [];
     setRecordingDuration(0);
+    liveTranscriptRef.current = '';
 
     try {
+      // Inicia reconhecimento nativo do navegador em paralelo (100% gratuito e sem cota de API)
+      const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognitionClass) {
+        try {
+          const recognition = new SpeechRecognitionClass();
+          recognition.lang = 'pt-BR';
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.onresult = (event: any) => {
+            let fullTranscript = '';
+            for (let i = 0; i < event.results.length; i++) {
+              fullTranscript += event.results[i][0].transcript + ' ';
+            }
+            if (fullTranscript.trim()) {
+              liveTranscriptRef.current = fullTranscript.trim();
+            }
+          };
+          recognition.onerror = () => {};
+          recognition.start();
+          speechRecognitionRef.current = recognition;
+        } catch (srErr) {
+          console.warn('Reconhecimento de fala nativo não iniciado:', srErr);
+        }
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
@@ -118,6 +151,11 @@ export default function AudioTranscriber({
           type: mediaRecorder.mimeType || 'audio/webm',
         });
         stopTracks();
+        if (speechRecognitionRef.current) {
+          try {
+            speechRecognitionRef.current.stop();
+          } catch (_) {}
+        }
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         setAudioLevel(0);
         await sendAudioToGemini(recordedBlob);
@@ -147,6 +185,11 @@ export default function AudioTranscriber({
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.stop();
+      } catch (_) {}
     }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -188,21 +231,37 @@ export default function AudioTranscriber({
 
       const data = await response.json();
 
-      if (!response.ok || data.error) {
-        throw new Error(data.error || 'Falha ao processar áudio com Gemini.');
-      }
-
       const transcribedText = data.text || '';
-      setLastTranscript(transcribedText);
-
       if (transcribedText.trim()) {
+        setLastTranscript(transcribedText.trim());
         onTranscriptionComplete(transcribedText.trim());
-      } else {
-        setTranscriptionError('Não foi possível identificar falas claras no áudio gravado.');
+        return;
       }
+
+      // Se a IA não retornou texto ou encontrou erro de cota:
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setTranscriptionError('Não foi possível identificar falas claras no áudio gravado.');
     } catch (err: any) {
-      console.error('Erro na transcrição:', err);
-      setTranscriptionError(err.message || 'Erro ao transcrever áudio.');
+      console.warn('Aviso de transcrição:', err?.message || err);
+
+      // Fallback imediato: se o navegador capturou as palavras via SpeechRecognition nativo, use-as!
+      if (liveTranscriptRef.current && liveTranscriptRef.current.trim()) {
+        const fallbackText = liveTranscriptRef.current.trim();
+        setLastTranscript(fallbackText);
+        onTranscriptionComplete(fallbackText);
+        setTranscriptionError(null);
+        return;
+      }
+
+      const rawMsg = String(err?.message || '');
+      if (rawMsg.includes('429') || rawMsg.includes('cota') || rawMsg.includes('quota') || rawMsg.includes('RESOURCE_EXHAUSTED')) {
+        setTranscriptionError('A cota da IA de transcrição de áudio atingiu o limite temporário. Você pode digitar sua pergunta diretamente no campo de texto.');
+      } else {
+        setTranscriptionError('Não foi possível transcrever o áudio gravado. Fale mais próximo ao microfone ou digite sua pergunta.');
+      }
     } finally {
       setIsTranscribing(false);
     }
@@ -456,7 +515,10 @@ export default function AudioTranscriber({
                       <span>{copied ? 'Copiado!' : 'Copiar texto'}</span>
                     </button>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#15171C] border border-slate-200/80 dark:border-white/10 text-xs sm:text-sm text-slate-800 dark:text-zinc-200 max-h-40 overflow-y-auto leading-relaxed">
+                  <div 
+                    style={{ color: '#000000', backgroundColor: '#ffffff' }}
+                    className="p-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm max-h-40 overflow-y-auto leading-relaxed font-medium shadow-2xs"
+                  >
                     {lastTranscript}
                   </div>
                 </div>

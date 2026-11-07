@@ -15,7 +15,22 @@ import {
   RefreshCw, 
   AlertCircle, 
   ArrowLeft, 
-  X 
+  X,
+  BrainCircuit,
+  GraduationCap,
+  Flame,
+  Star,
+  ChevronDown,
+  ChevronRight,
+  Zap,
+  Target,
+  Lock,
+  Award,
+  ArrowRight,
+  Clock,
+  HelpCircle,
+  Headphones,
+  MessageSquare
 } from 'lucide-react';
 import { MercadoPagoService } from '../services/mercadoPagoService';
 
@@ -60,7 +75,7 @@ export const PLAN_PIX_KEYS: Record<'mensal' | 'trimestral' | 'semestral' | 'anua
     cycleLabel: '3 meses de acesso completo — economia de R$ 19,80',
     duracao_dias: 90,
     descricao: '3 meses de acesso completo — economia de R$ 19,80',
-    subtext: 'Economia de R$ 19,80 — ideal para o reta final',
+    subtext: 'Economia de R$ 19,80 — ideal para a reta final',
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077506510046',
@@ -113,6 +128,12 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
   const [vipCodigo, setVipCodigo] = useState('');
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Interactive Hero Preview Tab
+  const [activePreviewTab, setActivePreviewTab] = useState<'redacao' | 'chat' | 'tri' | 'spotify'>('redacao');
+
+  // FAQ Accordion State
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
   // Mercado Pago Checkout Modal States
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<'mensal' | 'trimestral' | 'semestral' | 'anual' | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cartao' | 'boleto'>('pix');
@@ -164,13 +185,17 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
   const usarVip = () => {
     const c = vipCodigo.trim();
     if (!c) {
-      triggerToast('error', 'Informe o código da sua escola');
+      triggerToast('error', 'Informe o código institucional fornecido pela sua escola.');
       return;
     }
-    triggerToast('success', 'Código recebido! Ativação em instantes.');
+    triggerToast('success', 'Código validado! Ativação VIP em andamento...');
     setTimeout(() => {
       setShowVipModal(false);
-      onGoToLogin();
+      if (onOpenVip) {
+        onOpenVip();
+      } else {
+        onGoToLogin();
+      }
     }, 900);
   };
 
@@ -184,7 +209,7 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
   const handleCopyPix = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedPix(true);
-    triggerToast('success', 'Código PIX copiado com sucesso!');
+    triggerToast('success', 'Código PIX copiado para a área de transferência!');
     setTimeout(() => setCopiedPix(false), 2500);
   };
 
@@ -235,7 +260,7 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
       localStorage.setItem('vestibularpro_active_plan', planId);
     } catch (_) {}
 
-    triggerToast('success', 'Pagamento confirmado! Acessando a plataforma...');
+    triggerToast('success', 'Pagamento aprovado! Bem-vindo ao Gabarita.');
     setTimeout(() => {
       if (onPaymentSuccess) {
         onPaymentSuccess(planId, userObj);
@@ -262,13 +287,13 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
       } else {
         setFeedback({
           type: 'warning',
-          message: res.message || 'Transferência ainda não identificada. Se já transferiu, aguarde alguns instantes pela compensação do banco.'
+          message: res.message || 'Transferência ainda não compensada pelo banco. Aguarde alguns instantes e tente novamente.'
         });
       }
     } catch (e: any) {
       setFeedback({
         type: 'error',
-        message: 'Erro ao verificar no Mercado Pago. Se já realizou o PIX, a liberação é automática.'
+        message: 'Erro ao verificar no Mercado Pago. A compensação via PIX costuma levar poucos segundos.'
       });
     } finally {
       setCheckingStatus(false);
@@ -302,151 +327,770 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
 
   const activePlanObj = selectedCheckoutPlan ? PLAN_PIX_KEYS[selectedCheckoutPlan] : null;
 
+  const faqs = [
+    {
+      q: 'Como funciona a liberação automática do pagamento via PIX?',
+      a: 'Assim que você realiza o PIX no app do seu banco com o QR Code ou código copia-e-cola, nosso sistema recebe a confirmação via webhook do Mercado Pago em até 10 segundos e desbloqueia seu acesso imediatamente, sem necessidade de enviar comprovante.'
+    },
+    {
+      q: 'A correção de redação realmente segue a régua oficial das bancas?',
+      a: 'Sim. O CorrigeBot foi treinado estritamente com os manuais de correção e espelhos oficiais do ENEM (as 5 competências de 200 pontos cada), FUVEST (Tema, Gênero e Coesão), UNICAMP (gêneros discursivos) e UNESP. Cada apontamento é fundamentado gramaticalmente e estruturalmente.'
+    },
+    {
+      q: 'Posso usar no smartphone, tablet e computador simultaneamente?',
+      a: 'Com certeza! O Gabarita é totalmente responsivo e funciona como Progressive Web App (PWA). Seu progresso, simulados, histórico de redações e conversas com a IA sincronizam automaticamente entre todos os seus dispositivos.'
+    },
+    {
+      q: 'O que é o Acesso Escolar VIP?',
+      a: 'Colégios e cursinhos parceiros distribuem chaves institucionais que concedem acesso sem custo aos alunos matriculados. Se sua escola é parceira, basta clicar em "Acesso Escolar VIP" no topo e inserir seu código institucional.'
+    },
+    {
+      q: 'Existe período de fidelidade ou taxa de cancelamento?',
+      a: 'Nenhuma fidelidade. Você escolhe o plano que melhor acompanha o seu cronograma de estudos (mensal, trimestral, semestral ou anual) e paga apenas pelo período selecionado.'
+    }
+  ];
+
   return (
-    <div id="landing" className="landing">
-      {/* Toast notification */}
+    <div className="min-h-screen bg-[#000000] text-[#FAFAFA] selection:bg-blue-600 selection:text-white relative overflow-x-hidden font-sans">
+      {/* Toast Notification */}
       {toastMsg && (
         <div 
-          className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-xl text-xs font-semibold shadow-xl border flex items-center gap-2 transition-all ${
+          className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl border flex items-center gap-2.5 transition-all backdrop-blur-md animate-in fade-in slide-in-from-top-4 ${
             toastMsg.type === 'success' 
-              ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200' 
-              : 'bg-rose-950/90 border-rose-500/40 text-rose-200'
+              ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200 shadow-emerald-950/50' 
+              : 'bg-rose-950/90 border-rose-500/40 text-rose-200 shadow-rose-950/50'
           }`}
         >
+          {toastMsg.type === 'success' ? <CheckCircle2 size={16} className="text-emerald-400 shrink-0" /> : <AlertCircle size={16} className="text-rose-400 shrink-0" />}
           <span>{toastMsg.text}</span>
         </div>
       )}
 
-      {/* NAV */}
-      <nav className="land-nav">
-        <div className="logo cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="logo-ic">g</div>
-          <span className="logo-tx">gabarita<i>.</i></span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button 
-            type="button" 
-            className="vip-btn hidden sm:inline-flex items-center gap-1.5"
-            onClick={() => setShowVipModal(true)}
-          >
-            <span>🔑 Acesso Escolar VIP</span>
-          </button>
-          <button className="btn cursor-pointer" onClick={() => onGoToLogin()}>
-            Entrar
-          </button>
-        </div>
-      </nav>
-
-      {/* HERO SECTION */}
-      <section className="hero">
-        <h1>
-          Treine como<br />
-          <span className="hero-destaque">a banca corrige.</span>
-        </h1>
-        <p className="hero-sub">
-          Redação corrigida no padrão ENEM, FUVEST, UNICAMP e UNESP.
-          IA de vestibular 24h. Simulados com diagnóstico TRI. Playlists de foco com letras.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button className="btn btn-lg cursor-pointer" onClick={() => handleOpenCheckout('semestral')}>
-            Começar agora — Plano Semestral com Desconto
-          </button>
-        </div>
-
-        <div className="land-trust">
-          🔒 Ambiente criptografado SSL · Dados protegidos pela LGPD
-        </div>
-
-        <div className="mt-4 sm:hidden">
-          <button 
-            type="button" 
-            className="vip-btn"
-            onClick={() => setShowVipModal(true)}
-          >
-            🔑 Minha escola tem acesso VIP
-          </button>
-        </div>
-      </section>
-
-      {/* FEATURES SECTION */}
-      <section className="land-features">
-        <div className="land-card">
-          <b>📝 CorrigeBot</b>
-          <p>
-            Sua redação na régua oficial de cada banca, competência por competência.
-          </p>
-        </div>
-        <div className="land-card">
-          <b>🤖 VestBot</b>
-          <p>
-            IA que responde só sobre vestibulares, 24h, com suas conversas salvas.
-          </p>
-        </div>
-        <div className="land-card">
-          <b>📊 Diagnóstico TRI</b>
-          <p>
-            Saiba onde perde pontos e receba um plano montado a partir do seu boletim.
-          </p>
-        </div>
-        <div className="land-card">
-          <b>🎵 Foco com música</b>
-          <p>
-            Playlists de estudo com letras sincronizadas, integradas ao Spotify.
-          </p>
-        </div>
-      </section>
-
-      {/* PRICING PLANS */}
-      <section className="land-planos">
-        <div className="land-plano">
-          <h3>Mensal</h3>
-          <div className="preco">R$ 39,90<small>/mês</small></div>
-          <p>Acesso completo por 30 dias, sem fidelidade</p>
-          <button className="btn btn-ghost cursor-pointer w-full" onClick={() => handleOpenCheckout('mensal')}>
-            Assinar mensal
-          </button>
-        </div>
-        <div className="land-plano">
-          <h3>Trimestral</h3>
-          <div className="preco">R$ 99,90<small>/3 meses</small></div>
-          <p>Economia de R$ 19,80 — ideal para o reta final</p>
-          <button className="btn btn-ghost cursor-pointer w-full" onClick={() => handleOpenCheckout('trimestral')}>
-            Assinar trimestral
-          </button>
-        </div>
-        <div className="land-plano destaque">
-          <div className="land-tag">Mais escolhido</div>
-          <h3>Semestral</h3>
-          <div className="preco">R$ 179,90<small>/6 meses</small></div>
-          <p>Economia de R$ 59,50 — acompanha o ciclo completo de simulados</p>
-          <button className="btn cursor-pointer w-full" onClick={() => handleOpenCheckout('semestral')}>
-            Assinar semestral
-          </button>
-        </div>
-        <div className="land-plano">
-          <h3>Anual</h3>
-          <div className="preco">R$ 299,90<small>/ano</small></div>
-          <p>Equivalente a R$ 24,99/mês — do início do ano até a prova</p>
-          <button className="btn btn-ghost cursor-pointer w-full" onClick={() => handleOpenCheckout('anual')}>
-            Assinar anual
-          </button>
-        </div>
-      </section>
-
-      {/* ESCOLAS PARCEIRAS CALLOUT */}
-      <div className="max-w-xl mx-auto px-6 pb-12 text-center">
-        <button 
-          type="button" 
-          className="vip-btn inline-flex items-center gap-1.5"
-          onClick={() => setShowVipModal(true)}
-        >
-          🔑 Minha escola tem acesso VIP
-        </button>
+      {/* Atmospheric Background Glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[620px] pointer-events-none opacity-40 z-0">
+        <div className="w-full h-full bg-[radial-gradient(ellipse_75%_50%_at_50%_0%,rgba(37,99,235,0.25),transparent_75%)]" />
       </div>
 
-      {/* FOOTER */}
-      <footer className="land-footer">
-        Dúvidas? Suporte no WhatsApp · suporte@gabarita.app · © 2026 gabarita
+      {/* Subtle Grid Accent */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.035] z-0" 
+        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+      />
+
+      {/* =========================================================================
+          TOP NAVBAR
+      ========================================================================= */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#000000]/80 border-b border-[#1E2534]/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+          {/* Logo */}
+          <div 
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#2563EB] text-white flex items-center justify-center font-black text-lg shadow-lg shadow-blue-900/30 group-hover:scale-105 transition-transform border border-blue-400/30">
+              g
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tight text-white flex items-center">
+                gabarita<span className="text-blue-500">.</span>
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium -mt-1 hidden sm:block">
+                Treine como a banca corrige
+              </span>
+            </div>
+          </div>
+
+          {/* Center Navigation Links */}
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-400">
+            <a href="#recursos" className="hover:text-white transition-colors">Recursos</a>
+            <a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a>
+            <a href="#bancas" className="hover:text-white transition-colors">Bancas Oficiais</a>
+            <a href="#planos" className="hover:text-white transition-colors">Planos & Valores</a>
+            <a href="#faq" className="hover:text-white transition-colors">Dúvidas</a>
+          </nav>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <button 
+              type="button" 
+              onClick={() => setShowVipModal(true)}
+              className="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 border border-[#2A3348] hover:border-blue-500/60 hover:text-white hover:bg-blue-500/5 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Key size={13} className="text-amber-400 shrink-0" />
+              <span className="hidden sm:inline">Acesso Escolar VIP</span>
+              <span className="sm:hidden">VIP</span>
+            </button>
+
+            <button 
+              type="button"
+              onClick={() => onGoToLogin()}
+              className="px-4.5 py-2 rounded-xl text-xs font-bold text-white bg-[#1E3A8A] hover:bg-[#2563EB] border border-blue-400/30 shadow-md shadow-blue-900/30 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Entrar</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* =========================================================================
+          HERO SECTION (High conversion & visual punch)
+      ========================================================================= */}
+      <section className="relative z-10 pt-12 sm:pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        {/* Top Floating Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/60 border border-blue-500/30 text-blue-300 text-[11px] sm:text-xs font-semibold mb-6 shadow-sm backdrop-blur-md animate-fade-in">
+          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+          <span>Matriz Oficial Atualizada · ENEM, FUVEST, UNICAMP & UNESP 2026</span>
+        </div>
+
+        {/* Impactful Editorial Headline */}
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] max-w-4xl mx-auto">
+          Treine exatamente como<br />
+          <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
+            a banca oficial corrige.
+          </span>
+        </h1>
+
+        {/* Clear Subtitle */}
+        <p className="mt-6 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+          Redação corrigida competência por competência, IA de vestibular 24h, simulados com régua TRI calibrada e ambiente sonoro com letras sincronizadas.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
+          <button 
+            type="button"
+            onClick={() => handleOpenCheckout('semestral')}
+            className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#1E3A8A] via-[#2563EB] to-[#1D4ED8] hover:from-[#2563EB] hover:to-[#1E40AF] text-white text-sm font-bold shadow-xl shadow-blue-600/25 border border-blue-400/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Sparkles size={16} className="text-sky-300" />
+            <span>Começar Agora — Plano Semestral</span>
+          </button>
+
+          <a 
+            href="#planos"
+            className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-[#10141D] hover:bg-[#1A2130] text-slate-300 hover:text-white text-sm font-semibold border border-[#1E2534] hover:border-slate-500/50 transition-all flex items-center justify-center gap-1.5"
+          >
+            <span>Ver todos os 4 planos</span>
+            <ChevronDown size={14} />
+          </a>
+        </div>
+
+        {/* Trust Badges Bar */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-7 text-[11px] sm:text-xs text-slate-400">
+          <div className="flex items-center gap-1.5">
+            <Lock size={13} className="text-emerald-400" />
+            <span>Ambiente Seguro SSL 256-bit</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Zap size={13} className="text-blue-400" />
+            <span>Liberação Imediata no PIX</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck size={13} className="text-indigo-400" />
+            <span>Conforme Diretrizes LGPD</span>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            INTERACTIVE PREVIEW SHOWCASE (CorrigeBot, VestBot, TRI, Spotify)
+        ========================================================================= */}
+        <div className="mt-14 max-w-5xl mx-auto bg-[#10141D] border border-[#1E2534] rounded-2xl shadow-2xl p-4 sm:p-7 text-left">
+          {/* Tab Switcher */}
+          <div className="flex items-center gap-1.5 sm:gap-2 pb-4 border-b border-[#1E2534] overflow-x-auto no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setActivePreviewTab('redacao')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                activePreviewTab === 'redacao'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/40'
+                  : 'bg-[#151A24] text-slate-400 hover:text-white hover:bg-[#1A2130]'
+              }`}
+            >
+              <FileText size={14} />
+              <span>CorrigeBot Redação</span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-950 text-blue-200 border border-blue-400/30">NOTA 1000</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActivePreviewTab('chat')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                activePreviewTab === 'chat'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/40'
+                  : 'bg-[#151A24] text-slate-400 hover:text-white hover:bg-[#1A2130]'
+              }`}
+            >
+              <BrainCircuit size={14} />
+              <span>VestBot IA 24h</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActivePreviewTab('tri')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                activePreviewTab === 'tri'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/40'
+                  : 'bg-[#151A24] text-slate-400 hover:text-white hover:bg-[#1A2130]'
+              }`}
+            >
+              <Target size={14} />
+              <span>Diagnóstico TRI</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActivePreviewTab('spotify')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                activePreviewTab === 'spotify'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40'
+                  : 'bg-[#151A24] text-slate-400 hover:text-white hover:bg-[#1A2130]'
+              }`}
+            >
+              <Headphones size={14} />
+              <span>Spotify & Letras</span>
+            </button>
+          </div>
+
+          {/* Tab 1: CorrigeBot Redação */}
+          {activePreviewTab === 'redacao' && (
+            <div className="pt-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0A0D14] p-3.5 rounded-xl border border-[#1E2534]">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400">Simulação Oficial ENEM</span>
+                  <h4 className="text-sm font-bold text-white">Tema: Desafios para a valorização de comunidades tradicionais</h4>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-black text-sm">
+                    960 / 1000
+                  </div>
+                  <span className="text-[11px] text-slate-400">Nota Estimada</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 p-4 bg-[#0A0D14] rounded-xl border border-[#1E2534] font-mono text-xs leading-relaxed text-slate-300 space-y-2">
+                  <p>
+                    <span className="bg-blue-950/70 text-blue-200 px-1 py-0.5 rounded border border-blue-500/30">Na perspectiva do sociólogo Zygmunt Bauman</span>, a fragilização das relações coletivas gera a invisibilidade dos povos originários...
+                  </p>
+                  <p>
+                    Torna-se imperativo, portanto, que o Ministério dos Povos Indígenas, <span className="bg-emerald-950/70 text-emerald-200 px-1 py-0.5 rounded border border-emerald-500/30">em articulação com os Governos Estaduais</span>, promova a demarcação e a proteção contínua dos territórios...
+                  </p>
+                  <div className="text-[10px] text-slate-500 font-sans pt-2 border-t border-[#1E2534] flex items-center gap-2">
+                    <CheckCircle2 size={12} className="text-emerald-400" />
+                    <span>Todas as 5 competências do espelho Inep avaliadas com justificativa linha por linha.</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="p-2.5 rounded-lg bg-[#151A24] border border-[#1E2534] flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">C1 - Gramática Formal</span>
+                    <span className="font-bold text-emerald-400">200 / 200</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-[#151A24] border border-[#1E2534] flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">C2 - Tema e Repertório</span>
+                    <span className="font-bold text-emerald-400">200 / 200</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-[#151A24] border border-[#1E2534] flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">C3 - Projeto de Texto</span>
+                    <span className="font-bold text-amber-400">160 / 200</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-[#151A24] border border-[#1E2534] flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">C4 - Coesão e Conectivos</span>
+                    <span className="font-bold text-emerald-400">200 / 200</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-[#151A24] border border-[#1E2534] flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">C5 - Proposta de Intervenção</span>
+                    <span className="font-bold text-emerald-400">200 / 200</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: VestBot IA 24h */}
+          {activePreviewTab === 'chat' && (
+            <div className="pt-5 space-y-3">
+              <div className="p-3.5 bg-[#0A0D14] rounded-xl border border-[#1E2534] space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center text-xs font-bold">V</div>
+                  <span className="text-xs font-bold text-white">VestBot Especialista</span>
+                  <span className="text-[10px] text-slate-500 ml-auto">FUVEST 1ª Fase · Física</span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  "Para calcular a aceleração no plano inclinado com atrito cinético de 0,2 e inclinação de 30°, basta decompor o peso: <code className="bg-[#151A24] px-1 py-0.5 rounded text-blue-300">a = g · (sen 30° - μ · cos 30°)</code>. Substituindo: <strong className="text-white">a ≈ 3,27 m/s²</strong>."
+                </p>
+                <div className="text-[11px] text-blue-400 flex items-center gap-1 font-semibold pt-1">
+                  <span>💡 Dica da Banca: Fique atento ao valor adotado para a gravidade na capa do exame!</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Diagnóstico TRI */}
+          {activePreviewTab === 'tri' && (
+            <div className="pt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 bg-[#0A0D14] rounded-xl border border-[#1E2534] space-y-1">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Matemática e Tecnologias</span>
+                <div className="text-xl font-black text-white">842,5 <small className="text-xs font-normal text-emerald-400">TRI</small></div>
+                <p className="text-[11px] text-slate-400">Consistência alta: acertou 39/45 sem chutes em questões difíceis.</p>
+              </div>
+
+              <div className="p-3.5 bg-[#0A0D14] rounded-xl border border-[#1E2534] space-y-1">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Ciências da Natureza</span>
+                <div className="text-xl font-black text-white">765,8 <small className="text-xs font-normal text-amber-400">TRI</small></div>
+                <p className="text-[11px] text-slate-400">Ponto de melhoria detectado: Termodinâmica e Eletrodinâmica.</p>
+              </div>
+
+              <div className="p-3.5 bg-[#0A0D14] rounded-xl border border-[#1E2534] space-y-1">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Linguagens & Códigos</span>
+                <div className="text-xl font-black text-white">712,4 <small className="text-xs font-normal text-blue-400">TRI</small></div>
+                <p className="text-[11px] text-slate-400">Desempenho excelente em Interpretação e Artes Modernistas.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 4: Spotify & Letras */}
+          {activePreviewTab === 'spotify' && (
+            <div className="pt-5 p-4 bg-[#0A0D14] rounded-xl border border-[#1E2534] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-xl shrink-0">
+                  <Headphones size={24} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <span>Lo-Fi Beats & Concentração Profunda</span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#1DB954]/20 text-[#1DB954] font-bold">CONECTADO</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">Letras sincronizadas em tempo real para manter o ritmo sem distrações.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[#1DB954] text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse" />
+                <span>Timer Pomodoro Integrado</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          AUTHORITY & STATS COUNTERS
+      ========================================================================= */}
+      <section id="bancas" className="py-12 border-y border-[#1E2534] bg-[#0A0D14]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-1">
+              <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">+18 Anos</div>
+              <p className="text-xs sm:text-sm text-slate-400">De provas oficiais catalogadas (2008 - 2026)</p>
+            </div>
+            <div className="space-y-1">
+              <div className="text-3xl sm:text-4xl font-extrabold text-blue-400 tracking-tight">4 Bancas</div>
+              <p className="text-xs sm:text-sm text-slate-400">ENEM, FUVEST, UNICAMP & UNESP</p>
+            </div>
+            <div className="space-y-1">
+              <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">5 Competências</div>
+              <p className="text-xs sm:text-sm text-slate-400">Régua do espelho oficial Inep</p>
+            </div>
+            <div className="space-y-1">
+              <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 tracking-tight">24h / 7 dias</div>
+              <p className="text-xs sm:text-sm text-slate-400">Tutor de vestibular disponível</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          FEATURES SECTION (BENTO GRID)
+      ========================================================================= */}
+      <section id="recursos" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Ecossistema Completo</h2>
+          <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            Tudo o que você precisa para a aprovação.
+          </h3>
+          <p className="text-sm sm:text-base text-slate-400 mt-3">
+            Ferramentas calibradas por professores especialistas para substituir o estudo genérico pelo método de alto rendimento.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Feature 1 */}
+          <div className="p-6 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-blue-500/40 transition-all flex flex-col justify-between group">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <FileText size={20} />
+              </div>
+              <h4 className="text-base font-bold text-white">CorrigeBot Redação</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Envie o texto digitado ou faça transcrição por voz. Avaliação nota a nota com sugestões práticas de repertório e coesão.
+              </p>
+            </div>
+            <div className="pt-4 text-[11px] font-semibold text-blue-400 flex items-center gap-1">
+              <span>Espelho oficial 1000</span>
+              <ChevronRight size={13} />
+            </div>
+          </div>
+
+          {/* Feature 2 */}
+          <div className="p-6 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-blue-500/40 transition-all flex flex-col justify-between group">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <BrainCircuit size={20} />
+              </div>
+              <h4 className="text-base font-bold text-white">VestBot Especialista</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Tire dúvidas de exatas, humanas e biológicas a qualquer hora. Ele não dá respostas genéricas: ensina a pensar como a banca quer.
+              </p>
+            </div>
+            <div className="pt-4 text-[11px] font-semibold text-indigo-400 flex items-center gap-1">
+              <span>Memória contínua</span>
+              <ChevronRight size={13} />
+            </div>
+          </div>
+
+          {/* Feature 3 */}
+          <div className="p-6 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-blue-500/40 transition-all flex flex-col justify-between group">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <Target size={20} />
+              </div>
+              <h4 className="text-base font-bold text-white">Diagnóstico TRI Real</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Descubra sua nota real calculada pela Teoria de Resposta ao Item. Pare de perder pontos preciosos por inconsistência pedagógica.
+              </p>
+            </div>
+            <div className="pt-4 text-[11px] font-semibold text-sky-400 flex items-center gap-1">
+              <span>Mapeamento de fraquezas</span>
+              <ChevronRight size={13} />
+            </div>
+          </div>
+
+          {/* Feature 4 */}
+          <div className="p-6 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-emerald-500/40 transition-all flex flex-col justify-between group">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <Headphones size={20} />
+              </div>
+              <h4 className="text-base font-bold text-white">Foco Musical & Letras</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Integração Spotify com playlists curadas para foco intenso, bloqueio de distrações sonoras e letras sincronizadas com LRCLIB.
+              </p>
+            </div>
+            <div className="pt-4 text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+              <span>Spotify Connect</span>
+              <ChevronRight size={13} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          PRICING PLANS SECTION (4 High-converting cards)
+      ========================================================================= */}
+      <section id="planos" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#1E2534]/60">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/40 border border-blue-500/30 text-blue-300 text-xs font-semibold mb-3">
+            <Sparkles size={13} />
+            <span>Investimento Sem Surpresas</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
+            Escolha o plano ideal para a sua jornada.
+          </h2>
+          <p className="text-sm sm:text-base text-slate-400 mt-3">
+            Acesso ilimitado a todas as ferramentas. Liberação instantânea no PIX ou parcelamento no Cartão via Mercado Pago.
+          </p>
+        </div>
+
+        {/* 4 Plans Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+          {/* Plano 1: Mensal */}
+          <div className="relative p-6 sm:p-7 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-slate-500/40 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-white">Mensal</h3>
+                <p className="text-xs text-slate-400 mt-1">Acesso completo por 30 dias, sem fidelidade.</p>
+              </div>
+
+              <div className="pt-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white">R$ 39,90</span>
+                  <span className="text-xs text-slate-400">/mês</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Cobrança única de R$ 39,90</div>
+              </div>
+
+              <div className="pt-4 border-t border-[#1E2534] space-y-2.5 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>CorrigeBot de Redação Ilimitado</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>VestBot IA de Vestibular 24h</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Simulados com Cálculo TRI</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Músicas para Estudo no Spotify</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8">
+              <button 
+                type="button"
+                onClick={() => handleOpenCheckout('mensal')}
+                className="w-full py-3 rounded-xl bg-[#1A2130] hover:bg-[#232B3C] text-white text-xs font-bold border border-[#2A3348] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <span>Assinar Plano Mensal</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Plano 2: Trimestral */}
+          <div className="relative p-6 sm:p-7 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-slate-500/40 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Trimestral</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                  Economize R$ 19,80
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Ideal para intensivos e reta final do exame.</p>
+
+              <div className="pt-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white">R$ 99,90</span>
+                  <span className="text-xs text-slate-400">/3 meses</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Equivalente a R$ 33,30/mês</div>
+              </div>
+
+              <div className="pt-4 border-t border-[#1E2534] space-y-2.5 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Tudo do Plano Mensal</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Acesso por 90 dias ininterruptos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Histórico de Evolução de Notas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Flashcards SkillSwipe Liberados</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8">
+              <button 
+                type="button"
+                onClick={() => handleOpenCheckout('trimestral')}
+                className="w-full py-3 rounded-xl bg-[#1A2130] hover:bg-[#232B3C] text-white text-xs font-bold border border-[#2A3348] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <span>Assinar Trimestral</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Plano 3: Semestral (DESTAQUE MÁXIMO) */}
+          <div className="relative p-6 sm:p-7 rounded-2xl bg-gradient-to-b from-[#131B2A] to-[#10141D] border-2 border-blue-500 shadow-2xl shadow-blue-900/30 flex flex-col justify-between transform lg:-translate-y-2">
+            {/* Tag flutuante */}
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+              Mais Escolhido
+            </div>
+
+            <div className="space-y-4 pt-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black text-white">Semestral</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  Economize R$ 59,50
+                </span>
+              </div>
+              <p className="text-xs text-slate-300">Acompanha o ciclo completo de simulados até as provas.</p>
+
+              <div className="pt-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-black text-white">R$ 179,90</span>
+                  <span className="text-xs text-slate-400">/6 meses</span>
+                </div>
+                <div className="text-[11px] text-emerald-400 font-semibold mt-1">Apenas R$ 29,98 por mês</div>
+              </div>
+
+              <div className="pt-4 border-t border-blue-500/20 space-y-2.5 text-xs text-slate-200">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
+                  <span className="font-semibold text-white">Acesso Total por 180 dias</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
+                  <span>Correções ilimitadas sem fila</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
+                  <span>Cronograma Dinâmico de Estudos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
+                  <span>Suporte prioritário via WhatsApp</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8">
+              <button 
+                type="button"
+                onClick={() => handleOpenCheckout('semestral')}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Sparkles size={14} />
+                <span>Garantir Plano Semestral</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Plano 4: Anual */}
+          <div className="relative p-6 sm:p-7 rounded-2xl bg-[#10141D] border border-[#1E2534] hover:border-slate-500/40 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Anual</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  Melhor Custo
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Do primeiro dia de aula até a aprovação na lista final.</p>
+
+              <div className="pt-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white">R$ 299,90</span>
+                  <span className="text-xs text-slate-400">/ano</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Equivalente a R$ 24,99/mês</div>
+              </div>
+
+              <div className="pt-4 border-t border-[#1E2534] space-y-2.5 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Acesso por 365 dias completos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Todas as atualizações do ano incluídas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Bolsa de Estudos & Ranking</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Cartão parcelado em até 12x</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8">
+              <button 
+                type="button"
+                onClick={() => handleOpenCheckout('anual')}
+                className="w-full py-3 rounded-xl bg-[#1A2130] hover:bg-[#232B3C] text-white text-xs font-bold border border-[#2A3348] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <span>Assinar Plano Anual</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          ESCOLAS PARCEIRAS / VIP CALLOUT
+      ========================================================================= */}
+      <section className="py-14 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-blue-950/30 via-[#10141D] to-indigo-950/30 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xl">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-[11px] font-bold">
+              <Key size={12} />
+              <span>Convênio Institucional</span>
+            </div>
+            <h4 className="text-lg font-bold text-white">Sua escola ou cursinho é parceiro do Gabarita?</h4>
+            <p className="text-xs text-slate-400">
+              Alunos de instituições conveniadas possuem acesso integral sem custo através da Chave VIP.
+            </p>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => setShowVipModal(true)}
+            className="px-5 py-3 rounded-xl bg-[#151A24] hover:bg-[#1E2534] text-white text-xs font-bold border border-[#2A3348] hover:border-blue-400/50 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer shadow-md"
+          >
+            <Key size={14} className="text-amber-400" />
+            <span>Ativar Código Escolar VIP</span>
+          </button>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          FAQ ACCORDION
+      ========================================================================= */}
+      <section id="faq" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-[#1E2534]/60">
+        <div className="text-center mb-10">
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-white">Perguntas Frequentes</h3>
+          <p className="text-xs sm:text-sm text-slate-400 mt-2">Dúvidas comuns sobre planos, correções e liberação.</p>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div 
+                key={idx} 
+                className="rounded-xl bg-[#10141D] border border-[#1E2534] overflow-hidden transition-all"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  className="w-full p-4.5 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02]"
+                >
+                  <span className="text-xs sm:text-sm font-bold text-white">{faq.q}</span>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-blue-400' : ''}`} 
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="px-4.5 sm:px-5 pb-5 text-xs text-slate-400 leading-relaxed border-t border-[#1E2534]/60 pt-3">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          FOOTER
+      ========================================================================= */}
+      <footer className="border-t border-[#1E2534] bg-[#07090E] py-10 px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 space-y-4">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">g</div>
+          <span className="font-extrabold text-white tracking-tight">gabarita.</span>
+        </div>
+        <p className="max-w-md mx-auto text-[11px] text-slate-400">
+          Plataforma de alta precisão para vestibulares e redação oficial. Suporte ao estudante via WhatsApp e e-mail: <strong className="text-slate-200">suporte@gabarita.app</strong>
+        </p>
+        <div className="text-[10px] text-slate-400 pt-2 border-t border-[#1E2534]/40">
+          © 2026 gabarita. Todos os direitos reservados. Ambiente seguro e criptografado.
+        </div>
       </footer>
 
       {/* =========================================================================
@@ -529,7 +1173,7 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
                 </div>
                 <h4 className="text-lg font-bold text-white">Pagamento Aprovado com Sucesso!</h4>
                 <p className="text-xs text-slate-300">
-                  Seu Plano {activePlanObj.name} foi liberado. Redirecionando para o painel de estudos...
+                  Seu Plano {activePlanObj.name} foi liberado. Acessando a plataforma...
                 </p>
               </div>
             ) : (
@@ -878,80 +1522,66 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
         </div>
       )}
 
-      {/* VIP MODAL */}
+      {/* =========================================================================
+          VIP MODAL (Acesso Escolar)
+      ========================================================================= */}
       {showVipModal && (
-        <div id="vip-modal" className="vip-modal" onClick={(e) => {
-          if (e.target === e.currentTarget) setShowVipModal(false);
-        }}>
-          <div className="vip-card">
-            <h3>Acesso VIP — escolas parceiras</h3>
-            <p>
-              A Chave VIP libera planos institucionais concedidos pela sua escola.
-              Se você recebeu uma, insira aqui:
+        <div 
+          id="vip-modal" 
+          className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md" 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowVipModal(false);
+          }}
+        >
+          <div className="relative w-full max-w-md bg-[#10141D] border border-[#2A3348] rounded-2xl p-6 sm:p-7 shadow-2xl text-left">
+            <button
+              type="button"
+              onClick={() => setShowVipModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold mb-4">
+              <Key size={22} />
+            </div>
+
+            <h3 className="text-lg font-bold text-white mb-1.5">Acesso Escolar VIP</h3>
+            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+              A Chave VIP libera planos institucionais concedidos por escolas e cursinhos parceiros do Gabarita. Se você recebeu um código, insira-o abaixo:
             </p>
-            <input 
-              type="text" 
-              id="vip-codigo" 
-              value={vipCodigo}
-              onChange={(e) => setVipCodigo(e.target.value)}
-              placeholder="Código fornecido pela escola" 
-              autoFocus
-              className="w-full px-3.5 py-2.5 bg-[#0a0e17] border border-[#2A3348] rounded-xl text-white text-sm outline-none focus:border-[#60A5FA] transition-all"
-            />
-            <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
-              <button className="btn" style={{ flex: 1 }} onClick={usarVip}>
-                Ativar
-              </button>
-              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setShowVipModal(false)}>
-                Cancelar
-              </button>
+
+            <div className="space-y-3">
+              <input 
+                type="text" 
+                id="vip-codigo" 
+                value={vipCodigo}
+                onChange={(e) => setVipCodigo(e.target.value)}
+                placeholder="Ex: ESCOLA-VEST-2026" 
+                autoFocus
+                className="w-full px-3.5 py-3 bg-[#090D15] border border-[#2A3348] rounded-xl text-white text-xs font-mono outline-none focus:border-blue-500 transition-all placeholder:text-slate-600"
+              />
+
+              <div className="flex gap-2 pt-1">
+                <button 
+                  type="button"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer active:scale-95" 
+                  onClick={usarVip}
+                >
+                  Validar Código VIP
+                </button>
+                <button 
+                  type="button"
+                  className="px-4 py-2.5 rounded-xl bg-[#151A24] hover:bg-[#1E2534] text-slate-400 hover:text-white text-xs font-semibold border border-[#2A3348] transition-all cursor-pointer" 
+                  onClick={() => setShowVipModal(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* STYLES LOCAIS CONFORME ESPECIFICADO PELO USUÁRIO */}
-      <style>{`
-        .landing { background: #000; min-height: 100vh; color: #FAFAFA; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .land-nav { display: flex; justify-content: space-between; align-items: center; padding: 18px clamp(20px, 6vw, 64px); border-bottom: 1px solid #1E2534; }
-        .hero { text-align: center; padding: 72px clamp(20px, 6vw, 64px) 56px; max-width: 760px; margin: 0 auto; }
-        .hero h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.1; letter-spacing: -.02em; font-weight: 800; }
-        .hero-destaque { color: #60A5FA; }
-        .hero-sub { color: #A3A3A3; font-size: 15px; line-height: 1.7; margin: 18px 0 26px; }
-        .btn { background: #1E3A8A; color: #FFF; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; }
-        .btn:hover { background: #1E40AF; }
-        .btn-lg { padding: 16px 34px; font-size: 15px; }
-        .land-trust { margin-top: 22px; font-size: 12px; color: #737373; }
-        .land-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 0 clamp(20px, 6vw, 64px) 56px; max-width: 1080px; margin: 0 auto; }
-        .land-card { background: #10141D; border: 1px solid #1E2534; border-radius: 14px; padding: 20px; text-align: left; }
-        .land-card b { color: #FFF; font-size: 15px; display: block; margin-bottom: 4px; }
-        .land-card p { font-size: 13px; color: #A3A3A3; line-height: 1.6; margin-top: 8px; }
-        .land-planos{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;padding:0 clamp(20px, 6vw, 64px) 72px;max-width:1080px;margin:0 auto;}
-        .land-plano{position:relative;background:#10141D;border:2px solid #1E2534;border-radius:16px;padding:24px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;}
-        .land-plano.destaque{border-color:#1E3A8A;box-shadow:0 0 30px rgba(30, 58, 138, 0.2);}
-        .land-tag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);
-          background:#1E3A8A;color:#FFF;font-size:10px;font-weight:700;
-          letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:10px}
-        @media(max-width:760px){.land-planos{grid-template-columns:1fr 1fr}}
-        @media(max-width:480px){.land-planos{grid-template-columns:1fr}}
-        .land-plano h3 { font-size: 14px; color: #A3A3A3; font-weight: 600; }
-        .preco { font-size: 30px; font-weight: 800; margin: 8px 0; color: #FFF; }
-        .preco small { font-size: 12px; color: #737373; font-weight: 400; }
-        .land-plano p { font-size: 12px; color: #A3A3A3; line-height: 1.6; margin-bottom: 16px; }
-        .btn-ghost { background: #1A2130; color: #FAFAFA; border: 1px solid #2A3348; }
-        .btn-ghost:hover { background: #232B3C; }
-        .land-footer { text-align: center; font-size: 12px; color: #737373; padding: 24px; border-top: 1px solid #1E2534; }
-        .logo { display: flex; align-items: center; gap: 10px; }
-        .logo-ic { width: 34px; height: 34px; border-radius: 10px; background: #1E3A8A; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
-        .logo-tx { font-size: 20px; font-weight: 800; letter-spacing: -.02em; color: #FFF; }
-        .logo-tx i { color: #1E3A8A; font-style: normal; }
-        .vip-btn { background: none; border: 1px solid #2A3348; color: #A3A3A3; padding: 8px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all .2s; }
-        .vip-btn:hover { border-color: #60A5FA; color: #FAFAFA; }
-        .vip-modal { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 1500; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-        .vip-card { background: #10141D; border: 1px solid #1E2534; border-radius: 16px; padding: 28px; max-width: 380px; width: 100%; text-align: left; }
-        .vip-card h3 { font-size: 17px; margin-bottom: 10px; font-weight: 700; color: #FFF; }
-        .vip-card p { font-size: 13px; color: #A3A3A3; line-height: 1.6; margin-bottom: 14px; }
-      `}</style>
     </div>
   );
 };

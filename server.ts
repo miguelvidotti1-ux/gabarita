@@ -45,10 +45,14 @@ async function startServer() {
   });
 
   const DEFAULT_CANDIDATE_MODELS = [
-    'gemini-flash-latest',
-    'gemini-3.8-flash',
     'gemini-3.1-flash-lite',
+    'gemini-3.5-transcribe',
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
   ];
+
+  // Armazena cooldown temporário para modelos que excederam a cota diária ou por minuto
+  const modelCooldowns = new Map<string, number>();
 
   async function generateWithFallback(options: {
     contents: any;
@@ -59,12 +63,31 @@ async function startServer() {
     let lastError: any = null;
 
     for (const modelName of models) {
+      // Se o modelo estiver em cooldown devido a cota esgotada (429), pula para o próximo modelo
+      const cooldownUntil = modelCooldowns.get(modelName) || 0;
+      if (Date.now() < cooldownUntil) {
+        continue;
+      }
+
+      // Clona e higieniza a configuração conforme diretrizes do modelo
+      const cleanConfig = options.config ? { ...options.config } : {};
+      if (
+        modelName.startsWith('gemini-3.') ||
+        modelName.startsWith('gemini-4') ||
+        modelName.includes('flash')
+      ) {
+        delete cleanConfig.temperature;
+        delete cleanConfig.topP;
+        delete cleanConfig.topK;
+        delete cleanConfig.candidateCount;
+      }
+
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           const response = await ai.models.generateContent({
             model: modelName,
             contents: options.contents,
-            config: options.config,
+            config: cleanConfig,
           });
           if (response && response.text) {
             return response;
@@ -72,16 +95,33 @@ async function startServer() {
         } catch (err: any) {
           lastError = err;
           const msg = err?.message || '';
+          const is429 =
+            err?.status === 429 ||
+            msg.includes('429') ||
+            msg.includes('RESOURCE_EXHAUSTED') ||
+            msg.includes('Quota exceeded') ||
+            msg.includes('rate-limits');
+
           const isTransient =
             err?.status === 503 ||
-            err?.status === 429 ||
             msg.includes('503') ||
-            msg.includes('429') ||
             msg.includes('high demand') ||
-            msg.includes('UNAVAILABLE') ||
-            msg.includes('RESOURCE_EXHAUSTED');
+            msg.includes('UNAVAILABLE');
 
-          console.warn(`[Gemini API] Falha na tentativa ${attempt + 1} com ${modelName}:`, msg);
+          console.warn(`[Gemini API] Info com modelo ${modelName} (tentativa ${attempt + 1}):`, is429 ? 'Cota de requisições atingida (429), ativando modelo alternativo...' : msg);
+
+          // Se a cota do modelo esgotou (429):
+          if (is429) {
+            // Se for cota diária (per day), aplica cooldown longo (4h), caso contrário 60s
+            const isDaily = msg.includes('per day') || msg.includes('PerDay') || msg.includes('hours') || msg.includes('RetryInfo');
+            const cooldownTime = isDaily ? Date.now() + 4 * 60 * 60 * 1000 : Date.now() + 60 * 1000;
+            modelCooldowns.set(modelName, cooldownTime);
+            if (modelName === 'gemini-3.8-flash' || modelName === 'gemini-flash-latest') {
+              modelCooldowns.set('gemini-3.8-flash', cooldownTime);
+              modelCooldowns.set('gemini-flash-latest', cooldownTime);
+            }
+            break;
+          }
 
           if (isTransient && attempt === 0) {
             await new Promise((r) => setTimeout(r, 600));
@@ -1079,7 +1119,7 @@ Retorne exclusivamente um JSON com este formato:
       const instruction = prompt || "Transcreva este áudio com precisão no idioma original falado (português do Brasil). Retorne apenas o texto transcrito, sem introduções ou explicações.";
 
       const response = await generateWithFallback({
-        candidateModels: ['gemini-3.5-transcribe', 'gemini-flash-latest'],
+        candidateModels: ['gemini-3.1-flash-lite', 'gemini-3.5-transcribe'],
         contents: {
           parts: [audioPart, { text: instruction }],
         },
@@ -1088,8 +1128,14 @@ Retorne exclusivamente um JSON com este formato:
       const transcription = response.text?.trim() || "";
       return res.json({ text: transcription });
     } catch (err: any) {
-      console.error("Erro na transcrição de áudio com gemini-3.5-transcribe:", err);
-      return res.status(500).json({ error: err?.message || "Erro ao transcrever áudio com gemini-3.5-transcribe" });
+      console.warn("Aviso na transcrição de áudio por IA:", err?.message || err);
+      const isQuota = String(err?.message || '').includes('429') || String(err?.message || '').includes('RESOURCE_EXHAUSTED');
+      return res.json({ 
+        text: "", 
+        error: isQuota 
+          ? "Cota de transcrição por IA temporariamente atingida. O áudio foi capturado pelo microfone do navegador ou você pode digitar sua mensagem."
+          : (err?.message || "Erro ao transcrever áudio por IA.")
+      });
     }
   });
 

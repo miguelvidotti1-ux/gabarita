@@ -1,5 +1,5 @@
 {
-  "name": "VESTIBULARPRO",
+  "name": "Gabarita",
   "description": "Plataforma completa para preparação para vestibulares brasileiros (ENEM, Fuvest, Unicamp, Unesp, UERJ, ITA, IME).",
   "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

@@ -94,25 +94,46 @@ Se houver média geral visível, extraia como 'media_boletim'.
 Responda APENAS com JSON no seguinte formato:
 {"escala":"0-10","notas":{"Matemática":6.5,"Física":5.0},"media_boletim":7.2}`;
 
-      const response = await aiClient.models.generateContent({
-        model: "gemini-flash-latest",
-        contents: {
-          parts: [
-            { text: promptText },
-            {
-              inlineData: {
-                mimeType: cleanMime,
-                data: b64
+      let response: any = null;
+      try {
+        response = await aiClient.models.generateContent({
+          model: "gemini-3.1-flash-lite",
+          contents: {
+            parts: [
+              { text: promptText },
+              {
+                inlineData: {
+                  mimeType: cleanMime,
+                  data: b64
+                }
               }
-            }
-          ]
-        },
-        config: {
-          temperature: 0.1,
-          maxOutputTokens: 800,
-          responseMimeType: "application/json"
-        }
-      });
+            ]
+          },
+          config: {
+            maxOutputTokens: 800,
+            responseMimeType: "application/json"
+          }
+        });
+      } catch (err: any) {
+        response = await aiClient.models.generateContent({
+          model: "gemini-flash-latest",
+          contents: {
+            parts: [
+              { text: promptText },
+              {
+                inlineData: {
+                  mimeType: cleanMime,
+                  data: b64
+                }
+              }
+            ]
+          },
+          config: {
+            maxOutputTokens: 800,
+            responseMimeType: "application/json"
+          }
+        });
+      }
 
       const text = response.text?.trim() || "{}";
       const parsed = JSON.parse(text);

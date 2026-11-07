@@ -1,7 +1,7 @@
 {
   "teste123": {
     "uid": "teste123",
-    "email": "teste123@vestibularpro.com",
+    "email": "teste123@gabarita.com",
     "nome": "Estudante",
     "onboarding_completo": true,
     "perfil_json": "{\"etapa\":\"cursinho\",\"vestibulares\":[\"ENEM\",\"FUVEST\"],\"prazo\":\"2026\",\"piores_materias\":[\"matematica\",\"fisica\"],\"autoavaliacao\":4,\"horas_semana\":\"3a4\",\"horas_fds\":\"4a6\"}",

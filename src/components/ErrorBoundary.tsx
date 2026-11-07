@@ -38,8 +38,8 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       console.warn('Erro ao limpar caches:', e);
     }
     try {
-      localStorage.removeItem('vestibularpro_session_user');
-      localStorage.removeItem('vestibularpro_authenticated');
+      localStorage.removeItem('gabarita_session_user');
+      localStorage.removeItem('gabarita_authenticated');
     } catch (e) {}
     window.location.reload();
   };

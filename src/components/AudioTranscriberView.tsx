@@ -147,7 +147,8 @@ export default function AudioTranscriberView({
               value={currentText}
               onChange={(e) => setCurrentText(e.target.value)}
               placeholder="Grave seu áudio pelo botão acima ou fale pelo microfone. O texto transcrito pelo modelo gemini-3.5-transcribe aparecerá aqui..."
-              className="w-full p-5 rounded-2xl bg-slate-50 dark:bg-[#15171C] border border-[var(--border-light)] text-sm sm:text-base text-[var(--text-main)] outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none leading-relaxed"
+              style={{ color: '#000000', backgroundColor: '#ffffff' }}
+              className="w-full p-5 rounded-2xl border border-[var(--border-light)] text-sm sm:text-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none leading-relaxed placeholder:text-slate-400 font-medium"
             />
           </div>
 
@@ -213,25 +214,25 @@ export default function AudioTranscriberView({
               {savedNotes.map((note) => (
                 <div
                   key={note.id}
-                  className="p-4 rounded-2xl bg-slate-50 dark:bg-[#15171C] border border-[var(--border-light)] space-y-2 group"
+                  className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2 group shadow-2xs"
                 >
-                  <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
-                    <span className="flex items-center gap-1">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
+                    <span className="flex items-center gap-1 font-medium">
                       <Clock size={12} /> {note.timestamp}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span>{note.wordsCount} palavras</span>
+                      <span className="font-medium">{note.wordsCount} palavras</span>
                       <button
                         type="button"
                         onClick={() => handleDeleteNote(note.id)}
-                        className="text-rose-500 hover:text-rose-700 p-1 opacity-60 group-hover:opacity-100 transition-opacity"
+                        className="text-rose-500 hover:text-rose-700 p-1 opacity-60 group-hover:opacity-100 transition-opacity cursor-pointer"
                         title="Excluir nota"
                       >
                         <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs sm:text-sm text-[var(--text-main)] whitespace-pre-wrap leading-relaxed">
+                  <p style={{ color: '#000000' }} className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed font-medium">
                     {note.text}
                   </p>
                   <div className="flex justify-end gap-2 pt-1">

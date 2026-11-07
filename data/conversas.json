@@ -1,0 +1,83 @@
+{
+  "nextConversaId": 5,
+  "nextMensagemId": 7,
+  "conversas": [
+    {
+      "id": 4,
+      "usuario_id": "usuario_padrao",
+      "titulo": "Como estudar redação para o ENEM?",
+      "criada_em": "2026-11-05T19:04:57.655Z",
+      "atualizada_em": "2026-11-05T19:05:00.893Z",
+      "mensagens": [
+        {
+          "id": 5,
+          "conversa_id": 4,
+          "role": "user",
+          "content": "Como estudar redação para o ENEM?",
+          "criada_em": "2026-11-05T19:04:57.655Z"
+        },
+        {
+          "id": 6,
+          "conversa_id": 4,
+          "role": "assistant",
+          "content": "Olá! Que pergunta excelente. A redação é, sem dúvida, o pilar mais estratégico do ENEM, pois é a única nota que pode chegar a 1000 pontos sozinha. Para dominar esse texto, você não precisa apenas escrever bem, precisa entender a **\"fórmula\"** que os corretores esperam.\n\nAqui está um guia prático para você organizar seus estudos de redação:\n\n---\n\n### 1. Entenda as 5 Competências\nO ENEM avalia sua redação com base em 5 critérios, valendo 200 pontos cada:\n1. **Domínio da norma culta:** Gramática, ortografia e pontuação.\n2. **Compreensão do tema:** Não fugir do assunto e usar os textos motivadores (sem copiá-los!).\n3. **Organização das ideias:** Selecionar, relacionar e interpretar informações para defender um ponto de vista.\n4. **Mecanismos linguísticos:** Uso de conectivos (portanto, todavia, além disso) para ligar frases e parágrafos.\n5. **Proposta de Intervenção:** Apresentar uma solução detalhada para o problema com 5 elementos: *Agente, Ação, Modo/Meio, Efeito e Detalhamento.*\n\n### 2. Estruture seu \"esqueleto\" (Modelo Dissertativo-Argumentativo)\nO formato padrão de uma redação nota 1000 geralmente segue esta estrutura:\n*   **Introdução:** Contextualização (repertório) + Tese (sua opinião clara) + Encaminhamento argumentativo (dois problemas que você vai discutir).\n*   **Desenvolvimento 1:** Tópico frasal + Repertório (filosofia, história, fatos) + Análise crítica + Conexão com o tema.\n*   **Desenvolvimento 2:** Mesma estrutura do D1, abordando o segundo problema.\n*   **Conclusão:** Conectivo conclusivo + Retomada da tese + Proposta de intervenção completa + Fechamento.\n\n### 3. Construa seu \"Banco de Repertórios\"\nNão adianta ter uma escrita bonita se você não tem conhecimento de mundo. Comece a anotar exemplos que servem para muitos temas (temas coringa):\n*   **Constituição Federal de 1988:** Ótima para falar de negligência estatal.\n*   **Citações de filósofos:** Bauman (Modernidade Líquida), Foucault (Vigiar e Punir), Hannah Arendt (Banalidade do mal).\n*   **Dados históricos:** Revolução Industrial, Era Vargas, Ditadura Militar, etc.\n\n### 4. Cronograma de Prática\n*   **Teoria (1x por semana):** Estude conectivos, tipos de introdução ou como elaborar uma proposta de intervenção.\n*   **Prática (1x por semana):** **Escreva uma redação.** Não adianta apenas ler sobre como fazer; a escrita é um músculo, precisa ser treinada.\n*   **Leitura (diária):** Leia redações nota 1000 de anos anteriores. Isso ajuda a entender o nível de exigência e o vocabulário esperado.\n\n### 5. Dicas de Ouro do Gabarita:\n*   **Não invente a roda:** O ENEM valoriza a clareza. Use frases diretas (Sujeito + Verbo + Complemento).\n*   **Use os textos motivadores:** Eles estão ali para te situar, mas nunca os copie. Use-os para extrair ideias, não frases inteiras.\n*   **Revise sempre:** Ao terminar, leia seu texto procurando por repetição de palavras e erros gramaticais bobos.\n*   **Feedback:** Se possível, peça para um professor ou plataforma de correção avaliar seus textos. Corrigir os próprios erros é onde o aprendizado acontece!\n\n**Dica de estudo:** Quer que eu te ajude com um tema hoje? Posso te dar um tema, você escreve o parágrafo de introdução, e eu corrijo para você aplicando as competências do ENEM. **Topa?**",
+          "criada_em": "2026-11-05T19:05:00.893Z"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "usuario_id": "usuario_padrao",
+      "titulo": "Olá",
+      "criada_em": "2026-11-05T19:01:30.334Z",
+      "atualizada_em": "2026-11-05T19:01:31.421Z",
+      "mensagens": [
+        {
+          "id": 3,
+          "conversa_id": 3,
+          "role": "user",
+          "content": "Olá",
+          "criada_em": "2026-11-05T19:01:30.334Z"
+        },
+        {
+          "id": 4,
+          "conversa_id": 3,
+          "role": "assistant",
+          "content": "Olá! Seja muito bem-vindo(a) ao **Gabarita (VestBot)**! 🚀\n\nÉ um prazer conhecer você. Estou aqui para ser o seu braço direito nos estudos, seja para descomplicar aquela matéria difícil, resolver questões passo a passo ou te dar aquele incentivo extra para encarar os vestibulares e o ENEM com confiança.\n\nComo posso te ajudar hoje? \n\n*   Precisa de ajuda com alguma **matéria específica** (Matemática, Química, História, etc.)?\n*   Tem alguma **questão** de prova ou simulado que você não entendeu?\n*   Quer uma **dica de organização** ou um cronograma de estudos?\n*   Ou quer conversar sobre algum tema da atualidade para a redação?\n\nEstou pronto! Mande sua dúvida e vamos gabaritar! 📚✍️",
+          "criada_em": "2026-11-05T19:01:31.421Z"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "usuario_id": "usuario_padrao",
+      "titulo": "Qual a diferença entre forças intermoleculares e lig...",
+      "criada_em": "2026-11-05T18:55:12.113Z",
+      "atualizada_em": "2026-11-05T18:56:29.513Z",
+      "mensagens": [
+        {
+          "id": 1,
+          "conversa_id": 2,
+          "role": "user",
+          "content": "Qual a diferença entre forças intermoleculares e ligações químicas?",
+          "criada_em": "2026-11-05T18:55:22.318Z"
+        },
+        {
+          "id": 2,
+          "conversa_id": 2,
+          "role": "assistant",
+          "content": "Olá! Que excelente pergunta. Essa é uma dúvida muito comum, mas entender a diferença entre esses dois conceitos é a \"chave de ouro\" para dominar a química das substâncias.\n\nPense da seguinte forma: **as ligações químicas são o que \"constrói\" a molécula, enquanto as forças intermoleculares são o que \"une\" as moléculas umas às outras.**\n\nAqui está a explicação detalhada:\n\n---\n\n### 1. Ligações Químicas (Forças Intramoleculares)\nAs ligações químicas ocorrem **dentro** da molécula. Elas são as forças que mantêm os átomos unidos para formar uma unidade estável (a molécula ou um retículo cristalino).\n\n*   **O que acontece:** Há o compartilhamento (covalente) ou a transferência (iônica) de elétrons.\n*   **Intensidade:** São **muito fortes**. Para quebrá-las, você geralmente precisa de uma reação química.\n*   **Exemplos:**\n    *   **Ligação Covalente:** Ocorre entre ametais (ex: o oxigênio ligado ao hidrogênio na molécula de água $H_2O$).\n    *   **Ligação Iônica:** Atração eletrostática entre íons (ex: o sódio e o cloro no sal de cozinha $NaCl$).\n    *   **Ligação Metálica:** \"Mar de elétrons\" entre átomos de metais.\n\n### 2. Forças Intermoleculares\nEssas forças ocorrem **entre** moléculas diferentes. Elas não formam novas substâncias, mas definem como as moléculas se organizam no espaço.\n\n*   **O que acontece:** São atrações eletrostáticas mais fracas, baseadas na polaridade das moléculas (cargas parciais positivas e negativas).\n*   **Intensidade:** São **muito mais fracas** que as ligações químicas. É por isso que, quando fervemos água, a molécula de água ($H_2O$) não se quebra em Hidrogênio e Oxigênio; apenas as forças que mantinham as moléculas de água juntas são vencidas, transformando líquido em vapor.\n*   **Principais tipos (da mais forte para a mais fraca):**\n    1.  **Ligações de Hidrogênio:** Quando o H está ligado a F, O ou N (ex: a água).\n    2.  **Dipolo-Dipolo (ou Dipolo Permanente):** Entre moléculas polares (ex: $HCl$).\n    3.  **Dipolo Induzido (ou Forças de London):** Ocorre em moléculas apolares devido a um movimento momentâneo de elétrons (ex: $O_2$, $CH_4$).\n\n---\n\n### Quadro Comparativo: O \"Pulo do Gato\"\n\n| Característica | Ligações Químicas (Intramoleculares) | Forças Intermoleculares |\n| :--- | :--- | :--- |\n| **Localização** | Dentro da molécula (átomo com átomo) | Entre moléculas vizinhas |\n| **Força** | Muito Forte | Fraca |\n| **O que determinam** | Propriedades químicas da substância | Propriedades físicas (ponto de fusão, ebulição, solubilidade) |\n| **Exemplo de efeito** | Formação da molécula de água | A água ser líquida à temperatura ambiente |\n\n### Por que isso é importante?\nQuando você vê uma questão de vestibular perguntando por que o **ponto de ebulição** de uma substância é maior que de outra, o examinador não quer saber sobre a ligação dentro da molécula, mas sim **quão fortes são as forças que seguram essas moléculas umas nas outras**. Quanto mais fortes as forças intermoleculares, mais energia (calor) você precisa fornecer para separá-las e passar a substância para o estado gasoso.\n\nFicou mais claro agora? Se quiser que eu aplique esse conceito em algum exercício específico, é só mandar! Estou aqui para ajudar. 🚀",
+          "criada_em": "2026-11-05T18:56:29.513Z"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "usuario_id": "usuario_padrao",
+      "titulo": "Nova conversa",
+      "criada_em": "2026-11-05T18:55:11.983Z",
+      "atualizada_em": "2026-11-05T18:55:11.983Z",
+      "mensagens": []
+    }
+  ]
+}

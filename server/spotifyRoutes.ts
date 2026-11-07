@@ -1234,7 +1234,7 @@ async function fetchSyncedLyrics(track: string, artist?: string, durationMs?: nu
     const timeout = setTimeout(() => controller.abort(), 3500);
     const resp = await fetch(lrclibUrl, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'VestibularPro-SyncedLyrics/1.0' }
+      headers: { 'User-Agent': 'Gabarita-SyncedLyrics/1.0' }
     });
     clearTimeout(timeout);
 
@@ -1285,13 +1285,26 @@ Regras:
 - time_ms deve começar em 0 e ir até a duração da faixa.
 - Se for instrumental, retorne a descrição dos compassos e solos musicais.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
+      let response: any = null;
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-3.1-flash-lite',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+          }
+        });
+      } catch (err: any) {
+        if (!err?.message?.includes('RESOURCE_EXHAUSTED')) {
+          response = await ai.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json',
+            }
+          });
         }
-      });
+      }
 
       if (response && response.text) {
         const parsed = JSON.parse(response.text);
