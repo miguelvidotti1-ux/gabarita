@@ -77,6 +77,16 @@ class Assinatura(db.Model):
     expira_em = db.Column(db.DateTime)
     criada_em = db.Column(db.DateTime, default=datetime.utcnow)
 
+
+class RespostaPesquisa(db.Model):
+    __tablename__ = 'respostas_pesquisa'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(120))
+    email = db.Column(db.String(120))
+    whatsapp = db.Column(db.String(50))
+    dados_json = db.Column(db.Text)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+
 # ============================================================
 # BLOCO 7.2 — SEED DOS 4 PLANOS (upsert: cria ou atualiza)
 # ============================================================
@@ -290,6 +300,20 @@ def webhook():
     db.session.commit()
     return jsonify({'ok': True})
 
+
+@app.route('/api/pesquisa', methods=['POST'])
+def salvar_pesquisa():
+    d = request.get_json(silent=True) or {}
+    email = (d.get('email') or '').strip()
+    nome = (d.get('nome') or '').strip()
+    whatsapp = (d.get('whatsapp') or '').strip()
+    import json as py_json
+    r = RespostaPesquisa(nome=nome, email=email, whatsapp=whatsapp,
+                         dados_json=py_json.dumps(d, ensure_ascii=False))
+    db.session.add(r)
+    db.session.commit()
+    return jsonify({'ok': True, 'mensagem': 'Pesquisa registrada com sucesso!'})
+
 # ============================================================
 # BLOCOS 1, 2, 3, 4, 5, 6, 9 — FRONTEND EMBUTIDO
 # ============================================================
@@ -407,6 +431,28 @@ body{background:var(--bg);color:var(--txt)}
 .toast.success{background:#14532D;color:#BBF7D0}
 .toast.error{background:#7F1D1D;color:#FECACA}
 
+/* Pesquisa Black Friday */
+.pesquisa-btn{background:linear-gradient(90deg,#1E3A8A,#2563EB);color:#FFF;border:1px solid #3B82F6;
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+  display:inline-flex;align-items:center;gap:6px}
+.pesquisa-btn:hover{filter:brightness(1.2);transform:translateY(-1px)}
+.pesquisa-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1600;display:none;
+  align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);overflow-y:auto}
+.pesquisa-card{background:var(--card);border:1px solid var(--bd);border-radius:18px;
+  padding:28px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;text-align:left}
+.pesquisa-card h3{font-size:19px;font-weight:800;color:#FFF;margin-bottom:6px}
+.pesquisa-card p{font-size:13px;color:var(--sub);line-height:1.5;margin-bottom:18px}
+.pq-item{background:#0D111A;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.pq-label{font-size:13px;font-weight:700;color:#FFF;margin-bottom:8px;display:block}
+.pq-label span{color:#F87171}
+.pq-input{width:100%;background:#090D15;border:1px solid #2A3348;color:#FFF;padding:10px 12px;
+  border-radius:9px;font-size:13px;outline:none}
+.pq-input:focus{border-color:var(--blue)}
+.pq-opcoes{display:grid;grid-template-columns:1fr;gap:6px}
+.pq-opt{display:flex;align-items:center;gap:8px;font-size:12px;color:#CBD5E1;cursor:pointer;
+  padding:6px 10px;border-radius:8px;background:#090D15;border:1px solid #1E2534}
+.pq-opt:hover{border-color:#3B82F6}
+
 /* Acessibilidade */
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
@@ -426,7 +472,10 @@ body{background:var(--bg);color:var(--txt)}
 <div id="landing" class="landing">
   <nav class="land-nav">
     <div class="logo"><div class="logo-ic">g</div><span class="logo-tx">gabarita<i>.</i></span></div>
-    <button class="btn" onclick="irLogin()">Entrar</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="pesquisa-btn" onclick="abrirPesquisa()">🎯 Diagnóstico de Estudos</button>
+      <button class="btn" onclick="irLogin()">Entrar</button>
+    </div>
   </nav>
 
   <section class="hero">
@@ -507,6 +556,23 @@ body{background:var(--bg);color:var(--txt)}
   </div>
 </div>
 
+<!-- ===== MODAL QUESTIONÁRIO DIAGNÓSTICO OBRIGATÓRIO ===== -->
+<div id="pesquisa-modal" class="pesquisa-modal">
+  <div class="pesquisa-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:800;color:#60A5FA;text-transform:uppercase;letter-spacing:.05em">Diagnóstico Obrigatório de Entrada</span>
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;font-weight:700;color:#93C5FD;border:1px solid rgba(147,197,253,0.3);cursor:pointer" onclick="irParaLogin()">Já tenho uma conta</button>
+    </div>
+    <h3>Diagnóstico Inicial de Preparação Vestibular</h3>
+    <p>Preenchimento obrigatório para novos estudantes. Se você já assina ou tem conta cadastrada, clique no botão <strong>"Já tenho uma conta"</strong> acima.</p>
+    <div id="pq-perguntas-container"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" style="flex:2" onclick="enviarPesquisa()">Concluir Diagnóstico</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="irParaLogin()">Já tenho uma conta</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 <div id="app-screen"></div>
 
@@ -570,6 +636,106 @@ function usarVip(){
   fecharVip();
 }
 
+// ===== QUESTIONÁRIO DIAGNÓSTICO OBRIGATÓRIO =====
+const PESQUISA_PERGUNTAS = [
+  {id:'nome', tipo:'texto', obrigatoria:true, pergunta:'Seu nome completo'},
+  {id:'email', tipo:'texto', obrigatoria:true, pergunta:'Seu melhor e-mail'},
+  {id:'whatsapp', tipo:'texto', obrigatoria:true, pergunta:'Seu WhatsApp (com DDD)'},
+  {id:'prova', tipo:'radio', obrigatoria:true, pergunta:'Para qual prova você está se preparando?',
+   opcoes:['ENEM 2026','ENEM 2027','FUVEST','UNICAMP / UNESP','Medicina — foco total','Outra']},
+  {id:'momento', tipo:'radio', obrigatoria:true, pergunta:'Qual é o seu momento agora?',
+   opcoes:['3º ano do ensino médio','2º ano do ensino médio','Cursinho','Já terminei a escola, estudando por conta']},
+  {id:'dificuldades', tipo:'checkbox', obrigatoria:true, pergunta:'Quais são suas maiores dificuldades hoje? (marque todas)',
+   opcoes:['Montar e seguir uma rotina de estudos','Redação','Conteúdo específico de alguma matéria','Foco e constância','Ansiedade / pressão da prova','Outra']},
+  {id:'investiu', tipo:'radio', obrigatoria:true, pergunta:'Você já investiu em algum curso ou plataforma de estudos?',
+   opcoes:['Sim','Ainda não, seria meu primeiro investimento']},
+  {id:'investimento', tipo:'radio', obrigatoria:true, pergunta:'Quanto você conseguiria investir na sua preparação?',
+   opcoes:['Até R$ 50','R$ 50 a R$ 100','R$ 100 a R$ 200','R$ 200 a R$ 300','Acima de R$ 300']},
+  {id:'bonus', tipo:'checkbox', obrigatoria:false, pergunta:'O que você mais gostaria de ter como bônus / diferencial?',
+   opcoes:['Correções extras de redação','Simulados inéditos','Mentoria / acompanhamento','Mapas mentais e resumos','Plano de estudos personalizado']},
+  {id:'mensagem', tipo:'paragrafo', obrigatoria:false, pergunta:'Quer deixar uma mensagem? (opcional)'}
+];
+
+function renderizarPesquisa(){
+  var c = document.getElementById('pq-perguntas-container');
+  if (!c || c.children.length > 0) return;
+  c.innerHTML = '';
+  PESQUISA_PERGUNTAS.forEach(function(p, i){
+    var div = document.createElement('div');
+    div.className = 'pq-item';
+    var label = '<label class="pq-label">' + (i+1) + '. ' + p.pergunta + (p.obrigatoria ? ' <span>*</span>' : '') + '</label>';
+    var body = '';
+    if (p.tipo === 'texto'){
+      body = '<input type="' + (p.id==='email'?'email':'text') + '" id="pq-' + p.id + '" class="pq-input" placeholder="Sua resposta...">';
+    } else if (p.tipo === 'paragrafo'){
+      body = '<textarea id="pq-' + p.id + '" class="pq-input" style="height:60px;resize:none" placeholder="Sua mensagem..."></textarea>';
+    } else if (p.tipo === 'radio'){
+      body = '<div class="pq-opcoes">' + p.opcoes.map(function(o){
+        return '<label class="pq-opt"><input type="radio" name="pq-' + p.id + '" value="' + o + '"> ' + o + '</label>';
+      }).join('') + '</div>';
+    } else if (p.tipo === 'checkbox'){
+      body = '<div class="pq-opcoes">' + p.opcoes.map(function(o){
+        return '<label class="pq-opt"><input type="checkbox" name="pq-' + p.id + '" value="' + o + '"> ' + o + '</label>';
+      }).join('') + '</div>';
+    }
+    div.innerHTML = label + body;
+    c.appendChild(div);
+  });
+}
+
+function abrirPesquisa(){
+  renderizarPesquisa();
+  document.getElementById('pesquisa-modal').style.display = 'flex';
+  var emailSalvo = localStorage.getItem('gabarita_email');
+  if (emailSalvo){
+    var campo = document.getElementById('pq-email');
+    if (campo) campo.value = emailSalvo;
+  }
+}
+function fecharPesquisa(){ document.getElementById('pesquisa-modal').style.display = 'none'; }
+function irParaLogin(){
+  fecharPesquisa();
+  irLogin();
+}
+
+async function enviarPesquisa(){
+  var dados = {};
+  for (var i = 0; i < PESQUISA_PERGUNTAS.length; i++){
+    var p = PESQUISA_PERGUNTAS[i];
+    if (p.tipo === 'texto' || p.tipo === 'paragrafo'){
+      var el = document.getElementById('pq-' + p.id);
+      dados[p.id] = el ? el.value.trim() : '';
+    } else if (p.tipo === 'radio'){
+      var rad = document.querySelector('input[name="pq-' + p.id + '"]:checked');
+      dados[p.id] = rad ? rad.value : '';
+    } else if (p.tipo === 'checkbox'){
+      var cks = document.querySelectorAll('input[name="pq-' + p.id + '"]:checked');
+      dados[p.id] = Array.from(cks).map(function(c){ return c.value; });
+    }
+    if (p.obrigatoria && (!dados[p.id] || (Array.isArray(dados[p.id]) && !dados[p.id].length))){
+      return toast('error','Por favor, preencha: ' + p.pergunta);
+    }
+  }
+
+  // Valida formato do e-mail (pergunta 'email')
+  var emailResp = (dados.email || '').trim();
+  if (emailResp && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailResp))
+    return toast('error','Digite um e-mail válido (ex.: nome@dominio.com)');
+
+  localStorage.setItem('gabarita_email', emailResp);
+  localStorage.setItem('gabarita_questionario_concluido', 'true');
+
+  try {
+    await fetch('/api/pesquisa', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(dados)
+    });
+  } catch(e){}
+  toast('success','Diagnóstico concluído com sucesso! Bem-vindo.');
+  fecharPesquisa();
+}
+
 // LOGIN / CADASTRO
 var modoCadastroAtivo = false;
 function modoCadastro(){
@@ -588,6 +754,7 @@ async function entrar(){
     var d = await r.json();
     if (!r.ok) return toast('error', d.erro || 'Falha na autenticação');
     localStorage.setItem('gabarita_token', d.token);
+    localStorage.setItem('gabarita_email', email);
     toast('success','Bem-vindo, ' + d.nome + '!');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-screen').innerHTML =
@@ -706,6 +873,15 @@ async function explicarLinha(i){
 
 setInterval(pollSpotify, 3000);   // poll do Spotify a cada 3s (dentro do rate limit)
 pollSpotify();
+
+// Abertura automática do questionário obrigatório para novos estudantes
+window.addEventListener('DOMContentLoaded', function(){
+  var concluido = localStorage.getItem('gabarita_questionario_concluido') === 'true';
+  var token = localStorage.getItem('gabarita_token') || localStorage.getItem('token');
+  if (!concluido && !token) {
+    setTimeout(function(){ abrirPesquisa(); }, 350);
+  }
+});
 </script>
 </body>
 </html>"""

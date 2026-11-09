@@ -30,9 +30,11 @@ import {
   Clock,
   HelpCircle,
   Headphones,
-  MessageSquare
+  MessageSquare,
+  Gift
 } from 'lucide-react';
 import { MercadoPagoService } from '../services/mercadoPagoService';
+import { PesquisaModal } from './PesquisaModal';
 
 export interface PlanLandingDetail {
   id: 'mensal' | 'trimestral' | 'semestral' | 'anual';
@@ -125,8 +127,20 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
   onOpenVip 
 }) => {
   const [showVipModal, setShowVipModal] = useState(false);
+  const [showPesquisaModal, setShowPesquisaModal] = useState(false);
   const [vipCodigo, setVipCodigo] = useState('');
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Exibe o questionário obrigatório logo na abertura se o usuário ainda não o concluiu e não está autenticado
+  useEffect(() => {
+    try {
+      const concluido = localStorage.getItem('gabarita_questionario_concluido') === 'true';
+      const autenticado = localStorage.getItem('vestibularpro_authenticated') === 'true';
+      if (!concluido && !autenticado) {
+        setShowPesquisaModal(true);
+      }
+    } catch (_) {}
+  }, []);
 
   // Interactive Hero Preview Tab
   const [activePreviewTab, setActivePreviewTab] = useState<'redacao' | 'chat' | 'tri' | 'spotify'>('redacao');
@@ -411,6 +425,17 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2.5 sm:gap-3">
+            <button 
+              type="button" 
+              onClick={() => setShowPesquisaModal(true)}
+              className="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold text-blue-300 border border-blue-500/30 hover:bg-blue-500/10 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Diagnóstico de Estudos"
+            >
+              <Target size={13} className="text-blue-400 shrink-0" />
+              <span className="hidden sm:inline">Diagnóstico de Estudos</span>
+              <span className="sm:hidden">Diagnóstico</span>
+            </button>
+
             <button 
               type="button" 
               onClick={() => setShowVipModal(true)}
@@ -1582,6 +1607,20 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
           </div>
         </div>
       )}
+
+      {/* QUESTIONÁRIO DIAGNÓSTICO OBRIGATÓRIO (Com botão 'Já tenho uma conta') */}
+      <PesquisaModal 
+        isOpen={showPesquisaModal} 
+        obrigatorio={true}
+        onClose={() => setShowPesquisaModal(false)}
+        onJaTenhoConta={() => {
+          setShowPesquisaModal(false);
+          onGoToLogin();
+        }}
+        onSuccess={() => {
+          triggerToast('success', 'Diagnóstico concluído! Seja bem-vindo ao Gabarita.');
+        }}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
+import fs from "fs";
 import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -33,6 +34,42 @@ async function startServer() {
   // Endpoint de Planos Padrão
   app.get("/api/planos", (_req, res) => {
     res.json({ planos: PLANOS_PADRAO });
+  });
+
+  // Endpoint de Pesquisa de Mercado / Black Friday
+  app.post("/api/pesquisa", (req, res) => {
+    try {
+      const dados = req.body || {};
+      const filePath = path.join(process.cwd(), "data", "pesquisas.json");
+      let lista: any[] = [];
+      if (fs.existsSync(filePath)) {
+        try {
+          lista = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        } catch (_) {}
+      }
+      lista.push({
+        id: "pq_" + Date.now(),
+        ...dados,
+        criado_em: new Date().toISOString()
+      });
+      fs.writeFileSync(filePath, JSON.stringify(lista, null, 2), "utf-8");
+      res.json({ ok: true, mensagem: "Pesquisa registrada com sucesso!" });
+    } catch (e: any) {
+      res.status(500).json({ ok: false, erro: e?.message || "Erro ao salvar pesquisa" });
+    }
+  });
+
+  app.get("/api/pesquisa", (_req, res) => {
+    try {
+      const filePath = path.join(process.cwd(), "data", "pesquisas.json");
+      if (fs.existsSync(filePath)) {
+        const lista = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        return res.json({ total: lista.length, respostas: lista });
+      }
+      res.json({ total: 0, respostas: [] });
+    } catch (e: any) {
+      res.json({ total: 0, respostas: [] });
+    }
   });
 
   const ai = new GoogleGenAI({

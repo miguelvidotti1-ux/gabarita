@@ -38,6 +38,7 @@ import PomodoroTimer from './components/PomodoroTimer';
 import AudioTranscriberView from './components/AudioTranscriberView';
 import FloatingSupport from './components/FloatingSupport';
 import DynamicOnboardingModal from './components/DynamicOnboardingModal';
+import PesquisaModal from './components/PesquisaModal';
 
 export default function App() {
   const isOnline = useOnlineStatus();
@@ -62,8 +63,15 @@ export default function App() {
   const [isFullExam, setIsFullExam] = React.useState(false);
   const [quizTimeLimit, setQuizTimeLimit] = React.useState<number | undefined>(undefined);
   const [showOnboarding, setShowOnboarding] = React.useState(false);
+  const [showPesquisa, setShowPesquisa] = React.useState(false);
   const [showLogin, setShowLogin] = React.useState(false);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = React.useState<'mensal' | 'trimestral' | 'semestral' | 'anual'>('semestral');
+
+  React.useEffect(() => {
+    const handleAbrirPesquisa = () => setShowPesquisa(true);
+    window.addEventListener('abrir-pesquisa', handleAbrirPesquisa);
+    return () => window.removeEventListener('abrir-pesquisa', handleAbrirPesquisa);
+  }, []);
 
   React.useEffect(() => {
     async function testConnection() {
@@ -393,6 +401,14 @@ export default function App() {
             window.dispatchEvent(new CustomEvent('abrir-rotina-semanal'));
           }, 150);
         }}
+      />
+      <PesquisaModal 
+        isOpen={showPesquisa} 
+        onClose={() => setShowPesquisa(false)} 
+        onJaTenhoConta={!user ? () => {
+          setShowPesquisa(false);
+          setShowLogin(true);
+        } : undefined}
       />
       <FloatingSupport />
     </>

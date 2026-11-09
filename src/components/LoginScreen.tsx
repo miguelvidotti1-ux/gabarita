@@ -4,7 +4,6 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   signInAnonymously,
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail
 } from 'firebase/auth';
@@ -20,7 +19,6 @@ import {
   ShieldCheck, 
   Mail, 
   Lock, 
-  User as UserIcon, 
   AlertCircle,
   Zap,
   TrendingUp,
@@ -36,7 +34,7 @@ interface LoginScreenProps {
   onBackToLanding?: () => void;
 }
 
-type ScreenType = 'login' | 'cadastro' | 'recuperar';
+type ScreenType = 'login' | 'recuperar';
 
 interface ToastState {
   show: boolean;
@@ -47,15 +45,6 @@ interface ToastState {
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBackToLanding }) => {
   const [screen, setScreen] = useState<ScreenType>('login');
   const [loading, setLoading] = useState(false);
-
-  // Histórico de visita para copy adaptativa
-  const [isReturningVisitor] = useState(() => {
-    try {
-      return !!localStorage.getItem('gabarita_visitou');
-    } catch {
-      return false;
-    }
-  });
 
   useEffect(() => {
     try {
@@ -83,13 +72,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Form states - Cadastro
-  const [cadNome, setCadNome] = useState('');
-  const [cadEmail, setCadEmail] = useState('');
-  const [cadSenha, setCadSenha] = useState('');
-  const [cadConfirmaSenha, setCadConfirmaSenha] = useState('');
-  const [showCadSenha, setShowCadSenha] = useState(false);
-  const [cadError, setCadError] = useState('');
 
   // Form states - Recuperar
   const [recEmail, setRecEmail] = useState('');
@@ -290,6 +272,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
 
       localStorage.setItem('vestibularpro_authenticated', 'true');
       localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
+      localStorage.setItem('gabarita_email', email.trim());
       showToast('success', 'Login realizado! Entrando na plataforma...');
 
       setTimeout(() => {
@@ -302,61 +285,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
     }
   };
 
-  // Submit Cadastro
-  const handleCadastro = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCadError('');
-
-    if (!cadNome.trim()) {
-      setCadError('Por favor, informe seu nome completo.');
-      return;
-    }
-    if (!cadEmail.trim() || !validarEmail(cadEmail.trim())) {
-      setCadError('Por favor, informe um endereço de e-mail válido.');
-      return;
-    }
-    if (cadSenha.length < 6) {
-      setCadError('A senha deve conter ao menos 6 caracteres.');
-      return;
-    }
-    if (cadSenha !== cadConfirmaSenha) {
-      setCadError('As senhas não coincidem.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      let userObj: any = null;
-      try {
-        const res = await createUserWithEmailAndPassword(auth, cadEmail.trim(), cadSenha);
-        userObj = {
-          uid: res.user.uid,
-          email: res.user.email || cadEmail.trim(),
-          displayName: cadNome.trim()
-        };
-      } catch (authErr) {
-        let userUid = 'user_cad_' + Math.random().toString(36).substring(2, 9);
-        try {
-          const anon = await signInAnonymously(auth);
-          userUid = anon.user.uid;
-        } catch (_) {}
-        userObj = { uid: userUid, email: cadEmail.trim(), displayName: cadNome.trim() };
-      }
-
-      await handleCreateUserDocument(userObj.uid, userObj.email, userObj.displayName);
-      localStorage.setItem('vestibularpro_authenticated', 'true');
-      localStorage.setItem('vestibularpro_session_user', JSON.stringify(userObj));
-      showToast('success', 'Conta criada com sucesso! Abrindo planos...');
-
-      setTimeout(() => {
-        if (onLoginSuccess) onLoginSuccess(userObj, true);
-      }, 500);
-
-    } catch (err: any) {
-      setCadError(err?.message || 'Falha ao criar conta. Tente novamente.');
-      setLoading(false);
-    }
-  };
 
   // Recuperar senha
   const handleRecuperar = async (e: React.FormEvent) => {
@@ -485,46 +413,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
             </button>
           </motion.div>
 
-          {/* TAB SWITCHER: ENTRAR / CRIAR CONTA */}
-          <div className="flex items-center p-1 bg-[#121620] border border-white/10 rounded-xl mb-7 relative">
-            <button
-              type="button"
-              onClick={() => setScreen('login')}
-              className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative z-10 ${
-                screen === 'login' 
-                  ? 'text-white shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {screen === 'login' && (
-                <motion.div
-                  layoutId="auth-tab-pill"
-                  className="absolute inset-0 bg-blue-600 rounded-lg -z-10 shadow-lg shadow-blue-600/40"
-                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                />
-              )}
-              Entrar na Conta
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setScreen('cadastro')}
-              className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative z-10 ${
-                screen === 'cadastro' 
-                  ? 'text-white shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {screen === 'cadastro' && (
-                <motion.div
-                  layoutId="auth-tab-pill"
-                  className="absolute inset-0 bg-blue-600 rounded-lg -z-10 shadow-lg shadow-blue-600/40"
-                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                />
-              )}
-              Criar Conta
-            </button>
-          </div>
 
           <AnimatePresence mode="wait">
             
@@ -539,12 +427,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
               >
                 <div className="login-panel mb-6">
                   <h1 id="login-h" className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
-                    {isReturningVisitor ? 'Bem-vindo de volta! 👋' : 'Comece sua aprovação hoje'}
+                    Entrar no Gabarita
                   </h1>
                   <p id="login-sub" className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                    {isReturningVisitor
-                      ? 'Acesse seu cronograma, simulados e estatísticas de aprovação.'
-                      : 'Crie sua conta em 1 minuto — treine como a banca corrige.'}
+                    Acesse seu cronograma, simulados oficiais e estatísticas de aprovação.
                   </p>
                 </div>
 
@@ -744,16 +630,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
                     </button>
                   )}
 
-                  <p>
-                    Ainda não possui uma conta?{' '}
-                    <button 
-                      type="button" 
-                      onClick={() => setScreen('cadastro')}
-                      className="text-blue-400 font-semibold hover:text-blue-300 underline cursor-pointer"
-                    >
-                      Criar Conta
-                    </button>
-                  </p>
 
                   <div className="flex items-center gap-2 text-[11px] text-slate-500">
                     <ShieldCheck size={14} className="text-emerald-400" />
@@ -764,137 +640,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
               </motion.div>
             )}
 
-            {/* ================= TELA DE CADASTRO ================= */}
-            {screen === 'cadastro' && (
-              <motion.div
-                key="screen-cadastro"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-              >
-                <div className="mb-6">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FAFAFA] tracking-tight mb-1.5">
-                    Criar sua conta
-                  </h1>
-                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                    Feito para vestibulandos de ENEM, FUVEST e UNICAMP.
-                  </p>
-                </div>
-
-                {cadError && (
-                  <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs mb-5 flex items-center gap-2">
-                    <AlertCircle size={15} className="shrink-0" />
-                    <span>{cadError}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleCadastro} noValidate className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                      Nome Completo
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
-                      <input 
-                        type="text" 
-                        value={cadNome}
-                        onChange={(e) => setCadNome(e.target.value)}
-                        placeholder="Seu nome"
-                        required
-                        className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                      E-mail de Estudos
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
-                      <input 
-                        type="email" 
-                        value={cadEmail}
-                        onChange={(e) => setCadEmail(e.target.value)}
-                        placeholder="nome@exemplo.com"
-                        required
-                        className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Criar Senha
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
-                        <input 
-                          type={showCadSenha ? 'text' : 'password'} 
-                          value={cadSenha}
-                          onChange={(e) => setCadSenha(e.target.value)}
-                          placeholder="Mínimo 6 dígitos"
-                          required
-                          className="w-full py-3 pl-10 pr-10 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowCadSenha(!showCadSenha)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-300"
-                        >
-                          {showCadSenha ? <EyeOff size={15} /> : <Eye size={15} />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Confirmar Senha
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 pointer-events-none" />
-                        <input 
-                          type="password" 
-                          value={cadConfirmaSenha}
-                          onChange={(e) => setCadConfirmaSenha(e.target.value)}
-                          placeholder="Repita a senha"
-                          required
-                          className="w-full py-3 pl-10 pr-4 bg-[#111520] border border-white/10 focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] rounded-xl text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 cursor-pointer disabled:opacity-60"
-                  >
-                    {loading ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <span>Criar Conta</span>
-                        <ArrowRight size={16} />
-                      </>
-                    )}
-                  </button>
-                </form>
-
-                <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-slate-400">
-                  Já possui uma conta?{' '}
-                  <button 
-                    type="button" 
-                    onClick={() => setScreen('login')}
-                    className="text-blue-400 font-semibold hover:text-blue-300 underline cursor-pointer"
-                  >
-                    Acesse seu login
-                  </button>
-                </div>
-              </motion.div>
-            )}
 
             {/* ================= TELA DE RECUPERAÇÃO ================= */}
             {screen === 'recuperar' && (
