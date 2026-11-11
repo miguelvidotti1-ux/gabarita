@@ -684,7 +684,7 @@
                 email: 'estudante.' + provedor + '@gabarita.com.br',
                 displayName: 'Estudante ' + (provedor.charAt(0).toUpperCase() + provedor.slice(1))
             };
-            localStorage.setItem('vestibularpro_session_user', JSON.stringify(mockUser));
+            localStorage.setItem('gabarita_session_user', JSON.stringify(mockUser));
             setTimeout(function() {
                 window.location.href = '/';
             }, 600);
@@ -709,7 +709,7 @@
                 email: 'estudante@vesthub.com.br',
                 displayName: 'Novo Estudante'
             };
-            localStorage.setItem('vestibularpro_session_user', JSON.stringify(studentUser));
+            localStorage.setItem('gabarita_session_user', JSON.stringify(studentUser));
             setTimeout(function() {
                 window.location.href = '/';
             }, 600);

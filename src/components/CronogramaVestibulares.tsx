@@ -188,8 +188,8 @@ export default function CronogramaVestibulares({ onNavegarParaAba }: CronogramaV
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<"calendar" | "list" | "weekly">(() => {
     try {
-      if (localStorage.getItem("vestibularpro_abrir_rotina") === "true") {
-        localStorage.removeItem("vestibularpro_abrir_rotina");
+      if (localStorage.getItem("gabarita_abrir_rotina") === "true") {
+        localStorage.removeItem("gabarita_abrir_rotina");
         return "weekly";
       }
     } catch (e) {}

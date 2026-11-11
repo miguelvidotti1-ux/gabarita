@@ -251,7 +251,7 @@ export const DynamicOnboardingModal: React.FC<DynamicOnboardingModalProps> = ({
       const usuarioId =
         currentUser?.uid ||
         currentUser?.email ||
-        localStorage.getItem('vestibularpro_usuario_id') ||
+        localStorage.getItem('gabarita_usuario_id') ||
         'usuario_padrao';
 
       const me = parseFloat(String(mediaEscola || '').replace(',', '.'));
@@ -321,7 +321,7 @@ export const DynamicOnboardingModal: React.FC<DynamicOnboardingModalProps> = ({
       const usuarioId =
         currentUser?.uid ||
         currentUser?.email ||
-        localStorage.getItem('vestibularpro_usuario_id') ||
+        localStorage.getItem('gabarita_usuario_id') ||
         'usuario_padrao';
 
       const payload = {
