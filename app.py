@@ -113,3 +113,60 @@ if __name__ == "__main__":
     check_server()
     print("\n")
     seed()
+
+# ============================================================
+# PLAYER SPOTIFY EMBUTIDO (Web Playback SDK + controles REST)
+# ============================================================
+
+def _spotify_headers(uid):
+    tok = os.environ.get('SPOTIFY_ACCESS_TOKEN', '')
+    if not tok:
+        return None
+    return {'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json'}
+
+def spotify_transferir_handler(device_id, token):
+    """Transfere a reprodução para o dispositivo gabarita (o player do app)."""
+    if not token or not device_id:
+        return {'erro': 'device_id ou token ausente'}, 400
+    h = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+    try:
+        req = urllib.request.Request(
+            'https://api.spotify.com/v1/me/player',
+            data=json.dumps({'device_ids': [device_id], 'play': True}).encode(),
+            headers=h,
+            method='PUT'
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return {'ok': True}, 200
+    except Exception as e:
+        return {'erro': str(e)}, 502
+
+def spotify_controle_handler(acao, token, params=None):
+    """Ações: play, pause, next, previous, seek, volume."""
+    if not token:
+        return {'erro': 'Conecte o Spotify primeiro'}, 400
+    h = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'}
+    base = 'https://api.spotify.com/v1/me/player'
+    params = params or {}
+    try:
+        if acao == 'play':
+            req = urllib.request.Request(base + '/play', headers=h, method='PUT')
+        elif acao == 'pause':
+            req = urllib.request.Request(base + '/pause', headers=h, method='PUT')
+        elif acao == 'next':
+            req = urllib.request.Request(base + '/next', headers=h, method='POST')
+        elif acao == 'previous':
+            req = urllib.request.Request(base + '/previous', headers=h, method='POST')
+        elif acao == 'seek':
+            pos = int(params.get('posicao_ms', 0))
+            req = urllib.request.Request(f"{base}/seek?position_ms={pos}", headers=h, method='PUT')
+        elif acao == 'volume':
+            vol = int(params.get('volume', 50))
+            req = urllib.request.Request(f"{base}/volume?volume_percent={vol}", headers=h, method='PUT')
+        else:
+            return {'erro': 'Ação inválida'}, 400
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return {'ok': True}, 200
+    except Exception as e:
+        return {'erro': str(e)}, 502
+

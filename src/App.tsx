@@ -39,6 +39,7 @@ import AudioTranscriberView from './components/AudioTranscriberView';
 import FloatingSupport from './components/FloatingSupport';
 import DynamicOnboardingModal from './components/DynamicOnboardingModal';
 import PesquisaModal from './components/PesquisaModal';
+import Flashcards from './components/Flashcards';
 
 export default function App() {
   const isOnline = useOnlineStatus();
@@ -277,6 +278,8 @@ export default function App() {
         );
       case 'gabaritos':
         return <GabaritosOficiais />;
+      case 'flashcards':
+        return <Flashcards />;
       case 'redacao':
         return <Redacao vestibular={selectedVestibular} setVestibular={setSelectedVestibular} />;
       case 'conteudos':

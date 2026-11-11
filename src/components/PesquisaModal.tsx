@@ -376,33 +376,20 @@ export const PesquisaModal: React.FC<PesquisaModalProps> = ({
               );
             })}
 
-            {/* Rodapé com botão 'Já tenho uma conta' e 'Concluir Diagnóstico' */}
+            {/* Rodapé com botão 'Concluir Diagnóstico' */}
             <div className="pt-3 sticky bottom-0 bg-[#10141D] py-3 border-t border-[#1E2534] flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="text-[11px] text-slate-500 flex items-center gap-1.5 order-2 sm:order-1">
+              <span className="text-[11px] text-slate-500 flex items-center gap-1.5">
                 🔒 Seus dados personalizam sua rotina no Gabarita
               </span>
 
-              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
-                {onJaTenhoConta && (
-                  <button
-                    type="button"
-                    onClick={onJaTenhoConta}
-                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-[#151A24] hover:bg-[#1E2534] text-slate-300 hover:text-white text-xs font-semibold border border-[#2A3348] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <LogIn size={13} />
-                    <span>Já tenho uma conta</span>
-                  </button>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  <Send size={13} />
-                  <span>{enviando ? 'Enviando...' : 'Concluir Diagnóstico'}</span>
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={enviando}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Send size={13} />
+                <span>{enviando ? 'Enviando...' : 'Concluir Diagnóstico'}</span>
+              </button>
             </div>
           </form>
         )}

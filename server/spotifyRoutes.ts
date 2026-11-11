@@ -1169,6 +1169,101 @@ spotifyRouter.put('/volume', async (req: Request, res: Response) => {
 });
 
 // ============================================================
+// 8.2 TRANSFERIR REPRODUÇÃO (Web Playback SDK)
+// Endpoint: POST /api/spotify/transferir
+// ============================================================
+spotifyRouter.post('/transferir', async (req: Request, res: Response) => {
+  const token = await getValidSpotifyToken(req, res);
+  if (!token) {
+    return res.status(401).json({ erro: 'Conecte o Spotify primeiro' });
+  }
+
+  const device_id = req.body?.device_id;
+  if (!device_id) {
+    return res.status(400).json({ erro: 'device_id ausente' });
+  }
+
+  try {
+    const response = await fetch(`${SPOTIFY_API_BASE}/me/player`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ device_ids: [device_id], play: true })
+    });
+
+    if ([200, 202, 204].includes(response.status)) {
+      return res.json({ ok: true });
+    }
+    return res.status(502).json({ erro: 'Falha ao transferir reprodução' });
+  } catch (err: any) {
+    return res.status(502).json({ erro: 'Falha ao transferir reprodução', details: err?.message });
+  }
+});
+
+// ============================================================
+// 8.3 CONTROLE DO PLAYER REST (play, pause, next, previous, seek, volume)
+// Endpoint: POST /api/spotify/controle
+// ============================================================
+spotifyRouter.post('/controle', async (req: Request, res: Response) => {
+  const token = await getValidSpotifyToken(req, res);
+  if (!token) {
+    return res.status(401).json({ erro: 'Conecte o Spotify primeiro' });
+  }
+
+  const d = req.body || {};
+  const acao = d.acao;
+  const base = `${SPOTIFY_API_BASE}/me/player`;
+
+  try {
+    let url = base;
+    let method = 'PUT';
+    let body: any = undefined;
+
+    if (acao === 'play') {
+      url = `${base}/play`;
+      method = 'PUT';
+    } else if (acao === 'pause') {
+      url = `${base}/pause`;
+      method = 'PUT';
+    } else if (acao === 'next') {
+      url = `${base}/next`;
+      method = 'POST';
+    } else if (acao === 'previous') {
+      url = `${base}/previous`;
+      method = 'POST';
+    } else if (acao === 'seek') {
+      const pos = parseInt(d.posicao_ms || '0', 10);
+      url = `${base}/seek?position_ms=${pos}`;
+      method = 'PUT';
+    } else if (acao === 'volume') {
+      const vol = parseInt(d.volume || '50', 10);
+      url = `${base}/volume?volume_percent=${vol}`;
+      method = 'PUT';
+    } else {
+      return res.status(400).json({ erro: 'Ação inválida' });
+    }
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    if ([200, 202, 204].includes(response.status)) {
+      return res.json({ ok: true });
+    }
+    return res.status(502).json({ erro: 'Spotify recusou o comando' });
+  } catch (err: any) {
+    return res.status(502).json({ erro: 'Falha ao executar controle', details: err?.message });
+  }
+});
+
+// ============================================================
 // 9. MÚSICA ATUAL — o que está tocando agora
 // Endpoint: GET /api/spotify/now-playing
 // ============================================================

@@ -578,10 +578,10 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   };
 
   // Controles de reprodução remota
-  const handlePlaybackControl = async (action: 'play' | 'pause' | 'next', uri?: string) => {
+  const handlePlaybackControl = async (action: 'play' | 'pause' | 'next' | 'previous', uri?: string) => {
     try {
       let endpoint = `/api/spotify/${action}`;
-      let method = action === 'next' ? 'POST' : 'PUT';
+      let method = (action === 'next' || action === 'previous') ? 'POST' : 'PUT';
       if (action === 'play' && uri) {
         endpoint += `?uri=${encodeURIComponent(uri)}`;
       }
@@ -596,6 +596,8 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
           if (onToast) onToast('success', 'Reprodução pausada.');
         } else if (action === 'next') {
           if (onToast) onToast('success', 'Avançando para a próxima música...');
+        } else if (action === 'previous') {
+          if (onToast) onToast('success', 'Retornando à música anterior...');
         }
       } else {
         const errData = await res.json().catch(() => ({}));
@@ -854,6 +856,13 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   const handleSeekLyrics = (newTimeMs: number) => {
     const clamped = Math.max(0, Math.min(currentLyricsTrack.duration_ms, newTimeMs));
     setPlaybackTimeMs(clamped);
+    if (isUsingSpotifyTrack && isConnected) {
+      spotifyFetch('/api/spotify/controle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acao: 'seek', posicao_ms: clamped })
+      }).catch(() => {});
+    }
     if (!isPlayingLyrics) {
       if (isUsingSpotifyTrack && isConnected) {
         handlePlaybackControl('play');

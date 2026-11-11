@@ -134,7 +134,8 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
     {
       title: 'Estudos & Módulos',
       items: [
-        { id: 'skillswipe', label: 'Flashcards', icon: Layers },
+        { id: 'flashcards', label: 'Flashcards', icon: Layers },
+        { id: 'skillswipe', label: 'SkillSwipe', icon: Layers },
         { id: 'spotify', label: 'Músicas para Estudar', icon: Headphones },
         { id: 'redacao', label: 'Redação IA', icon: FileText },
         { id: 'conteudos', label: 'Matérias', icon: BookOpen },

@@ -11,6 +11,7 @@ import { FLASHCARDS_TRAILS, StudyTrail, Flashcard } from '../data/flashcardsData
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { collection, getDocs, setDoc, deleteDoc, doc, writeBatch, query, where } from 'firebase/firestore';
+import { FlashcardCreatorModal } from './FlashcardCreatorModal';
 
 export default function SkillSwipe() {
   const [levelStatus, setLevelStatus] = useState<LevelSystemStatus | null>(null);
@@ -20,6 +21,7 @@ export default function SkillSwipe() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionXpEarned, setSessionXpEarned] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showCreator, setShowCreator] = useState(false);
   
   // View states: 'trails' (catalog), 'session' (studying), 'stats' (general statistics dashboard)
   const [activeView, setActiveView] = useState<'trails' | 'session' | 'stats'>('trails');
@@ -373,13 +375,22 @@ export default function SkillSwipe() {
         {/* Buttons & Global Level widget */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           {activeView === 'trails' && (
-            <button
-              onClick={() => setActiveView('stats')}
-              className="flex items-center justify-center gap-2 bg-indigo-550 hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-2xl transition-all shadow-md active:scale-95 cursor-pointer"
-            >
-              <BarChart2 size={16} />
-              <span>Ver Estatísticas</span>
-            </button>
+            <>
+              <button
+                onClick={() => setShowCreator(true)}
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-2xl transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Sparkles size={16} />
+                <span>Criar Flashcards</span>
+              </button>
+              <button
+                onClick={() => setActiveView('stats')}
+                className="flex items-center justify-center gap-2 bg-indigo-550 hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-2xl transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <BarChart2 size={16} />
+                <span>Ver Estatísticas</span>
+              </button>
+            </>
           )}
 
           {levelStatus && (
@@ -1026,6 +1037,15 @@ export default function SkillSwipe() {
           </motion.div>
         )}
       </AnimatePresence>
+      <FlashcardCreatorModal 
+        isOpen={showCreator} 
+        onClose={() => setShowCreator(false)} 
+        onCreated={(newCards) => {
+          // Handle newly created cards, maybe add to a 'custom' category
+          console.log('Created cards:', newCards);
+          alert('Flashcards criados com sucesso!');
+        }}
+      />
     </div>
   );
 }

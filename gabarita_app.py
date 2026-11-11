@@ -6,10 +6,15 @@
 # ============================================================
 
 import os
+import time
 import secrets
+import secrets as _secrets
 import pathlib
 import requests
 from datetime import timedelta, datetime
+import base64
+import json as _json
+import io
 
 from flask import Flask, request, jsonify, render_template_string
 from flask_sqlalchemy import SQLAlchemy
@@ -38,9 +43,15 @@ app.config.update(
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,
 )
 MP_ACCESS_TOKEN = os.environ.get('MP_ACCESS_TOKEN', '')   # vem do .env
-SPOTIFY_TOKEN = os.environ.get('SPOTIFY_ACCESS_TOKEN', '')  # token OAuth do usuário
-GEMINI_KEY    = os.environ.get('GEMINI_API_KEY', '')
 APP_URL = os.environ.get('APP_URL', 'https://gabarita.ai.studio')
+
+SPOTIFY_CLIENT_ID     = os.environ.get('SPOTIFY_CLIENT_ID', 'cole-o-client-id-do-seu-app-spotify')
+SPOTIFY_CLIENT_SECRET = os.environ.get('SPOTIFY_CLIENT_SECRET', 'M25032010@')
+SPOTIFY_REDIRECT_URI  = os.environ.get('SPOTIFY_REDIRECT_URI', APP_URL + '/api/spotify/callback')
+GEMINI_KEY            = os.environ.get('GEMINI_API_KEY', 'AQ.Ab8RN6KswUxiS3jRLTwp1HHFOBhs8dHBH65nhJBZeSPDGEwq4A')
+
+# Escopo mínimo para o recurso de letra sincronizada
+SPOTIFY_SCOPE = 'user-read-currently-playing user-read-playback-state'
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -87,6 +98,27 @@ class RespostaPesquisa(db.Model):
     dados_json = db.Column(db.Text)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
 
+
+class SpotifyToken(db.Model):
+    __tablename__ = 'spotify_tokens'
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True)
+    access_token = db.Column(db.String(300), nullable=False)
+    refresh_token = db.Column(db.String(300), nullable=False)
+    expira_em = db.Column(db.DateTime, nullable=False)
+
+
+class Flashcard(db.Model):
+    __tablename__ = 'flashcards'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    materia = db.Column(db.String(100), default='Geral')
+    frente = db.Column(db.Text, nullable=False)
+    verso = db.Column(db.Text, nullable=False)
+    dificuldade = db.Column(db.String(10), default='medio')   # facil | medio | dificil
+    acertos = db.Column(db.Integer, default=0)
+    erros = db.Column(db.Integer, default=0)
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+
 # ============================================================
 # BLOCO 7.2 — SEED DOS 4 PLANOS (upsert: cria ou atualiza)
 # ============================================================
@@ -111,17 +143,310 @@ def seed():
         db.session.commit()
 
 # ============================================================
-# MÓDULO LETRA EM TEMPO REAL (Spotify + LRCLIB + Gemini)
+# MÓDULO SPOTIFY + LETRA — versão corrigida
+# P1: token por usuário com refresh automático
+# P6: cache de letras com TTL e limite
+# P7: endpoints protegidos por JWT
 # ============================================================
 
-_cache_letras = {}  # evita buscar a mesma faixa repetidamente
+def token_do_usuario(uid):
+    """Devolve um access_token válido do usuário, renovando se necessário."""
+    t = SpotifyToken.query.get(uid)
+    if not t:
+        return None
+    if t.expira_em > datetime.utcnow() + timedelta(seconds=60):
+        return t.access_token                      # ainda válido
+    r = requests.post('https://accounts.spotify.com/api/token', data={
+        'grant_type': 'refresh_token', 'refresh_token': t.refresh_token,
+        'client_id': SPOTIFY_CLIENT_ID, 'client_secret': SPOTIFY_CLIENT_SECRET}, timeout=15)
+    if r.status_code != 200:
+        return None                                # refresh falhou → usuário reconecta
+    d = r.json()
+    t.access_token = d['access_token']
+    t.expira_em = datetime.utcnow() + timedelta(seconds=d.get('expires_in', 3600))
+    if 'refresh_token' in d:
+        t.refresh_token = d['refresh_token']
+    db.session.commit()
+    return t.access_token
+
+
+# ---------- Fluxo OAuth: conectar e callback ----------
+
+_estados_oauth = {}   # estado anti-CSRF -> usuario_id (expira em 10 min)
+
+@app.route('/api/spotify/conectar')
+@jwt_required()
+def spotify_conectar():
+    """Gera a URL de autorização do Spotify para o usuário logado."""
+    estado = _secrets.token_urlsafe(24)
+    _estados_oauth[estado] = (int(get_jwt_identity()), time.time() + 600)
+    params = {
+        'client_id': SPOTIFY_CLIENT_ID,
+        'response_type': 'code',
+        'redirect_uri': SPOTIFY_REDIRECT_URI,
+        'scope': SPOTIFY_SCOPE,
+        'state': estado,
+    }
+    return jsonify({'url': 'https://accounts.spotify.com/authorize?' +
+                           '&'.join(f'{k}={requests.utils.quote(str(v))}' for k, v in params.items())})
+
+
+@app.route('/api/spotify/callback')
+def spotify_callback():
+    """Recebe o código do Spotify e salva os tokens do usuário."""
+    code = request.args.get('code', '')
+    estado = request.args.get('state', '')
+    entrada = _estados_oauth.pop(estado, None)
+    if not code or not entrada or time.time() > entrada[1]:
+        return jsonify({'erro': 'Sessão de conexão expirada. Tente conectar novamente.'}), 400
+    uid = entrada[0]
+    r = requests.post('https://accounts.spotify.com/api/token', data={
+        'grant_type': 'authorization_code', 'code': code,
+        'redirect_uri': SPOTIFY_REDIRECT_URI,
+        'client_id': SPOTIFY_CLIENT_ID, 'client_secret': SPOTIFY_CLIENT_SECRET}, timeout=15)
+    if r.status_code != 200:
+        return jsonify({'erro': 'Spotify recusou a autorização. Tente de novo.'}), 502
+    d = r.json()
+    t = SpotifyToken.query.get(uid)
+    if t:
+        t.access_token = d['access_token']
+        t.refresh_token = d.get('refresh_token', t.refresh_token)
+        t.expira_em = datetime.utcnow() + timedelta(seconds=d.get('expires_in', 3600))
+    else:
+        t = SpotifyToken(usuario_id=uid, access_token=d['access_token'],
+                         refresh_token=d.get('refresh_token', ''),
+                         expira_em=datetime.utcnow() + timedelta(seconds=d.get('expires_in', 3600)))
+        db.session.add(t)
+    db.session.commit()
+    # Página simples que fecha o popup e avisa o app
+    return render_template_string(
+        '<script>window.opener.postMessage("spotify-ok","*");'
+        'document.body.innerHTML="<p style=\'font-family:sans-serif;text-align:center;'
+        'padding:40px\'>✅ Spotify conectado! Pode fechar esta janela.</p>";</script>')
+
+
+@app.route('/api/spotify/desconectar', methods=['POST'])
+@jwt_required()
+def spotify_desconectar():
+    t = SpotifyToken.query.get(int(get_jwt_identity()))
+    if t:
+        db.session.delete(t)
+        db.session.commit()
+    return jsonify({'ok': True})
+
+
+def _ocr_gemini(b64, mime):
+    """Transcreve texto de imagem via Gemini Vision."""
+    r = requests.post(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+        '?key=' + GEMINI_KEY,
+        json={'contents': [{'parts': [
+            {'text': 'Transcreva TODO o texto desta imagem, mantendo a estrutura e os destaques. '
+                     'Responda apenas com o texto transcrito, sem comentários.'},
+            {'inline_data': {'mime_type': mime, 'data': b64}}
+        ]}]}, timeout=60)
+    if r.status_code != 200:
+        return ''
+    return r.json()['candidates'][0]['content']['parts'][0]['text']
+
+
+def _extrair_pdf(arquivo):
+    """Extrai texto de PDF (instale: pip install PyPDF2)."""
+    try:
+        from PyPDF2 import PdfReader
+        leitor = PdfReader(io.BytesIO(arquivo.read()))
+        return '\n'.join((p.extract_text() or '') for p in leitor.pages)
+    except Exception:
+        return ''
+
+
+PROMPTS_DIFICULDADE = {
+    'facil':   'Perguntas diretas de definição e memorização, um conceito por cartão, respostas curtas.',
+    'medio':   'Perguntas de aplicação e compreensão, exigindo relacionar conceitos e explicar causas.',
+    'dificil': 'Perguntas de análise no estilo ENEM: comparações, exceções, casos de aplicação e alternativas que exigem raciocínio.',
+}
+
+
+@app.route('/api/flashcards/gerar', methods=['POST'])
+@jwt_required()
+def flashcards_gerar():
+    uid = int(get_jwt_identity())
+    modo        = request.form.get('modo', 'texto')        # texto | foto | arquivo
+    dificuldade = request.form.get('dificuldade', 'medio')
+    quantidade  = min(max(int(request.form.get('quantidade', 10)), 3), 30)
+    materia     = (request.form.get('materia') or 'Geral').strip()[:100]
+
+    conteudo = ''
+    if modo == 'texto':
+        conteudo = request.form.get('conteudo', '')
+    elif modo == 'foto':
+        img = request.files.get('arquivo')
+        if not img:
+            return jsonify({'erro': 'Envie a foto do conteúdo'}), 400
+        conteudo = _ocr_gemini(base64.b64encode(img.read()).decode(), img.mimetype or 'image/jpeg')
+    elif modo == 'arquivo':
+        f = request.files.get('arquivo')
+        if not f:
+            return jsonify({'erro': 'Envie o arquivo'}), 400
+        nome = f.filename.lower()
+        if nome.endswith('.pdf'):
+            conteudo = _extrair_pdf(f)
+        elif nome.endswith(('.png', '.jpg', '.jpeg', '.webp')):
+            conteudo = _ocr_gemini(base64.b64encode(f.read()).decode(), f.mimetype or 'image/png')
+        else:  # txt, md, csv...
+            conteudo = f.read().decode('utf-8', errors='ignore')
+
+    if len(conteudo.strip()) < 30:
+        return jsonify({'erro': 'Não consegui ler conteúdo suficiente. Tente texto mais longo ou foto mais nítida.'}), 400
+
+    prompt = (
+        'Você é professor especialista em vestibulares brasileiros (ENEM, FUVEST, UNICAMP). '
+        f'Com base no CONTEÚDO abaixo, crie exatamente {quantidade} flashcards no nível {dificuldade.upper()}. '
+        f'{PROMPTS_DIFICULDADE.get(dificuldade, PROMPTS_DIFICULDADE["medio"])} '
+        'Responda APENAS com um array JSON válido (sem markdown, sem texto extra), no formato: '
+        '[{"frente": "pergunta curta e clara", "verso": "resposta objetiva em até 3 frases"}]. '
+        f'\n\nCONTEÚDO:\n{conteudo[:12000]}'
+    )
+    r = requests.post(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+        '?key=' + GEMINI_KEY,
+        json={'contents': [{'parts': [{'text': prompt}]}]}, timeout=90)
+    if r.status_code != 200:
+        return jsonify({'erro': 'IA indisponível no momento'}), 502
+
+    bruto = r.json()['candidates'][0]['content']['parts'][0]['text'].strip()
+    bruto = bruto.removeprefix('```json').removeprefix('```').removesuffix('```').strip()
+    try:
+        cartoes = _json.loads(bruto)
+    except _json.JSONDecodeError:
+        return jsonify({'erro': 'A IA retornou um formato inesperado. Tente novamente.'}), 502
+
+    salvos = []
+    for c in cartoes[:quantidade]:
+        if not c.get('frente') or not c.get('verso'):
+            continue
+        fc = Flashcard(usuario_id=uid, materia=materia,
+                       frente=str(c['frente'])[:500], verso=str(c['verso'])[:1500],
+                       dificuldade=dificuldade)
+        db.session.add(fc)
+        salvos.append({'frente': fc.frente, 'verso': fc.verso})
+    db.session.commit()
+    return jsonify({'criados': len(salvos), 'flashcards': salvos})
+
+
+@app.route('/api/flashcards')
+@jwt_required()
+def flashcards_listar():
+    uid = int(get_jwt_identity())
+    materia = request.args.get('materia', '')
+    q = Flashcard.query.filter_by(usuario_id=uid)
+    if materia:
+        q = q.filter_by(materia=materia)
+    fs = q.order_by(Flashcard.criado_em.desc()).all()
+    return jsonify([{'id': f.id, 'materia': f.materia, 'frente': f.frente,
+                     'verso': f.verso, 'dificuldade': f.dificuldade,
+                     'acertos': f.acertos, 'erros': f.erros} for f in fs])
+
+
+@app.route('/api/flashcards/<int:fid>/resultado', methods=['POST'])
+@jwt_required()
+def flashcards_resultado(fid):
+    """Registra acerto/erro do estudo (base para estatística de domínio)."""
+    f = Flashcard.query.filter_by(id=fid, usuario_id=int(get_jwt_identity())).first()
+    if not f:
+        return jsonify({'erro': 'Flashcard não encontrado'}), 404
+    acertou = (request.get_json(silent=True) or {}).get('acertou', True)
+    if acertou:
+        f.acertos += 1
+    else:
+        f.erros += 1
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@app.route('/api/flashcards/<int:fid>', methods=['DELETE'])
+@jwt_required()
+def flashcards_apagar(fid):
+    f = Flashcard.query.filter_by(id=fid, usuario_id=int(get_jwt_identity())).first()
+    if f:
+        db.session.delete(f)
+        db.session.commit()
+    return jsonify({'ok': True})
+
+
+# ============================================================
+# PLAYER SPOTIFY EMBUTIDO (Web Playback SDK + controles REST)
+# ============================================================
+
+def _spotify_headers(uid):
+    tok = token_do_usuario(uid)
+    if not tok:
+        return None
+    return {'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json'}
+
+
+@app.route('/api/spotify/transferir', methods=['POST'])
+@jwt_required()
+def spotify_transferir():
+    """Transfere a reprodução para o dispositivo gabarita (o player do app)."""
+    h = _spotify_headers(int(get_jwt_identity()))
+    if not h:
+        return jsonify({'erro': 'Conecte o Spotify primeiro'}), 400
+    device_id = (request.get_json(silent=True) or {}).get('device_id', '')
+    if not device_id:
+        return jsonify({'erro': 'device_id ausente'}), 400
+    r = requests.put('https://api.spotify.com/v1/me/player',
+                     headers=h, json={'device_ids': [device_id], 'play': True}, timeout=10)
+    if r.status_code in (200, 202, 204):
+        return jsonify({'ok': True})
+    return jsonify({'erro': 'Falha ao transferir reprodução'}), 502
+
+
+@app.route('/api/spotify/controle', methods=['POST'])
+@jwt_required()
+def spotify_controle():
+    """Ações: play, pause, next, previous, seek, volume."""
+    uid = int(get_jwt_identity())
+    h = _spotify_headers(uid)
+    if not h:
+        return jsonify({'erro': 'Conecte o Spotify primeiro'}), 400
+    d = request.get_json(silent=True) or {}
+    acao = d.get('acao', '')
+    base = 'https://api.spotify.com/v1/me/player'
+    if acao == 'play':
+        r = requests.put(base + '/play', headers=h, timeout=10)
+    elif acao == 'pause':
+        r = requests.put(base + '/pause', headers=h, timeout=10)
+    elif acao == 'next':
+        r = requests.post(base + '/next', headers=h, timeout=10)
+    elif acao == 'previous':
+        r = requests.post(base + '/previous', headers=h, timeout=10)
+    elif acao == 'seek':
+        r = requests.put(base + '/seek', headers=h,
+                         params={'position_ms': int(d.get('posicao_ms', 0))}, timeout=10)
+    elif acao == 'volume':
+        r = requests.put(base + '/volume', headers=h,
+                         params={'volume_percent': int(d.get('volume', 50))}, timeout=10)
+    else:
+        return jsonify({'erro': 'Ação inválida'}), 400
+    if r.status_code in (200, 202, 204):
+        return jsonify({'ok': True})
+    return jsonify({'erro': 'Spotify recusou o comando'}), 502
+
+
+# ---------- P7: endpoint protegido + sinal de "precisa conectar" ----------
 
 @app.route('/api/spotify/atual')
+@jwt_required()
 def spotify_atual():
-    """Estado atual da reprodução — o front consulta a cada 3s."""
+    tok = token_do_usuario(int(get_jwt_identity()))
+    if not tok:
+        return jsonify({'tocando': False, 'precisa_conectar': True})
     r = requests.get('https://api.spotify.com/v1/me/player/currently-playing',
-                     headers={'Authorization': 'Bearer ' + SPOTIFY_TOKEN}, timeout=10)
-    if r.status_code != 200 or not r.json():
+                     headers={'Authorization': 'Bearer ' + tok}, timeout=10)
+    if r.status_code == 401:                       # token morreu sem refresh possível
+        return jsonify({'tocando': False, 'precisa_conectar': True})
+    if r.status_code == 204 or not r.json():       # 204 = nada tocando
         return jsonify({'tocando': False})
     d = r.json()
     item = d.get('item') or {}
@@ -134,27 +459,34 @@ def spotify_atual():
     })
 
 
+# ---------- P6: cache com TTL e limite de tamanho ----------
+
+_cache_letras = {}
+CACHE_TTL = 60 * 60 * 24          # 24 horas
+CACHE_LIMITE = 500
+
 @app.route('/api/letra')
+@jwt_required()
 def letra():
-    """Letra completa da faixa atual, sincronizada (formato LRC) quando disponível."""
     faixa = request.args.get('faixa', '')
     artista = request.args.get('artista', '')
     duracao = request.args.get('duracao', 0, type=int) // 1000
     chave = f'{faixa}|{artista}'
-    if chave in _cache_letras:
-        return jsonify(_cache_letras[chave])
+
+    c = _cache_letras.get(chave)
+    if c and time.time() - c[0] < CACHE_TTL:
+        return jsonify(c[1])
 
     r = requests.get('https://lrclib.net/api/get',
                      params={'track_name': faixa, 'artist_name': artista, 'duration': duracao},
-                     headers={'User-Agent': 'gabarita/1.0 (app de estudos)'},
-                     timeout=15)
+                     headers={'User-Agent': 'gabarita/1.0 (app de estudos)'}, timeout=15)
     if r.status_code != 200:
         return jsonify({'sincronizada': False, 'linhas': []}), 404
 
     d = r.json()
     lrc = d.get('syncedLyrics') or ''
     linhas = []
-    for linha in lrc.splitlines():          # formato LRC: [mm:ss.xx] texto
+    for linha in lrc.splitlines():
         if ']' not in linha:
             continue
         tempo, texto = linha.split(']', 1)
@@ -163,18 +495,23 @@ def letra():
             linhas.append({'t': int(mm) * 60 + float(ss), 'texto': texto.strip()})
         except ValueError:
             continue
-    if not linhas and d.get('plainLyrics'):  # fallback: letra sem sincronia
+    if not linhas and d.get('plainLyrics'):
         linhas = [{'t': None, 'texto': l} for l in d['plainLyrics'].splitlines()]
 
     resp = {'sincronizada': bool(lrc), 'linhas': linhas}
-    _cache_letras[chave] = resp
+    _cache_letras[chave] = (time.time(), resp)
+    if len(_cache_letras) > CACHE_LIMITE:          # expulsa as 100 mais antigas
+        antigas = sorted(_cache_letras, key=lambda k: _cache_letras[k][0])[:100]
+        for k in antigas:
+            del _cache_letras[k]
     return jsonify(resp)
 
+
+# ---------- Anotação da IA (inalterado, já era protegido) ----------
 
 @app.route('/api/letra/anotar', methods=['POST'])
 @jwt_required()
 def letra_anotar():
-    """A IA lê a LETRA INTEIRA como contexto e explica o trecho que o usuário tocou."""
     d = request.get_json(silent=True) or {}
     letra_completa = (d.get('letra') or '')[:8000]
     trecho = d.get('trecho') or ''
@@ -326,6 +663,7 @@ HTML = r"""<!DOCTYPE html>
 <title>gabarita — Treine como a banca corrige</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Redação corrigida no padrão ENEM, FUVEST, UNICAMP e UNESP. IA de vestibular 24h. Simulados com diagnóstico TRI e playlists de foco.">
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
 <style>
 /* ===== BLOCO 5 — CSS COMPLETO ===== */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
@@ -456,6 +794,26 @@ body{background:var(--bg);color:var(--txt)}
 /* Acessibilidade */
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.fc-modos{display:flex;gap:8px;margin-bottom:14px}
+.fc-modo{flex:1;background:#0B0E15;border:1px solid #1E2534;color:#A3A3A3;padding:10px 6px;border-radius:10px;font-size:12px;cursor:pointer}
+.fc-modo.ativo{border-color:#1E3A8A;color:#FAFAFA;background:#10141D}
+.fc-arquivo-info{font-size:12px;color:#60A5FA;margin:8px 0}
+.fc-linha{display:flex;gap:8px;margin-top:12px}
+.fc-label{font-size:12px;color:#8A8A94;margin:14px 0 8px}
+.fc-chips{display:flex;gap:8px}
+.fc-chip{flex:1;background:#0B0E15;border:1px solid #1E2534;color:#A3A3A3;padding:10px;border-radius:10px;font-size:13px;cursor:pointer}
+.fc-chip.ativo{border-color:#1E3A8A;color:#FAFAFA;background:#10141D;font-weight:600}
+.fc-card{perspective:1200px;max-width:420px;margin:18px auto;cursor:pointer}
+.fc-card-inner{position:relative;width:100%;min-height:260px;transition:transform .5s;transform-style:preserve-3d}
+.fc-card.virado .fc-card-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;background:#10141D;border:1px solid #1E2534;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+.fc-face span{font-size:17px;line-height:1.5}
+.fc-face small{margin-top:18px;font-size:11px;color:#8A8A94}
+.fc-verso{transform:rotateY(180deg);border-color:#1E3A8A}
+.fc-topo{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.fc-progresso{font-size:13px;color:#8A8A94}
+#fc-avaliar{margin-top:14px}
+@media (prefers-reduced-motion:reduce){.fc-card-inner{transition:none}}
 </style>
 </head>
 <body>
@@ -566,15 +924,108 @@ body{background:var(--bg);color:var(--txt)}
     <h3>Diagnóstico Inicial de Preparação Vestibular</h3>
     <p>Preenchimento obrigatório para novos estudantes. Se você já assina ou tem conta cadastrada, clique no botão <strong>"Já tenho uma conta"</strong> acima.</p>
     <div id="pq-perguntas-container"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn" style="flex:2" onclick="enviarPesquisa()">Concluir Diagnóstico</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="irParaLogin()">Já tenho uma conta</button>
+    <div style="margin-top:16px">
+      <button class="btn" style="width:100%" onclick="enviarPesquisa()">Concluir Diagnóstico</button>
     </div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
-<div id="app-screen"></div>
+<div id="app-screen">
+  <div id="spotify-conexao" style="display:none;text-align:center;padding:20px">
+    <p style="color:#A3A3A3;font-size:14px;margin-bottom:14px">
+      Conecte sua conta do Spotify para ver a letra da música que <b>você</b> está ouvindo.</p>
+    <button class="btn" onclick="conectarSpotify()">🎵 Conectar Spotify</button>
+  </div>
+  
+  <div id="fc-container" style="padding:20px">
+    <button class="btn btn-ghost" onclick="document.getElementById('fc-criar').style.display='block'">🃏 Flashcards</button>
+    <div id="fc-criar" style="display:none;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-top:14px">
+      <h3>Criar Flashcards</h3>
+      <div class="fc-modos">
+        <button class="fc-modo ativo" onclick="fcModo('texto',this)">⌨️ Digitar</button>
+        <button class="fc-modo" onclick="fcModo('foto',this)">📷 Tirar foto</button>
+        <button class="fc-modo" onclick="fcModo('arquivo',this)">📎 Enviar arquivo</button>
+      </div>
+      <textarea id="fc-texto" class="pq-input" style="min-height:120px" placeholder="Conteúdo..."></textarea>
+      <input type="file" id="fc-arquivo" accept="image/*,.pdf,.txt,.md,.csv" style="display:none">
+      <div class="fc-linha">
+        <input type="text" id="fc-materia" class="pq-input" style="flex:1" placeholder="Matéria">
+        <select id="fc-quantidade" class="pq-input" style="width:110px">
+          <option value="5">5</option><option value="10" selected>10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <div class="fc-label">Nível</div>
+      <div class="fc-chips">
+        <button class="fc-chip" data-nivel="facil" onclick="fcNivel('facil',this)">🟢 Fácil</button>
+        <button class="fc-chip ativo" data-nivel="medio" onclick="fcNivel('medio',this)">🟡 Médio</button>
+        <button class="fc-chip" data-nivel="dificil" onclick="fcNivel('dificil',this)">🔴 Difícil</button>
+      </div>
+      <button class="btn" style="width:100%;margin-top:14px" id="fc-gerar-btn" onclick="criarFlashcards()">✨ Gerar com IA</button>
+    </div>
+    <div id="fc-estudo" style="display:none;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-top:14px">
+      <div class="fc-topo">
+        <div class="fc-progresso" id="fc-progresso">0/0</div>
+        <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="fcVoltarCriar()">← Criar mais</button>
+      </div>
+      <div id="fc-card" class="fc-card" onclick="virarCartao()">
+        <div class="fc-card-inner">
+          <div class="fc-face fc-frente"><span id="fc-frente-txt"></span><small>Toque para virar</small></div>
+          <div class="fc-face fc-verso"><span id="fc-verso-txt"></span></div>
+        </div>
+      </div>
+      <div id="fc-avaliar" style="display:none;gap:8px">
+        <button class="fc-chip" onclick="avaliarCartao(true)">✅ Acertei</button>
+        <button class="fc-chip" onclick="avaliarCartao(false)">❌ Errei</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="fc-container" style="padding:20px">
+    <button class="btn btn-ghost" onclick="document.getElementById('fc-criar').style.display='block'">🃏 Flashcards</button>
+    <div id="fc-criar" style="display:none;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-top:14px">
+      <h3>Criar Flashcards</h3>
+      <div class="fc-modos">
+        <button class="fc-modo ativo" onclick="fcModo('texto',this)">⌨️ Digitar</button>
+        <button class="fc-modo" onclick="fcModo('foto',this)">📷 Tirar foto</button>
+        <button class="fc-modo" onclick="fcModo('arquivo',this)">📎 Enviar arquivo</button>
+      </div>
+      <textarea id="fc-texto" class="pq-input" style="min-height:120px" placeholder="Conteúdo..."></textarea>
+      <input type="file" id="fc-arquivo" accept="image/*,.pdf,.txt,.md,.csv" style="display:none">
+      <div class="fc-linha">
+        <input type="text" id="fc-materia" class="pq-input" style="flex:1" placeholder="Matéria">
+        <select id="fc-quantidade" class="pq-input" style="width:110px">
+          <option value="5">5</option><option value="10" selected>10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <div class="fc-label">Nível</div>
+      <div class="fc-chips">
+        <button class="fc-chip" data-nivel="facil" onclick="fcNivel('facil',this)">🟢 Fácil</button>
+        <button class="fc-chip ativo" data-nivel="medio" onclick="fcNivel('medio',this)">🟡 Médio</button>
+        <button class="fc-chip" data-nivel="dificil" onclick="fcNivel('dificil',this)">🔴 Difícil</button>
+      </div>
+      <button class="btn" style="width:100%;margin-top:14px" id="fc-gerar-btn" onclick="criarFlashcards()">✨ Gerar com IA</button>
+    </div>
+    <div id="fc-estudo" style="display:none;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-top:14px">
+      <div class="fc-topo">
+        <div class="fc-progresso" id="fc-progresso">0/0</div>
+        <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="fcVoltarCriar()">← Criar mais</button>
+      </div>
+      <div id="fc-card" class="fc-card" onclick="virarCartao()">
+        <div class="fc-card-inner">
+          <div class="fc-face fc-frente"><span id="fc-frente-txt"></span><small>Toque para virar</small></div>
+          <div class="fc-face fc-verso"><span id="fc-verso-txt"></span></div>
+        </div>
+      </div>
+      <div id="fc-avaliar" style="display:none;gap:8px">
+        <button class="fc-chip" onclick="avaliarCartao(true)">✅ Acertei</button>
+        <button class="fc-chip" onclick="avaliarCartao(false)">❌ Errei</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ===== BLOCO 6 — JAVASCRIPT COMPLETO ===== */
@@ -758,6 +1209,32 @@ async function entrar(){
     toast('success','Bem-vindo, ' + d.nome + '!');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-screen').innerHTML =
+      '<div id="spotify-conexao" style="display:none;text-align:center;padding:20px">' +
+      '  <p style="color:#A3A3A3;font-size:14px;margin-bottom:14px">' +
+      '    Conecte sua conta do Spotify para ver a letra da música que <b>você</b> está ouvindo.</p>' +
+      '  <button class="btn" onclick="conectarSpotify()">🎵 Conectar Spotify</button>' +
+      '</div>' +
+      '<div id="player-container" style="background:#10141D;border:1px solid #1E2534;border-radius:14px;padding:16px 20px;max-width:680px;margin:16px auto;">' +
+      '  <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">' +
+      '    <div id="pl-capa" style="width:52px;height:52px;border-radius:8px;background:#1A2130;background-size:cover;background-position:center;flex-shrink:0;"></div>' +
+      '    <div style="flex:1;min-width:0;text-align:left;">' +
+      '      <div id="pl-faixa" style="font-weight:700;font-size:15px;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>' +
+      '      <div id="pl-artista" style="font-size:12px;color:#A3A3A3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Conectando ao Spotify…</div>' +
+      '    </div>' +
+      '    <div style="display:flex;align-items:center;gap:8px;">' +
+      '      <button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;cursor:pointer" onclick="ctrlSpotify(\'previous\')">⏮</button>' +
+      '      <button class="btn" id="pl-play" style="padding:6px 16px;font-size:14px;cursor:pointer;min-width:44px;" onclick="togglePlay()">▶</button>' +
+      '      <button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;cursor:pointer" onclick="ctrlSpotify(\'next\')">⏭</button>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div style="display:flex;align-items:center;gap:10px;">' +
+      '    <span id="pl-tempo-atual" style="font-size:11px;color:#8A8A94;min-width:32px;text-align:right;">0:00</span>' +
+      '    <div id="pl-barra" onclick="seekBarra(event)" style="flex:1;height:6px;background:#1E2534;border-radius:3px;cursor:pointer;position:relative;overflow:hidden;">' +
+      '      <div id="pl-progresso" style="width:0%;height:100%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:3px;transition:width 0.1s linear;"></div>' +
+      '    </div>' +
+      '    <span id="pl-tempo-total" style="font-size:11px;color:#8A8A94;min-width:32px;">0:00</span>' +
+      '  </div>' +
+      '</div>' +
       '<div id="letra-painel">' +
       '  <div id="letra-faixa" class="letra-faixa">—</div>' +
       '  <div id="letra-status" class="letra-status">Conectando ao Spotify…</div>' +
@@ -782,40 +1259,249 @@ async function iniciarCheckout(plano){
   }catch(e){ toast('error','Erro de conexão com o servidor'); }
 }
 
-// ===== LETRA EM TEMPO REAL =====
-var letraAtual = null;        // {sincronizada, linhas:[{t, texto}]}
-var faixaAtual = '';
-var progressoLocal = 0;       // ms — interpolado entre polls para fluidez
-var ultimoPoll = 0;
+// ============================================================
+// SINCRONIZAÇÃO PRECISA DE PROGRESSO — à prova de seek
+// ============================================================
 
+var letraAtual = null;
+var faixaAtual = '';
+var progressoLocal = 0;
+var ultimoPoll = 0;
+var estaTocando = false;        // P5: pausa congela o karaoke
+var ultimaLinhaAtiva = -1;      // P3: só rola quando a linha muda
+var duracaoAtualMs = 0;
+var playerSpotify = null;
+var playerPronto = false;
+
+function authHeaders(){
+  return {'Authorization': 'Bearer ' + localStorage.getItem('gabarita_token')};
+}
+
+// P7: 401 → volta ao login em vez de ficar "Conectando…" para sempre
+function sessaoExpirou(){
+  localStorage.removeItem('gabarita_token');
+  irLogin();
+}
+
+function fmtTempo(ms){
+  if (!ms || isNaN(ms)) return '0:00';
+  var s = Math.floor(ms / 1000);
+  var m = Math.floor(s / 60);
+  var seg = s % 60;
+  return m + ':' + (seg < 10 ? '0' : '') + seg;
+}
+
+function atualizarProgresso(pos, dur){
+  pos = Math.max(0, pos || 0);
+  dur = Math.max(0, dur || duracaoAtualMs || 0);
+  duracaoAtualMs = dur;
+  var pct = dur > 0 ? Math.min(100, Math.max(0, (pos / dur) * 100)) : 0;
+  var bar = document.getElementById('pl-progresso');
+  if (bar) bar.style.width = pct + '%';
+  var elPos = document.getElementById('pl-tempo-atual');
+  if (elPos) elPos.textContent = fmtTempo(pos);
+  var elDur = document.getElementById('pl-tempo-total');
+  if (elDur && dur > 0) elDur.textContent = fmtTempo(dur);
+}
+
+function ctrlBackend(url, corpo){
+  return fetch(url, {
+    method: 'POST',
+    headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify(corpo)
+  }).then(function(r){
+    if (r.status === 401) sessaoExpirou();
+    return r.json();
+  }).catch(function(){});
+}
+
+// FONTE ÚNICA DA VERDADE do progresso: toda mudança de posição
+// (seek na barra, seek no Spotify, play/pause, troca de faixa) passa por aqui.
+function definirProgresso(ms){
+  progressoLocal = Math.max(0, ms | 0);
+  ultimoPoll = Date.now();
+  ultimaLinhaAtiva = -1;     // força o karaoke a reavaliar
+  avaliarKaraoke();          // letra acompanha NA HORA — mesmo pausado
+}
+
+// Avaliação do karaoke extraída do intervalo (chamável sob demanda)
+function avaliarKaraoke(){
+  if (!letraAtual || !letraAtual.sincronizada) return;
+  var t = (progressoLocal + (Date.now() - ultimoPoll)) / 1000;
+  var linhas = letraAtual.linhas, ativa = -1;
+  for (var i = 0; i < linhas.length; i++){
+    if (linhas[i].t !== null && linhas[i].t <= t) ativa = i; else break;
+  }
+  if (ativa === ultimaLinhaAtiva) return;
+  ultimaLinhaAtiva = ativa;
+  var anterior = document.querySelector('.letra-linha.ativa');
+  if (anterior) anterior.classList.remove('ativa');
+  if (ativa >= 0){
+    var el = document.getElementById('linha-' + ativa);
+    if (el){
+      el.classList.add('ativa');
+      var box = document.getElementById('letra-linhas');
+      if (box){
+        box.scrollTo({top: el.offsetTop - box.clientHeight/2 + el.clientHeight/2,
+                      behavior:'smooth'});
+      }
+    }
+  }
+}
+
+// Interpolação contínua só enquanto TOCA; seeks são instantâneos via definirProgresso
+setInterval(function(){
+  if (!estaTocando) return;
+  avaliarKaraoke();
+}, 100);
+
+// ---- SEEK pela barra do app: UI e letra reagem ANTES de qualquer rede ----
+function seekBarra(e){
+  var barra = document.getElementById('pl-barra');
+  if (!barra) return;
+  var rect = barra.getBoundingClientRect();
+  var pct = (e.clientX - rect.left) / rect.width;
+  pct = Math.max(0, Math.min(1, pct));
+  var pos = Math.floor(pct * (duracaoAtualMs || 0));
+  definirProgresso(pos);                      // 1) letra salta imediatamente
+  atualizarProgresso(pos, duracaoAtualMs);    // 2) barra acompanha
+  if (playerSpotify && playerPronto){
+    playerSpotify.seek(pos);                  // 3a) SDK local (Premium)
+  } else {
+    ctrlSpotify('seek', pos);                 // 3b) REST (conta gratuita)
+  }
+}
+
+// ---- Controles: SDK local quando existe, REST como fallback ----
+function ctrlSpotify(acao, valor){
+  if (playerSpotify && playerPronto){
+    if (acao === 'toggle')   return playerSpotify.togglePlay();
+    if (acao === 'play')     return playerSpotify.resume();
+    if (acao === 'pause')    return playerSpotify.pause();
+    if (acao === 'next')     return playerSpotify.nextTrack();
+    if (acao === 'previous') return playerSpotify.previousTrack();
+    if (acao === 'seek')     return playerSpotify.seek(valor | 0);
+    if (acao === 'volume')   return playerSpotify.setVolume(valor / 100);
+  }
+  var corpo = {acao: acao};
+  if (acao === 'seek')   corpo.posicao_ms = valor;
+  if (acao === 'volume') corpo.volume = valor;
+  ctrlBackend('/api/spotify/controle', corpo);
+  if (acao !== 'volume') setTimeout(pollSpotify, 700);  // reconsulta rápida (modo REST)
+}
+
+function togglePlay(){ ctrlSpotify(estaTocando ? 'pause' : 'play'); }
+
+// ---- Estado do player (SDK): cobre seek, play/pause e troca de faixa ----
+function sincronizarComPlayer(estado){
+  if (!estado) return;
+  var faixa = estado.track_window.current_track;
+  var artista = faixa.artists.map(function(a){ return a.name; }).join(', ');
+  var chave = faixa.name + '|' + artista;
+  estaTocando = !estado.paused;
+  definirProgresso(estado.position);          // ← qualquer seek cai aqui
+  atualizarProgresso(estado.position, estado.duration);
+  var elFaixa = document.getElementById('pl-faixa');
+  if (elFaixa) elFaixa.textContent = faixa.name;
+  var elArt = document.getElementById('pl-artista');
+  if (elArt) elArt.textContent = artista;
+  if (faixa.album && faixa.album.images && faixa.album.images.length){
+    var elCapa = document.getElementById('pl-capa');
+    if (elCapa) elCapa.style.backgroundImage = 'url(' + faixa.album.images[0].url + ')';
+  }
+  var elDur = document.getElementById('pl-tempo-total');
+  if (elDur) elDur.textContent = fmtTempo(estado.duration);
+  var elPlay = document.getElementById('pl-play');
+  if (elPlay) elPlay.textContent = estado.paused ? '▶' : '⏸';
+  if (chave !== faixaAtual){
+    var elLF = document.getElementById('letra-faixa');
+    if (elLF) elLF.textContent = faixa.name + ' — ' + artista;
+    letraAtual = null;
+    renderLetra('Buscando letra…');
+    fetch('/api/letra?faixa=' + encodeURIComponent(faixa.name) +
+          '&artista=' + encodeURIComponent(faixa.artists[0].name) +
+          '&duracao=' + estado.duration, {headers: authHeaders()})
+      .then(function(r){ return r.json(); })
+      .then(function(l){
+        letraAtual = l;
+        faixaAtual = chave;                   // marca só depois do sucesso
+        renderLetra();
+        avaliarKaraoke();                     // destaca a linha certa já na chegada
+      })
+      .catch(function(){});
+  }
+}
+
+// ---- Polling (conta gratuita): detecta seek pelo salto de posição ----
 async function pollSpotify(){
   try{
-    var r = await fetch('/api/spotify/atual');
+    var r = await fetch('/api/spotify/atual', {headers: authHeaders()});
+    if (r.status === 401) return sessaoExpirou();
     var d = await r.json();
     var st = document.getElementById('letra-status');
-    if (!st) return;
-    if (!d.tocando){ st.textContent = 'Nada tocando no Spotify'; return; }
-    st.textContent = 'Sincronizado com o Spotify ●';
-    progressoLocal = d.progresso_ms;
-    ultimoPoll = Date.now();
+    var cx = document.getElementById('spotify-conexao');
+    if (d.precisa_conectar){ if (cx) cx.style.display='block'; if (st) st.textContent=''; return; }
+    if (cx) cx.style.display = 'none';
+
+    if (!d.tocando){
+      estaTocando = false;
+      definirProgresso(d.progresso_ms || progressoLocal);  // congela na posição real
+      if (st) st.textContent = 'Música pausada ou nada tocando';
+      var plBtn = document.getElementById('pl-play');
+      if (plBtn) plBtn.textContent = '▶';
+      return;
+    }
+    estaTocando = true;
+    if (st) st.textContent = 'Sincronizado com o Spotify ●';
+    var plBtn = document.getElementById('pl-play');
+    if (plBtn) plBtn.textContent = '⏸';
+
+    // DETECÇÃO DE SEEK: a posição real fugiu do que interpolamos → alguém
+    // avançou/voltou (barra do app, app do Spotify ou outro dispositivo)
+    var esperado = progressoLocal + (Date.now() - ultimoPoll);
+    var delta = d.progresso_ms - esperado;
+    if (Math.abs(delta) > 2500){
+      definirProgresso(d.progresso_ms);        // snap imediato (seek detectado)
+    } else {
+      progressoLocal = d.progresso_ms;         // correção fina do relógio
+      ultimoPoll = Date.now();
+    }
+    atualizarProgresso(d.progresso_ms, d.duracao_ms);  // barra funciona também no modo REST
+
+    var plFaixa = document.getElementById('pl-faixa');
+    if (plFaixa) plFaixa.textContent = d.faixa || '—';
+    var plArt = document.getElementById('pl-artista');
+    if (plArt) plArt.textContent = d.artista || '';
+
     var chave = d.faixa + '|' + d.artista;
-    if (chave !== faixaAtual){                 // faixa nova → busca a letra INTEIRA uma vez
-      faixaAtual = chave;
+    if (chave !== faixaAtual){
       document.getElementById('letra-faixa').textContent = d.faixa + ' — ' + d.artista;
       letraAtual = null;
-      var lr = await fetch('/api/letra?faixa=' + encodeURIComponent(d.faixa) +
-                           '&artista=' + encodeURIComponent(d.artista) +
-                           '&duracao=' + d.duracao_ms);
-      letraAtual = await lr.json();
-      renderLetra();
+      renderLetra('Buscando letra…');
+      try{
+        var lr = await fetch('/api/letra?faixa=' + encodeURIComponent(d.faixa) +
+                             '&artista=' + encodeURIComponent(d.artista) +
+                             '&duracao=' + d.duracao_ms, {headers: authHeaders()});
+        if (lr.status === 401) return sessaoExpirou();
+        letraAtual = await lr.json();
+        faixaAtual = chave;
+        renderLetra();
+        avaliarKaraoke();
+      }catch(e){}
     }
   }catch(e){}
 }
 
-function renderLetra(){
+function renderLetra(msg){
   var box = document.getElementById('letra-linhas');
+  if (!box) return;
+  ultimaLinhaAtiva = -1;                         // P3: reseta ao redesenhar
   box.innerHTML = '';
-  if (!letraAtual || !letraAtual.linhas.length){
+  if (msg){
+    box.innerHTML = '<div class="letra-vazia">' + msg + '</div>';
+    return;
+  }
+  if (!letraAtual || !letraAtual.linhas || !letraAtual.linhas.length){
     box.innerHTML = '<div class="letra-vazia">Letra não encontrada para esta faixa.</div>';
     return;
   }
@@ -824,44 +1510,29 @@ function renderLetra(){
     div.className = 'letra-linha';
     div.id = 'linha-' + i;
     div.textContent = l.texto || '♪';
-    div.onclick = function(){ explicarLinha(i); };   // IA explica a linha tocada
+    div.onclick = function(){ explicarLinha(i); };
     box.appendChild(div);
   });
 }
 
-// Destaque karaoke: 10x por segundo, interpolando o progresso entre os polls
-setInterval(function(){
-  if (!letraAtual || !letraAtual.sincronizada) return;
-  var t = (progressoLocal + (Date.now() - ultimoPoll)) / 1000;
-  var linhas = letraAtual.linhas, ativa = -1;
-  for (var i = 0; i < linhas.length; i++){
-    if (linhas[i].t !== null && linhas[i].t <= t) ativa = i; else break;
-  }
-  var anterior = document.querySelector('.letra-linha.ativa');
-  if (anterior) anterior.classList.remove('ativa');
-  if (ativa >= 0){
-    var el = document.getElementById('linha-' + ativa);
-    if (el){
-      el.classList.add('ativa');
-      var box = document.getElementById('letra-linhas');
-      box.scrollTo({top: el.offsetTop - box.clientHeight/2 + el.clientHeight/2, behavior:'smooth'});
-    }
-  }
-}, 100);
-
-// IA lê a letra completa (contexto) e explica a linha clicada
+// P4: nota da IA em toggle — 2º clique na mesma linha remove a nota
 async function explicarLinha(i){
   var linha = letraAtual.linhas[i];
   if (!linha || !linha.texto) return;
   var el = document.getElementById('linha-' + i);
+  if (!el) return;
+  var existente = el.nextElementSibling;
+  if (existente && existente.classList.contains('letra-nota'))
+    return existente.remove();
   el.classList.add('carregando');
   try{
     var r = await fetch('/api/letra/anotar', {
       method:'POST',
-      headers:{'Content-Type':'application/json',
-               'Authorization':'Bearer ' + localStorage.getItem('gabarita_token')},
-      body: JSON.stringify({letra: letraAtual.linhas.map(function(l){return l.texto;}).join('\n'),
-                            trecho: linha.texto})});
+      headers:Object.assign({'Content-Type':'application/json'}, authHeaders()),
+      body: JSON.stringify({
+        letra: letraAtual.linhas.map(function(l){return l.texto;}).join('\n'),
+        trecho: linha.texto})});
+    if (r.status === 401) return sessaoExpirou();
     var d = await r.json();
     var nota = document.createElement('div');
     nota.className = 'letra-nota';
@@ -871,7 +1542,39 @@ async function explicarLinha(i){
   el.classList.remove('carregando');
 }
 
-setInterval(pollSpotify, 3000);   // poll do Spotify a cada 3s (dentro do rate limit)
+// P1: conexão OAuth — abre popup e recarrega o estado quando autorizar
+function conectarSpotify(){
+  fetch('/api/spotify/conectar', {headers: authHeaders()})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var j = window.open(d.url, 'spotify', 'width=450,height=650');
+      var checa = setInterval(function(){
+        if (j && j.closed){ clearInterval(checa); pollSpotify(); }
+      }, 500);
+    });
+}
+
+async function transferirSpotify(deviceId){
+  try{
+    var r = await fetch('/api/spotify/transferir', {
+      method:'POST',
+      headers:Object.assign({'Content-Type':'application/json'}, authHeaders()),
+      body: JSON.stringify({device_id: deviceId})
+    });
+    if (r.status === 401) return sessaoExpirou();
+    var d = await r.json();
+    if (!r.ok) toast('error', d.erro || 'Falha ao transferir reprodução');
+    setTimeout(pollSpotify, 500);
+  }catch(e){}
+}
+
+window.addEventListener('message', function(e){
+  if (e.data === 'spotify-ok'){
+    pollSpotify();
+  }
+});
+
+setInterval(pollSpotify, 3000);
 pollSpotify();
 
 // Abertura automática do questionário obrigatório para novos estudantes
@@ -882,6 +1585,205 @@ window.addEventListener('DOMContentLoaded', function(){
     setTimeout(function(){ abrirPesquisa(); }, 350);
   }
 });
+
+// ===== FLASHCARDS =====
+var fcNivelSel = 'medio';
+var fcModoSel = 'texto';
+var fcBaralho = [], fcIndice = 0, fcVirado = false;
+
+function fcModo(modo, el){
+  fcModoSel = modo;
+  document.querySelectorAll('.fc-modo').forEach(function(b){ b.classList.remove('ativo'); });
+  el.classList.add('ativo');
+  document.getElementById('fc-texto').style.display = modo === 'texto' ? 'block' : 'none';
+  if (modo !== 'texto') document.getElementById('fc-arquivo').click();
+}
+function fcNivel(nivel, el){
+  fcNivelSel = nivel;
+  document.querySelectorAll('.fc-chips .fc-chip').forEach(function(b){ b.classList.remove('ativo'); });
+  el.classList.add('ativo');
+}
+
+async function criarFlashcards(){
+  var fd = new FormData();
+  fd.append('modo', fcModoSel);
+  fd.append('dificuldade', fcNivelSel);
+  fd.append('quantidade', document.getElementById('fc-quantidade').value);
+  fd.append('materia', document.getElementById('fc-materia').value || 'Geral');
+  if (fcModoSel === 'texto'){
+    if (document.getElementById('fc-texto').value.trim().length < 30)
+      return toast('error','Digite ou cole o conteúdo primeiro');
+    fd.append('conteudo', document.getElementById('fc-texto').value);
+  } else {
+    var f = document.getElementById('fc-arquivo').files[0];
+    if (!f) return toast('error','Escolha uma foto ou arquivo');
+    fd.append('arquivo', f);
+  }
+  var btn = document.getElementById('fc-gerar-btn');
+  btn.disabled = true; btn.textContent = '🤖 IA criando seus cartões…';
+  try{
+    var r = await fetch('/api/flashcards/gerar', {
+      method:'POST',
+      headers:{'Authorization':'Bearer ' + localStorage.getItem('gabarita_token')},
+      body: fd});
+    if (r.status === 401) return;
+    var d = await r.json();
+    if (!r.ok) return toast('error', d.erro || 'Falha ao gerar flashcards');
+    toast('success', d.criados + ' flashcards criados! Bons estudos. 🃏');
+    document.getElementById('fc-texto').value = '';
+    estudarFlashcards();
+  }catch(e){ toast('error','Erro de conexão'); }
+  finally{ btn.disabled = false; btn.textContent = '✨ Gerar flashcards com IA'; }
+}
+
+async function estudarFlashcards(){
+  try{
+    var r = await fetch('/api/flashcards', {headers: authHeaders()});
+    if (r.status === 401) return;
+    fcBaralho = await r.json();
+    if (!fcBaralho.length) return toast('error','Crie o primeiro flashcard!');
+    fcBaralho.sort(function(){ return Math.random() - 0.5; });
+    fcIndice = 0;
+    document.getElementById('fc-criar').style.display = 'none';
+    document.getElementById('fc-estudo').style.display = 'block';
+    mostrarCartao();
+  }catch(e){ toast('error','Erro de conexão'); }
+}
+
+function mostrarCartao(){
+  fcVirado = false;
+  var c = fcBaralho[fcIndice];
+  document.getElementById('fc-card').classList.remove('virado');
+  document.getElementById('fc-frente-txt').textContent = c.frente;
+  document.getElementById('fc-verso-txt').textContent = c.verso;
+  document.getElementById('fc-progresso').textContent = (fcIndice + 1) + '/' + fcBaralho.length + ' · ' + c.materia;
+  document.getElementById('fc-avaliar').style.display = 'none';
+}
+
+function virarCartao(){
+  if (fcVirado) return;
+  fcVirado = true;
+  document.getElementById('fc-card').classList.add('virado');
+  document.getElementById('fc-avaliar').style.display = 'flex';
+}
+
+async function avaliarCartao(acertou){
+  var c = fcBaralho[fcIndice];
+  fetch('/api/flashcards/' + c.id + '/resultado', {
+    method:'POST',
+    headers:Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify({acertou: acertou})}).catch(function(){});
+  fcIndice++;
+  if (fcIndice >= fcBaralho.length){
+    toast('success','Baralho completo! 🎯');
+    return fcVoltarCriar();
+  }
+  mostrarCartao();
+}
+
+function fcVoltarCriar(){
+  document.getElementById('fc-estudo').style.display = 'none';
+  document.getElementById('fc-criar').style.display = 'block';
+}
+// ===== FLASHCARDS =====
+var fcNivelSel = 'medio';
+var fcModoSel = 'texto';
+var fcBaralho = [], fcIndice = 0, fcVirado = false;
+
+function fcModo(modo, el){
+  fcModoSel = modo;
+  document.querySelectorAll('.fc-modo').forEach(function(b){ b.classList.remove('ativo'); });
+  el.classList.add('ativo');
+  document.getElementById('fc-texto').style.display = modo === 'texto' ? 'block' : 'none';
+  if (modo !== 'texto') document.getElementById('fc-arquivo').click();
+}
+function fcNivel(nivel, el){
+  fcNivelSel = nivel;
+  document.querySelectorAll('.fc-chips .fc-chip').forEach(function(b){ b.classList.remove('ativo'); });
+  el.classList.add('ativo');
+}
+
+async function criarFlashcards(){
+  var fd = new FormData();
+  fd.append('modo', fcModoSel);
+  fd.append('dificuldade', fcNivelSel);
+  fd.append('quantidade', document.getElementById('fc-quantidade').value);
+  fd.append('materia', document.getElementById('fc-materia').value || 'Geral');
+  if (fcModoSel === 'texto'){
+    if (document.getElementById('fc-texto').value.trim().length < 30)
+      return toast('error','Digite ou cole o conteúdo primeiro');
+    fd.append('conteudo', document.getElementById('fc-texto').value);
+  } else {
+    var f = document.getElementById('fc-arquivo').files[0];
+    if (!f) return toast('error','Escolha uma foto ou arquivo');
+    fd.append('arquivo', f);
+  }
+  var btn = document.getElementById('fc-gerar-btn');
+  btn.disabled = true; btn.textContent = '🤖 IA criando seus cartões…';
+  try{
+    var r = await fetch('/api/flashcards/gerar', {
+      method:'POST',
+      headers:{'Authorization':'Bearer ' + localStorage.getItem('gabarita_token')},
+      body: fd});
+    if (r.status === 401) return;
+    var d = await r.json();
+    if (!r.ok) return toast('error', d.erro || 'Falha ao gerar flashcards');
+    toast('success', d.criados + ' flashcards criados! Bons estudos. 🃏');
+    document.getElementById('fc-texto').value = '';
+    estudarFlashcards();
+  }catch(e){ toast('error','Erro de conexão'); }
+  finally{ btn.disabled = false; btn.textContent = '✨ Gerar flashcards com IA'; }
+}
+
+async function estudarFlashcards(){
+  try{
+    var r = await fetch('/api/flashcards', {headers: authHeaders()});
+    if (r.status === 401) return;
+    fcBaralho = await r.json();
+    if (!fcBaralho.length) return toast('error','Crie o primeiro flashcard!');
+    fcBaralho.sort(function(){ return Math.random() - 0.5; });
+    fcIndice = 0;
+    document.getElementById('fc-criar').style.display = 'none';
+    document.getElementById('fc-estudo').style.display = 'block';
+    mostrarCartao();
+  }catch(e){ toast('error','Erro de conexão'); }
+}
+
+function mostrarCartao(){
+  fcVirado = false;
+  var c = fcBaralho[fcIndice];
+  document.getElementById('fc-card').classList.remove('virado');
+  document.getElementById('fc-frente-txt').textContent = c.frente;
+  document.getElementById('fc-verso-txt').textContent = c.verso;
+  document.getElementById('fc-progresso').textContent = (fcIndice + 1) + '/' + fcBaralho.length + ' · ' + c.materia;
+  document.getElementById('fc-avaliar').style.display = 'none';
+}
+
+function virarCartao(){
+  if (fcVirado) return;
+  fcVirado = true;
+  document.getElementById('fc-card').classList.add('virado');
+  document.getElementById('fc-avaliar').style.display = 'flex';
+}
+
+async function avaliarCartao(acertou){
+  var c = fcBaralho[fcIndice];
+  fetch('/api/flashcards/' + c.id + '/resultado', {
+    method:'POST',
+    headers:Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify({acertou: acertou})}).catch(function(){});
+  fcIndice++;
+  if (fcIndice >= fcBaralho.length){
+    toast('success','Baralho completo! 🎯');
+    return fcVoltarCriar();
+  }
+  mostrarCartao();
+}
+
+function fcVoltarCriar(){
+  document.getElementById('fc-estudo').style.display = 'none';
+  document.getElementById('fc-criar').style.display = 'block';
+}
 </script>
 </body>
 </html>"""
@@ -893,6 +1795,22 @@ window.addEventListener('DOMContentLoaded', function(){
 @app.route('/')
 def index():
     return render_template_string(HTML)
+
+@app.route('/flashcards-ui')
+def flashcards_ui():
+    return render_template_string(f'''
+    <html>
+      <head><style>{HTML.split('<style>')[1].split('</style>')[0]}</style></head>
+      <body>
+        <div style="padding:20px">
+          <div id="fc-container">{HTML.split('<div id="fc-container"')[1].split('</div>')[0] + '</div>'}
+        </div>
+        <script>{HTML.split('<script>')[2].split('</script>')[0]}</script>
+      </body>
+    </html>
+    ''')
+
+# ============================================================
 
 # ============================================================
 # START

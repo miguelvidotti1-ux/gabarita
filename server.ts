@@ -31,6 +31,57 @@ async function startServer() {
   // Mount Mercado Pago API routes
   app.use("/api/mercadopago", mercadoPagoRouter);
 
+  // ========== FLASHCARDS GENERATOR ==========
+  app.post("/api/flashcards/generate", upload.single("file"), async (req, res) => {
+    console.log("Flashcard generation route hit!");
+    try {
+      const { prompt, difficulty, numCards } = req.body;
+      const file = req.file;
+
+      console.log("Request body:", req.body);
+      console.log("Request file:", req.file ? req.file.originalname : "No file");
+
+      // Prepare contents for Gemini
+      let contents: any[] = [{ text: `Gere ${numCards || 5} flashcards de dificuldade ${difficulty || 'média'}.` }];
+      if (prompt) contents.push({ text: prompt });
+
+      if (file) {
+        contents.push({
+          inlineData: {
+            mimeType: file.mimetype,
+            data: file.buffer.toString("base64"),
+          },
+        });
+      }
+
+      const response = await generateWithFallback({
+        contents: contents,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                front_content: { type: Type.STRING },
+                back_content: { type: Type.STRING },
+                topic: { type: Type.STRING },
+              },
+              required: ["id", "front_content", "back_content", "topic"],
+            },
+          },
+        },
+      });
+
+      const cards = JSON.parse(response.text || "[]");
+      res.json({ cards });
+    } catch (err: any) {
+      console.error("Erro ao gerar flashcards:", err);
+      res.status(500).json({ error: err?.message || "Erro ao gerar flashcards" });
+    }
+  });
+
   // Endpoint de Planos Padrão
   app.get("/api/planos", (_req, res) => {
     res.json({ planos: PLANOS_PADRAO });
