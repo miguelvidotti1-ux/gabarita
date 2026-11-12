@@ -17,6 +17,7 @@ import { chatStore } from "./server/chatStore";
 import { onboardingStore, PERGUNTAS_ONBOARDING, MATERIAS, HORAS_MAP } from "./server/onboardingStore";
 import { boletimStore, ServicoBoletim, ServicoAnaliseNotas } from "./server/boletimStore";
 import multer from "multer";
+import { randomBytes, scryptSync, timingSafeEqual, createHmac } from "crypto";
 import { mercadoPagoRouter, PLANOS_PADRAO } from "./server/mercadoPagoRoutes";
 
 async function startServer() {
@@ -31,7 +32,100 @@ async function startServer() {
     limits: { fileSize: 8 * 1024 * 1024 } // 8 MB
   });
   const ALLOWED_FOTO = new Set(["png", "jpg", "jpeg", "webp"]);
+  // ========== SEGURANÇA: credenciais, tokens assinados e limites ==========
+  const DATA_DIR = path.join(process.cwd(), "data");
+  try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (_) {}
 
+  // Secret que assina os tokens (persistido para sobreviver a reinícios)
+  const AUTH_SECRET_PATH = path.join(DATA_DIR, "auth_secret.txt");
+  function carregarAuthSecret(): string {
+    try {
+      const salvo = fs.readFileSync(AUTH_SECRET_PATH, "utf-8").trim();
+      if (salvo.length >= 32) return salvo;
+    } catch (_) {}
+    const novo = randomBytes(32).toString("hex");
+    try { fs.writeFileSync(AUTH_SECRET_PATH, novo, "utf-8"); } catch (_) {}
+    return novo;
+  }
+  const AUTH_SECRET = carregarAuthSecret();
+
+  // Senhas: guarda SOMENTE hash scrypt + salt (nunca a senha)
+  interface Credencial { salt: string; hash: string; criado_em: string; }
+  const CREDENCIAIS_PATH = path.join(DATA_DIR, "usuarios_credenciais.json");
+  function carregarCredenciais(): Record<string, Credencial> {
+    try {
+      const dados = JSON.parse(fs.readFileSync(CREDENCIAIS_PATH, "utf-8"));
+      if (dados && typeof dados === "object") return dados;
+    } catch (_) {}
+    return {};
+  }
+  function salvarCredenciais(mapa: Record<string, Credencial>): void {
+    try { fs.writeFileSync(CREDENCIAIS_PATH, JSON.stringify(mapa, null, 2), "utf-8"); } catch (_) {}
+  }
+  function hashSenha(senha: string, salt: string): string {
+    return scryptSync(senha, salt, 64).toString("hex");
+  }
+
+  // Rate limit de login: por e-mail (5 tentativas/15 min) e por IP (100/h)
+  const tentativasLogin = new Map<string, { count: number; until: number }>();
+  const MAX_TENTATIVAS = 5;
+  const BLOQUEIO_MS = 15 * 60 * 1000;
+  const loginsPorIp = new Map<string, number[]>();
+  function limiteLoginIp(ip: string): boolean {
+    const agora = Date.now();
+    const recentes = (loginsPorIp.get(ip) || []).filter((t) => agora - t < 60 * 60 * 1000);
+    if (recentes.length >= 100) { loginsPorIp.set(ip, recentes); return false; }
+    recentes.push(agora);
+    loginsPorIp.set(ip, recentes);
+    return true;
+  }
+
+  // Valida o token assinado e devolve o e-mail (ou null se forjado/expirado)
+  function verificarToken(authHeader?: string | string[]): string | null {
+    const header = Array.isArray(authHeader) ? authHeader[0] : authHeader;
+    if (!header || !header.startsWith("Bearer ")) return null;
+    const raw = header.substring(7).trim();
+    if (!raw.startsWith("auth_vesthub_")) return null;
+    const resto = raw.slice("auth_vesthub_".length);
+    const ponto = resto.lastIndexOf(".");
+    if (ponto <= 0) return null;
+    const b64 = resto.slice(0, ponto);
+    const assinatura = resto.slice(ponto + 1);
+    const esperada = createHmac("sha256", AUTH_SECRET).update(b64).digest("hex");
+    const a = Buffer.from(assinatura);
+    const b = Buffer.from(esperada);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+    try {
+      const email = Buffer.from(b64, "base64").toString("utf-8").split(":")[0];
+      return email || null;
+    } catch (_) { return null; }
+  }
+
+  // Chaves VIP: variável de ambiente VIP_KEYS ou arquivo data/vip_keys.json
+  const VIP_KEYS_PATH = path.join(DATA_DIR, "vip_keys.json");
+  function carregarChavesVIP(): string[] {
+    const doEnv = (process.env.VIP_KEYS || "")
+      .split(",").map((k) => k.trim().toUpperCase()).filter(Boolean);
+    if (doEnv.length) return doEnv;
+    try {
+      const lista = JSON.parse(fs.readFileSync(VIP_KEYS_PATH, "utf-8"));
+      if (Array.isArray(lista)) {
+        return lista.map((k: any) => String(k).trim().toUpperCase()).filter(Boolean);
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  // Rate limit de envios da pesquisa (anti-spam): 5 por hora por IP
+  const enviosPesquisa = new Map<string, number[]>();
+  function podeEnviarPesquisa(ip: string): boolean {
+    const agora = Date.now();
+    const recentes = (enviosPesquisa.get(ip) || []).filter((t) => agora - t < 60 * 60 * 1000);
+    if (recentes.length >= 5) { enviosPesquisa.set(ip, recentes); return false; }
+    recentes.push(agora);
+    enviosPesquisa.set(ip, recentes);
+    return true;
+  }
   // Mount Spotify OAuth 2.0 API routes
   app.use("/api/spotify", spotifyRouter);
   // Mount Mercado Pago API routes
@@ -93,22 +187,43 @@ async function startServer() {
     res.json({ planos: PLANOS_PADRAO });
   });
 
-  // Endpoint de Pesquisa de Mercado / Black Friday
+    // Endpoint de Pesquisa de Mercado / Black Friday
   app.post("/api/pesquisa", (req, res) => {
     try {
+      if (!podeEnviarPesquisa(req.ip || "desconhecido")) {
+        return res.status(429).json({ ok: false, erro: "Muitas respostas enviadas. Tente novamente mais tarde." });
+      }
       const dados = req.body || {};
-      const filePath = path.join(process.cwd(), "data", "pesquisas.json");
+      // Saneamento: só campos simples, com tamanho limitado
+      const limpo: Record<string, string> = {};
+      let total = 0;
+      for (const [campo, valor] of Object.entries(dados)) {
+        if (typeof campo !== "string" || !campo || campo.length > 60) continue;
+        let texto: string;
+        if (typeof valor === "object" && valor !== null) {
+          try { texto = JSON.stringify(valor); } catch (_) { texto = String(valor); }
+        } else if (typeof valor === "string" || typeof valor === "number" || typeof valor === "boolean") {
+          texto = String(valor);
+        } else { continue; }
+        texto = texto.slice(0, 1000);
+        total += texto.length;
+        if (total > 10000) break;
+        limpo[campo] = texto;
+      }
+      const filePath = path.join(DATA_DIR, "pesquisas.json");
       let lista: any[] = [];
       if (fs.existsSync(filePath)) {
-        try {
-          lista = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-        } catch (_) {}
+        try { lista = JSON.parse(fs.readFileSync(filePath, "utf-8")); } catch (_) {}
       }
+      if (!Array.isArray(lista)) lista = [];
+      const usuario = extractUsuarioId(req);
       lista.push({
         id: "pq_" + Date.now(),
-        ...dados,
-        criado_em: new Date().toISOString()
+        usuario: usuario !== "usuario_padrao" ? usuario : null,
+        ...limpo,
+        criado_em: new Date().toISOString(),
       });
+      if (lista.length > 5000) lista = lista.slice(-5000);
       fs.writeFileSync(filePath, JSON.stringify(lista, null, 2), "utf-8");
       res.json({ ok: true, mensagem: "Pesquisa registrada com sucesso!" });
     } catch (e: any) {
@@ -116,9 +231,15 @@ async function startServer() {
     }
   });
 
-  app.get("/api/pesquisa", (_req, res) => {
+  app.get("/api/pesquisa", (req, res) => {
     try {
-      const filePath = path.join(process.cwd(), "data", "pesquisas.json");
+      // Leitura restrita ao administrador (chave no ambiente)
+      const chaveAdmin = String(req.headers["x-admin-key"] || req.query.admin_key || "");
+      const esperada = process.env.ADMIN_KEY || "";
+      if (!esperada || chaveAdmin !== esperada) {
+        return res.status(401).json({ erro: "Acesso restrito ao administrador." });
+      }
+      const filePath = path.join(DATA_DIR, "pesquisas.json");
       if (fs.existsSync(filePath)) {
         const lista = JSON.parse(fs.readFileSync(filePath, "utf-8"));
         return res.json({ total: lista.length, respostas: lista });
@@ -1233,27 +1354,62 @@ Retorne exclusivamente um JSON com este formato:
     }
   });
 
-  // ========== ROTAS DE AUTENTICAÇÃO E VIP (LOGIN OTIMIZADO) ==========
+    // ========== ROTAS DE AUTENTICAÇÃO E VIP (LOGIN SEGURO) ==========
   app.post("/api/auth/login", (req, res) => {
     const { email, senha, lembrar } = req.body || {};
-
     if (!email || !senha) {
       return res.status(400).json({ error: "E-mail e senha são obrigatórios." });
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: "E-mail inválido." });
     }
-
     if (typeof senha !== "string" || senha.length < 6) {
       return res.status(400).json({ error: "A senha deve ter pelo menos 6 caracteres." });
     }
+    if (!limiteLoginIp(req.ip || "desconhecido")) {
+      return res.status(429).json({ error: "Muitas tentativas. Aguarde alguns minutos." });
+    }
+
+    // Rate limit por e-mail (proteção contra força bruta)
+    const chaveTent = String(email).toLowerCase();
+    const registro = tentativasLogin.get(chaveTent);
+    if (registro && Date.now() < registro.until) {
+      const segundos = Math.ceil((registro.until - Date.now()) / 1000);
+      return res.status(429).json({ error: `Muitas tentativas. Tente novamente em ${segundos}s.` });
+    }
+
+    const credenciais = carregarCredenciais();
+    const existente = credenciais[chaveTent];
+
+    if (existente) {
+      // Conta já existe: a senha PRECISA conferir (comparação em tempo constante)
+      const tentativa = Buffer.from(hashSenha(senha, existente.salt), "hex");
+      const correta = Buffer.from(existente.hash, "hex");
+      const ok = tentativa.length === correta.length && timingSafeEqual(tentativa, correta);
+      if (!ok) {
+        const count = (registro?.count || 0) + 1;
+        if (count >= MAX_TENTATIVAS) {
+          tentativasLogin.set(chaveTent, { count: 0, until: Date.now() + BLOQUEIO_MS });
+        } else {
+          tentativasLogin.set(chaveTent, { count, until: 0 });
+        }
+        return res.status(401).json({ error: "E-mail ou senha incorretos." });
+      }
+    } else {
+      // Primeiro login com este e-mail: cria a conta com a senha informada
+      const salt = randomBytes(16).toString("hex");
+      credenciais[chaveTent] = { salt, hash: hashSenha(senha, salt), criado_em: new Date().toISOString() };
+      salvarCredenciais(credenciais);
+    }
+
+    tentativasLogin.delete(chaveTent);
 
     const username = email.split("@")[0];
     const displayName = username.charAt(0).toUpperCase() + username.slice(1);
-    const token = "auth_vesthub_" + Buffer.from(`${email}:${Date.now()}`).toString("base64");
-
+    const payload = Buffer.from(`${email}:${Date.now()}`).toString("base64");
+    const assinatura = createHmac("sha256", AUTH_SECRET).update(payload).digest("hex");
+    const token = "auth_vesthub_" + payload + "." + assinatura;
     return res.json({
       success: true,
       token,
@@ -1268,21 +1424,20 @@ Retorne exclusivamente um JSON com este formato:
 
   app.post("/api/vip/resgatar", (req, res) => {
     const chave = (req.body?.chave || "").trim().toUpperCase();
-
     if (!chave) {
       return res.status(400).json({ success: false, mensagem: "Digite a chave de acesso." });
     }
-
     const regexChave = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
-    const chavesValidas = ["VIP-2026-VEST", "VEST-2026-VIP", "PRO-VEST-2026", "MEDICINA-2026", "ENEM-2026-PASS"];
-
-    if (!regexChave.test(chave) && !chavesValidas.includes(chave)) {
+    if (!regexChave.test(chave)) {
       return res.status(400).json({
         success: false,
         mensagem: "Formato inválido. Use o padrão: XXXX-XXXX-XXXX",
       });
     }
-
+    // A chave só vale se estiver na lista configurada (env VIP_KEYS ou data/vip_keys.json)
+    if (!carregarChavesVIP().includes(chave)) {
+      return res.status(400).json({ success: false, mensagem: "Chave inválida ou expirada." });
+    }
     return res.json({
       success: true,
       mensagem: "Chave VIP resgatada com sucesso! Acesso Pro ativado.",
@@ -1291,19 +1446,13 @@ Retorne exclusivamente um JSON com este formato:
   });
 
   // ========== ROTAS DE ONBOARDING E PERFIL ==========
-  function extractUsuarioId(req: express.Request): string {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const raw = authHeader.substring(7).trim();
-      if (raw.startsWith("auth_vesthub_")) {
-        try {
-          const decoded = Buffer.from(raw.replace("auth_vesthub_", ""), "base64").toString("utf-8");
-          const email = decoded.split(":")[0];
-          if (email) return email;
-        } catch (e) {}
-      }
-      return raw;
+   function extractUsuarioId(req: express.Request): string {
+    // Com Bearer: só aceita token com assinatura válida — não é mais possível forjar
+    if (req.headers.authorization) {
+      const email = verificarToken(req.headers.authorization);
+      return email || "usuario_padrao";
     }
+    // Sem Bearer: caminhos legados mantidos por compatibilidade
     if (req.headers["x-usuario-id"]) {
       return String(req.headers["x-usuario-id"]);
     }
