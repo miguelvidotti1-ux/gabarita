@@ -911,7 +911,7 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Check size={14} className="text-emerald-400 shrink-0" />
-                  <span>Flashcards SkillSwipe Liberados</span>
+                  <span>FlashCards Liberados</span>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Vestibular } from '../types';
 import { VESTIBULARES_DATA } from '../constants';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -218,6 +218,48 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
   const [showChemistryVideoModal, setShowChemistryVideoModal] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Sincroniza o painel geral e barras da tela com window.Progresso
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).Progresso) {
+      (window as any).Progresso.renderizarPainelGeral();
+      data.forEach((sub) => {
+        (window as any).Progresso.aplicarNaTela(sub.subject);
+      });
+    }
+  }, [vestibular, data]);
+
+  // Registra leitura e progresso de rolagem do resumo (window.Progresso)
+  useEffect(() => {
+    if (!selectedSubject) return;
+    const timer = setTimeout(() => {
+      const corpo = document.getElementById('corpo-do-resumo');
+      if (corpo && !corpo.dataset.progressoAtivo) {
+        corpo.dataset.progressoAtivo = '1';
+        const disciplina = (window as any).DisciplinaAtual 
+          ? (window as any).DisciplinaAtual.detectar(selectedSubject.subject) 
+          : 'quimica';
+        const temaAtual = selectedSubject.topics[0] || 'geral';
+        const tema = (window as any).DisciplinaAtual 
+          ? (window as any).DisciplinaAtual.slug(temaAtual) 
+          : 'geral';
+
+        const onScroll = () => {
+          const altura = corpo.scrollHeight - corpo.clientHeight;
+          const fracao = altura > 0 ? corpo.scrollTop / altura : 1;
+          if ((window as any).Progresso) {
+            (window as any).Progresso.registrar(disciplina, tema, 'resumo', fracao);
+            (window as any).Progresso.aplicarNaTela(disciplina);
+          }
+        };
+
+        corpo.addEventListener('scroll', onScroll);
+        onScroll();
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [selectedSubject, material]);
+
   const handleGenerateRecommendation = async () => {
     setLoadingRecommendation(true);
     try {
@@ -368,7 +410,10 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
     <div className="space-y-8 select-none max-w-7xl mx-auto font-sans transition-colors duration-200">
       
       {/* HEADER HERO BANNER */}
-      <div className="p-6 sm:p-8 md:p-10 rounded-3xl bg-white dark:bg-[#15171C] border border-slate-200/90 dark:border-white/10 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+      <div 
+        className="p-6 sm:p-8 md:p-10 rounded-3xl bg-[#10141d] border border-slate-200/90 dark:border-white/10 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8"
+        style={{ backgroundColor: '#10141d' }}
+      >
         <div className="space-y-3.5 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-500/30 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
@@ -387,7 +432,10 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
             </button>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+          <h1 
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight"
+            style={{ color: '#688cff' }}
+          >
             O que você{' '}
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
               realmente
@@ -431,6 +479,7 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
           </div>
         </div>
       </div>
+
 
       {/* SEARCH RESULTS OVERLAY/SECTION */}
       {searchResults && (
@@ -506,12 +555,17 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
           return (
             <motion.div 
               key={i}
+              data-disciplina={subject.subject}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white dark:bg-[#15171C] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
+              className="bg-[#10141d] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
+              style={{ backgroundColor: '#10141d' }}
             >
-              <div className="p-6 sm:p-8 space-y-6 flex-1">
+              <div 
+                className="p-6 sm:p-8 space-y-6 flex-1 bg-[#10141d]"
+                style={{ backgroundColor: '#10141d' }}
+              >
                 
                 {/* Header with Title and Donut Chart */}
                 <div className="flex justify-between items-start gap-4">
@@ -519,12 +573,23 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
                     <div className={`w-12 h-12 ${styles.bg} ${styles.text} ${styles.border} border rounded-2xl flex items-center justify-center mb-3 shadow-2xs`}>
                       <BookOpen size={22} />
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                    <h3 
+                      className="text-2xl sm:text-3xl font-black tracking-tight"
+                      style={{ color: '#688cff' }}
+                    >
                       {subject.subject}
                     </h3>
-                    <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-                      Temas Recorrentes
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                        Progresso:
+                      </p>
+                      <span 
+                        data-disciplina-progresso={subject.subject}
+                        className="text-xs font-black text-emerald-400 font-mono"
+                      >
+                        0%
+                      </span>
+                    </div>
                   </div>
                   
                   {/* CHART GAUGE */}
@@ -555,17 +620,30 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
 
                 {/* Topics List */}
                 <div className="space-y-6 pt-2">
-                  {subject.topics.map((topic, j) => (
-                    <div key={j} className="relative pl-5 border-l-2 border-slate-200 dark:border-white/10 group/topic space-y-2.5">
-                      <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-500 ring-4 ring-white dark:ring-[#15171C]"></div>
+                  {subject.topics.map((topic, j) => {
+                    const discSlug = typeof window !== 'undefined' && (window as any).DisciplinaAtual ? (window as any).DisciplinaAtual.slug(subject.subject) : 'quimica';
+                    const topicSlug = typeof window !== 'undefined' && (window as any).DisciplinaAtual ? (window as any).DisciplinaAtual.slug(topic.name) : 'geral';
+                    const pctInicial = typeof window !== 'undefined' && (window as any).Progresso ? (window as any).Progresso.percentualTema(discSlug, topicSlug) : 0;
+
+                    return (
+                    <div 
+                      key={j} 
+                      data-tema={topic.name}
+                      data-disciplina={subject.subject}
+                      className="relative pl-5 border-l-2 border-slate-200 dark:border-white/10 group/topic space-y-2.5"
+                    >
+                      <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-500 ring-4 ring-white dark:ring-[#10141d]"></div>
                       
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-base sm:text-lg text-slate-900 dark:text-white group-hover/topic:text-blue-600 dark:group-hover/topic:text-blue-400 transition-colors">
+                          <span 
+                            className="font-black text-base sm:text-lg transition-colors"
+                            style={{ color: '#688cff' }}
+                          >
                             {topic.name}
                           </span>
-                          <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/40 px-2 py-0.5 rounded-md text-[11px] font-black">
-                            {topic.percentage}%
+                          <span className="barra-rotulo bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/40 px-2 py-0.5 rounded-md text-[11px] font-black">
+                            {pctInicial}%
                           </span>
                         </div>
                         
@@ -575,6 +653,11 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
                             <button 
                               type="button"
                               onClick={() => {
+                                const disciplina = (window as any).DisciplinaAtual ? (window as any).DisciplinaAtual.detectar(subject.subject) : 'quimica';
+                                if ((window as any).Progresso) {
+                                  (window as any).Progresso.registrar(disciplina, (window as any).DisciplinaAtual.slug(topic.name), 'mapa', 1);
+                                  (window as any).Progresso.aplicarNaTela(disciplina);
+                                }
                                 setSelectedSubject({ subject: subject.subject, topics: [topic.name] });
                                 setMaterial([{
                                   topicName: topic.name,
@@ -610,25 +693,30 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
                         </div>
                       </div>
                       
-                      <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed italic line-clamp-2">
+                      <p 
+                        className="text-xs sm:text-sm text-white dark:text-white leading-relaxed italic line-clamp-2"
+                        style={{ color: '#ffffff' }}
+                      >
                         "{topic.summary}"
                       </p>
                       
                       <div className="relative h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${topic.percentage}%` }}
-                          transition={{ duration: 1, delay: 0.3 }}
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-full"
+                        <div 
+                          className="barra-preenchida absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-full transition-all duration-500"
+                          style={{ width: `${pctInicial}%` }}
                         />
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               </div>
 
               {/* CARD FOOTER ACTION */}
-              <div className="p-5 sm:p-6 bg-slate-50/70 dark:bg-[#1A1D24] border-t border-slate-100 dark:border-white/10">
+              <div 
+                className="p-5 sm:p-6 bg-[#10141d] border-t border-slate-100 dark:border-white/10"
+                style={{ backgroundColor: '#10141d' }}
+              >
                 <button 
                   type="button"
                   onClick={() => handleVerResumos(subject.subject, subject.topics.map(t => t.name))}
@@ -677,7 +765,7 @@ export default function Conteudos({ vestibular, onStartQuiz }: { vestibular: Ves
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10" ref={contentRef}>
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10" ref={contentRef} id="corpo-do-resumo">
                 {loading ? (
                   <div className="h-64 flex flex-col items-center justify-center gap-4">
                     <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-600 rounded-full animate-spin" />

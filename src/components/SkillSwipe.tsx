@@ -365,7 +365,7 @@ export default function SkillSwipe() {
             <span>Módulo de Memorização Rápida</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tight">
-            Skill<span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">Swipe</span>
+            Flash<span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">Cards</span>
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-xl">
             Aprenda conceitos e fórmulas essenciais dos vestibulares usando flashcards inteligentes. Deslize para a direita se já sabe o assunto ou para a esquerda para revisar depois!

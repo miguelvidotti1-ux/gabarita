@@ -132,7 +132,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     },
     {
       id: 'skillswipe',
-      title: 'SkillSwipe Flashcards',
+      title: 'FlashCards',
       desc: 'Memorização acelerada por repetição espaçada. Deslize para a direita se souber!',
       icon: Layers,
       badge: 'Repetição Ativa',

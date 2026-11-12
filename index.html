@@ -1213,6 +1213,177 @@
     window.criarPlaylistFinal = criarPlaylistFinal;
     </script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+/* ============================================================
+   DISCIPLINA ATUAL & PROGRESSO DE CONTEÚDO — gabarita
+   Cada tema inicia em 0% e sobe conforme o usuário vê o material.
+   Persistente no navegador (localStorage) — não perde ao recarregar.
+   ============================================================ */
+window.DisciplinaAtual = {
+  detectar: function(sugestao) {
+    if (sugestao) return window.DisciplinaAtual.slug(sugestao);
+    const el = document.querySelector('[data-disciplina]');
+    if (el) {
+      const v = el.getAttribute('data-disciplina');
+      if (v) return window.DisciplinaAtual.slug(v);
+    }
+    if (window.disciplinaAtiva) return window.DisciplinaAtual.slug(window.disciplinaAtiva);
+    return 'quimica';
+  },
+  slug: function(nome) {
+    if (!nome) return 'geral';
+    return String(nome)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+};
+
+window.Progresso = (() => {
+  const CHAVE = 'gabarita_progresso_v1';
+
+  // Peso de cada tipo de conteúdo dentro de um tema (soma 100)
+  const PESOS = { resumo: 45, quiz: 35, mapa: 10, flashcards: 10 };
+
+  const carregar = () => {
+    try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; }
+    catch (e) { return {}; }
+  };
+  const salvar = (d) => { try { localStorage.setItem(CHAVE, JSON.stringify(d)); } catch (e) {} };
+
+  function normalizar(disciplina, tema) {
+    const dados = carregar();
+    const dKey = window.DisciplinaAtual.slug(disciplina);
+    const tKey = window.DisciplinaAtual.slug(tema);
+    dados[dKey] = dados[dKey] || {};
+    dados[dKey][tKey] = Object.assign(
+      { resumo: 0, quiz: 0, mapa: 0, flashcards: 0 },
+      dados[dKey][tKey] || {}
+    );
+    return dados;
+  }
+
+  /* Registra fração vista (0 a 1) de um tipo de conteúdo.
+     Guarda sempre a MAIOR fração já alcançada — o progresso não regride. */
+  function registrar(disciplina, tema, tipo, fracao) {
+    if (!PESOS.hasOwnProperty(tipo)) return 0;
+    const f = Math.max(0, Math.min(1, Number(fracao) || 0));
+    const dKey = window.DisciplinaAtual.slug(disciplina);
+    const tKey = window.DisciplinaAtual.slug(tema);
+    const dados = normalizar(dKey, tKey);
+    const atual = dados[dKey][tKey][tipo] || 0;
+    if (f > atual) {
+      dados[dKey][tKey][tipo] = f;
+      salvar(dados);
+    }
+    renderizarPainelGeral();
+    return percentualTema(dKey, tKey);
+  }
+
+  function percentualTema(disciplina, tema) {
+    const dKey = window.DisciplinaAtual.slug(disciplina);
+    const tKey = window.DisciplinaAtual.slug(tema);
+    const t = normalizar(dKey, tKey)[dKey][tKey];
+    let total = 0;
+    for (const [tipo, peso] of Object.entries(PESOS)) {
+      total += peso * Math.min(1, t[tipo] || 0);
+    }
+    return Math.round(total);
+  }
+
+  /* Progresso da MATÉRIA inteira = média dos temas já conhecidos */
+  function percentualDisciplina(disciplina) {
+    const dKey = window.DisciplinaAtual.slug(disciplina);
+    const d = carregar()[dKey];
+    if (!d) return 0;
+    const temas = Object.keys(d);
+    if (!temas.length) return 0;
+    const soma = temas.reduce((acc, t) => acc + percentualTema(dKey, t), 0);
+    return Math.round(soma / temas.length);
+  }
+
+  function renderizarPainelGeral() {
+    const materias = ['portugues','matematica','fisica','quimica','biologia',
+                      'historia','geografia','filosofia','sociologia','ingles','redacao'];
+    const nomes = { portugues:'Português', matematica:'Matemática', fisica:'Física',
+                    quimica:'Química', biologia:'Biologia', historia:'História',
+                    geografia:'Geografia', filosofia:'Filosofia', sociologia:'Sociologia',
+                    ingles:'Inglês', redacao:'Redação' };
+    const container = document.getElementById('painel-progresso-geral');
+    if (!container) return;
+    container.innerHTML = materias.map((m) => {
+      const pct = percentualDisciplina(m);
+      return `<div class="linha-progresso" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.05)">
+        <span class="nome-materia" style="font-size:12px;font-weight:700;color:#688cff;min-width:85px">${nomes[m]}</span>
+        <div class="barra-progresso" style="flex:1;height:7px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;position:relative">
+          <div class="barra-preenchida" style="width:${pct}%;height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:9999px;transition:width 0.4s ease"></div>
+        </div>
+        <span class="barra-rotulo" style="font-size:11px;font-weight:800;color:#ffffff;min-width:35px;text-align:right;font-family:monospace">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+
+  /* Atualiza as barras e os rótulos da tela.
+     Convenção: cada card tem data-tema="slug-do-tema",
+     um elemento .barra-preenchida e um .barra-rotulo.
+     O indicador circular da matéria tem data-disciplina-progresso. */
+  function aplicarNaTela(disciplina) {
+    const dKey = window.DisciplinaAtual.slug(disciplina);
+    document.querySelectorAll('[data-tema]').forEach((card) => {
+      const tema = card.getAttribute('data-tema');
+      const cardDisc = card.getAttribute('data-disciplina') || dKey;
+      const pct = percentualTema(cardDisc, tema);
+      const barra = card.querySelector('.barra-preenchida');
+      const rotulo = card.querySelector('.barra-rotulo');
+      if (barra) barra.style.width = pct + '%';
+      if (rotulo) rotulo.textContent = pct + '%';
+    });
+    document.querySelectorAll('[data-disciplina-progresso]').forEach((circ) => {
+      const targetDisc = circ.getAttribute('data-disciplina-progresso') || dKey;
+      const pct = percentualDisciplina(targetDisc);
+      circ.textContent = pct + '%';
+      if (circ.dataset.barra !== undefined) circ.style.width = pct + '%';
+    });
+    renderizarPainelGeral();
+  }
+
+  /* Reseta um tema (ex.: botão "zerar progresso") */
+  function zerar(disciplina, tema) {
+    const dKey = window.DisciplinaAtual.slug(disciplina);
+    const tKey = window.DisciplinaAtual.slug(tema);
+    const dados = normalizar(dKey, tKey);
+    dados[dKey][tKey] = { resumo: 0, quiz: 0, mapa: 0, flashcards: 0 };
+    salvar(dados);
+    aplicarNaTela(dKey);
+  }
+
+  return { registrar, percentualTema, percentualDisciplina, aplicarNaTela, renderizarPainelGeral, zerar };
+})();
+
+/* ============================================================
+   APLICADOR AUTOMÁTICO — funciona para todas as matérias
+   Sempre que a página muda e existe um título de matéria,
+   atualiza as barras e o indicador circular daquela matéria.
+   ============================================================ */
+(function aplicarProgressoAoNavegar() {
+  let ultimaDisciplina = null;
+  function tentar() {
+    if (!window.DisciplinaAtual || !window.Progresso) return;
+    const disciplina = window.DisciplinaAtual.detectar();
+    if (disciplina) {
+      if (disciplina !== ultimaDisciplina) {
+        ultimaDisciplina = disciplina;
+      }
+      window.Progresso.aplicarNaTela(disciplina);
+    }
+    window.Progresso.renderizarPainelGeral();
+  }
+  document.addEventListener('DOMContentLoaded', tentar);
+  setTimeout(tentar, 500);
+})();
+</script>
   </body>
 </html>
 

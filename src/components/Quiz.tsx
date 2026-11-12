@@ -165,6 +165,16 @@ export default function Quiz({ questions, onComplete, isFullExam = false, vestib
       setScore(prev => prev + 1);
     }
     setShowResult(true);
+
+    // Registra progresso do Quiz no window.Progresso
+    if (typeof window !== 'undefined' && (window as any).Progresso && (window as any).DisciplinaAtual) {
+      const respondidas = newAnswers.filter(a => a !== undefined && a !== null).length;
+      const totalQuestoes = questions.length || 1;
+      const temaAtual = (currentQuestion as any)?.topic || currentQuestion?.subject || 'geral';
+      const disciplina = (window as any).DisciplinaAtual.detectar(currentQuestion?.subject);
+      (window as any).Progresso.registrar(disciplina, (window as any).DisciplinaAtual.slug(temaAtual), 'quiz', respondidas / totalQuestoes);
+      (window as any).Progresso.aplicarNaTela(disciplina);
+    }
   };
 
   const handleNext = () => {
