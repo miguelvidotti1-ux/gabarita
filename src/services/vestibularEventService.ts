@@ -159,6 +159,142 @@ const DEFAULT_EVENTS: VestibularEvent[] = [
     localDeProva: 'CPOR / Colégio Militar de São Paulo (Santana)',
     enderecoDeProva: 'Rua Alfredo Pujol, 681 - Santana, São Paulo - SP, 02017-011',
     dicasTransporte: 'Próximo à Estação Santana (Linha 1-Azul). Portões fechados estritamente às 12h45.'
+  },
+  {
+    id: 'e_7',
+    name: 'ENEM 2026 - 2º Dia',
+    institution: 'INEP (ENEM)',
+    date: '2026-11-15T13:30:00.000Z',
+    notes: 'Ciências da Natureza e Matemática. Portões fecham às 13h.',
+    alertDaysBefore: 3
+  },
+  {
+    id: 'e_8',
+    name: 'Vestibular UnB 2027',
+    institution: 'UnB',
+    date: '2026-11-21T13:00:00.000Z',
+    notes: 'Vestibular Tradicional e Libras, fase única.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_9',
+    name: 'Vestibular Unesp 2027 - 1ª Fase',
+    institution: 'Unesp',
+    date: '2026-11-22T13:00:00.000Z',
+    notes: '90 questões objetivas, 5h de duração.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_10',
+    name: 'Vestibular UFRGS 2027 - Dia 1',
+    institution: 'UFRGS',
+    date: '2026-11-28T14:30:00.000Z',
+    notes: 'Provas em fase única.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_11',
+    name: 'Vestibular UFRGS 2027 - Dia 2',
+    institution: 'UFRGS',
+    date: '2026-11-29T14:30:00.000Z',
+    notes: 'Provas em fase única.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_12',
+    name: 'Vestibular Estadual UERJ 2027',
+    institution: 'UERJ',
+    date: '2026-11-29T13:00:00.000Z',
+    notes: 'Exame Discursivo: redação + duas provas específicas.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_13',
+    name: 'Unicamp 2027 - 2ª Fase (Dia 1)',
+    institution: 'Unicamp',
+    date: '2026-11-29T09:00:00.000Z',
+    notes: 'Provas pela manhã.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_14',
+    name: 'PAS 3ª etapa UnB',
+    institution: 'UnB',
+    date: '2026-11-29T13:00:00.000Z',
+    notes: 'Prova da etapa final do PAS.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_15',
+    name: 'Unicamp 2027 - 2ª Fase (Dia 2)',
+    institution: 'Unicamp',
+    date: '2026-11-30T09:00:00.000Z',
+    notes: 'Provas pela manhã.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_16',
+    name: 'Vestibular UFSC/IFC 2027',
+    institution: 'UFSC/IFC',
+    date: '2026-12-05T09:00:00.000Z',
+    notes: 'Vestibular Unificado.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_17',
+    name: 'Fuvest 2027 - 2ª Fase (Dia 1)',
+    institution: 'USP',
+    date: '2026-12-06T13:00:00.000Z',
+    notes: 'Português + Redação.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_18',
+    name: 'PAS 1ª etapa UnB',
+    institution: 'UnB',
+    date: '2026-12-06T13:00:00.000Z',
+    notes: 'Prova do PAS.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_19',
+    name: 'Fuvest 2027 - 2ª Fase (Dia 2)',
+    institution: 'USP',
+    date: '2026-12-07T13:00:00.000Z',
+    notes: 'Segunda prova.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_20',
+    name: 'Fuvest 2027 - Competências Específicas',
+    institution: 'USP',
+    date: '2026-12-08T09:00:00.000Z',
+    notes: 'Artes (Música, Artes Cênicas, Visuais).',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_21',
+    name: 'Unesp 2027 - 2ª Fase (Dia 1)',
+    institution: 'Unesp',
+    date: '2026-12-13T13:00:00.000Z',
+    notes: '36 questões discursivas + redação.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_22',
+    name: 'PAS 2ª etapa UnB',
+    institution: 'UnB',
+    date: '2026-12-13T13:00:00.000Z',
+    notes: 'Prova do PAS.',
+    alertDaysBefore: 5
+  },
+  {
+    id: 'e_23',
+    name: 'Unesp 2027 - 2ª Fase (Dia 2)',
+    institution: 'Unesp',
+    date: '2026-12-14T13:00:00.000Z',
+    notes: '36 questões discursivas + redação.',
+    alertDaysBefore: 5
   }
 ];
 

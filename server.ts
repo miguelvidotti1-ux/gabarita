@@ -1682,49 +1682,102 @@ Retorne exclusivamente um JSON com este formato:
   });
 
   // 4. Plano calibrado por questionário + notas do boletim
-  app.get("/api/onboarding/plano", (req, res) => {
+    // ========== CRONOGRAMA PERSONALIZADO PELO USUÁRIO ==========
+  const CRONOGRAMA_PATH = path.join(process.cwd(), "data", "cronogramas.json");
+  function carregarCronogramas(): Record<string, any> {
+    try {
+      const dados = JSON.parse(fs.readFileSync(CRONOGRAMA_PATH, "utf-8"));
+      if (dados && typeof dados === "object") return dados;
+    } catch (_) {}
+    return {};
+  }
+  function salvarCronogramas(mapa: Record<string, any>): void {
+    try {
+      fs.mkdirSync(path.dirname(CRONOGRAMA_PATH), { recursive: true });
+      fs.writeFileSync(CRONOGRAMA_PATH, JSON.stringify(mapa, null, 2), "utf-8");
+    } catch (e: any) {
+      console.error("Erro ao salvar cronograma:", e);
+    }
+  }
+
+  // Carrega o cronograma do usuário (as alterações dele têm prioridade sobre a IA)
+  app.get("/api/cronograma", (req, res) => {
     try {
       const uid = extractUsuarioId(req);
-      const u = onboardingStore.obterUsuario(uid);
-      let perfil: any = {};
-      if (u?.perfil_json) {
-        try {
-          perfil = JSON.parse(u.perfil_json);
-        } catch (e) {}
+      const todos = carregarCronogramas();
+      if (todos[uid]) {
+        return res.json({ existe: true, cronograma: todos[uid] });
       }
-
-      const hs = (HORAS_MAP[String(perfil.horas_semana)] || 1.5) * 5 + (HORAS_MAP[String(perfil.horas_fds)] || 3) * 2;
-      const b = boletimStore.obterUltimoBoletim(uid);
-
-      if (!b) {
-        return res.json({
-          com_notas: false,
-          horas_semanais: Math.round(hs * 10) / 10
-        });
-      }
-
-      let analise: any = null;
-      try {
-        analise = JSON.parse(b.analise_json);
-      } catch (e) {}
-
-      if (!analise) {
-        return res.json({
-          com_notas: false,
-          horas_semanais: Math.round(hs * 10) / 10
-        });
-      }
-
-      const distribuicao = ServicoAnaliseNotas.distribuir(analise, perfil, Math.round(hs));
-      return res.json({
-        com_notas: true,
-        horas_semanais: Math.round(hs * 10) / 10,
-        resumo: analise.resumo,
-        distribuicao
-      });
+      return res.json({ existe: false, cronograma: null });
     } catch (err: any) {
-      console.error("[Onboarding Plano] Erro:", err);
-      return res.status(500).json({ erro: "Erro ao gerar distribuição do plano." });
+      console.error("[Cronograma] Erro ao carregar:", err);
+      return res.status(500).json({ erro: "Erro ao carregar cronograma." });
+    }
+  });
+
+  // Salva o cronograma editado pelo usuário
+  app.post("/api/cronograma", (req, res) => {
+    try {
+      const uid = extractUsuarioId(req);
+      if (uid === "usuario_padrao") {
+        return res.status(401).json({ erro: "Faça login para salvar seu cronograma." });
+      }
+      const lista = req.body?.cronograma;
+      if (!Array.isArray(lista) || lista.length === 0 || lista.length > 52) {
+        return res.status(400).json({ erro: "Cronograma inválido (1 a 52 semanas)." });
+      }
+      // Saneamento: só campos conhecidos, textos limitados
+      const semanas = lista.slice(0, 52).map((sem: any, indice: number) => ({
+        week: Number(sem?.week) || indice + 1,
+        topic: String(sem?.topic || "").slice(0, 200),
+        focus: String(sem?.focus || "").slice(0, 300),
+        estimatedHours: Math.max(0, Math.min(80, Number(sem?.estimatedHours) || 0))
+      }));
+      const todos = carregarCronogramas();
+      todos[uid] = { semanas, atualizado_em: new Date().toISOString() };
+      salvarCronogramas(todos);
+      return res.json({ sucesso: true, mensagem: "Cronograma salvo com sucesso!" });
+    } catch (err: any) {
+      console.error("[Cronograma] Erro ao salvar:", err);
+      return res.status(500).json({ erro: "Erro ao salvar cronograma." });
+    }
+  });
+
+  // Regenera uma única semana com IA (mantém o resto que o usuário editou)
+  app.post("/api/cronograma/regenerar-semana", async (req, res) => {
+    try {
+      const { week, weakSubjects = [], upcomingExams = [] } = req.body || {};
+      if (!week || Number(week) < 1) {
+        return res.status(400).json({ erro: "Número da semana inválido." });
+      }
+      const prompt = `Você é um mentor de estudos especialista em vestibulares.
+Gere o conteúdo de UMA única semana (semana ${week}) de um plano de estudos.
+Pontos fracos do aluno: ${weakSubjects.join(", ") || "não especificados"}
+Próximos exames: ${upcomingExams.join(", ") || "não especificados"}
+Retorne APENAS um objeto JSON no formato:
+{ "week": ${Number(week)}, "topic": "tópico principal da semana", "focus": "foco principal da semana", "estimatedHours": number }`;
+      const response = await generateWithFallback({
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              week: { type: Type.INTEGER },
+              topic: { type: Type.STRING },
+              focus: { type: Type.STRING },
+              estimatedHours: { type: Type.INTEGER }
+            },
+            required: ["week", "topic", "focus", "estimatedHours"]
+          }
+        }
+      });
+      const text = response.text;
+      if (!text) return res.status(500).json({ erro: "Sem resposta do modelo" });
+      return res.json(JSON.parse(text));
+    } catch (err: any) {
+      console.error("[Cronograma] Erro ao regenerar semana:", err);
+      return res.status(500).json({ erro: err?.message || "Erro ao regenerar semana." });
     }
   });
 

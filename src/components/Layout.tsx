@@ -237,32 +237,52 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
                 {section.items.map((item) => {
                   const isActive = activeTab === item.id;
                   const Icon = item.icon;
+                  const isAgenda = item.id === 'agenda';
                   return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        if (item.onClick) {
-                          item.onClick();
-                        } else {
-                          setActiveTab(item.id);
-                        }
-                        setIsMenuOpen(false);
-                      }}
-                      className={`
-                        w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer text-left
-                        ${isActive 
-                          ? 'bg-[var(--primary)] text-white shadow-sm shadow-[var(--shadow-primary)] font-semibold' 
-                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'}
-                      `}
-                    >
-                      <Icon size={18} className="shrink-0" />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {item.isNew && (
-                        <span className="bg-sky-100 dark:bg-zinc-800 text-sky-800 dark:text-zinc-200 font-bold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                          Novo
-                        </span>
+                    <div key={item.id} className="space-y-1">
+                      <button
+                        onClick={() => {
+                          if (item.onClick) {
+                            item.onClick();
+                          } else {
+                            setActiveTab(item.id);
+                          }
+                          setIsMenuOpen(false);
+                        }}
+                        className={`
+                          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer text-left
+                          ${isActive 
+                            ? 'bg-[var(--primary)] text-white shadow-sm shadow-[var(--shadow-primary)] font-semibold' 
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'}
+                        `}
+                      >
+                        <Icon size={18} className="shrink-0" />
+                        <span className="flex-1 truncate">{item.label}</span>
+                        {item.isNew && (
+                          <span className="bg-sky-100 dark:bg-zinc-800 text-sky-800 dark:text-zinc-200 font-bold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            Novo
+                          </span>
+                        )}
+                      </button>
+                      {isAgenda && (
+                        <div className="pl-6 pr-1">
+                          <button
+                            id="btn-abrir-cronograma"
+                            onClick={() => {
+                              if (typeof (window as any).Cronograma?.abrir === 'function') {
+                                (window as any).Cronograma.abrir();
+                              }
+                              setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 hover:text-blue-300 border border-blue-500/20 transition-all cursor-pointer text-left"
+                            title="Abrir editor de cronograma"
+                          >
+                            <Sparkles size={12} className="text-blue-400 shrink-0" />
+                            <span className="truncate">Meu Cronograma</span>
+                          </button>
+                        </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>

@@ -1384,6 +1384,181 @@ window.Progresso = (() => {
   setTimeout(tentar, 500);
 })();
 </script>
+<script>
+/* ============================================================
+   CRONOGRAMA PERSONALIZÁVEL — gabarita
+   O usuário edita, reordena, adiciona/exclui semanas,
+   regenera semanas com IA e salva na sua conta.
+   ============================================================ */
+window.Cronograma = (() => {
+  let semanas = [];
+  // Sugestões para o campo de tópico (auxilia na digitação)
+  const MATERIAS = ['Matemática','Física','Química','Biologia','História',
+                    'Geografia','Português','Redação','Filosofia','Sociologia','Inglês'];
+
+  async function carregar() {
+    try {
+      const r = await fetch('/api/cronograma');
+      const d = await r.json();
+      if (d.existe && Array.isArray(d.cronograma?.semanas)) return d.cronograma.semanas;
+    } catch (e) {}
+    return null;
+  }
+
+  async function carregarOuGerar() {
+    const salvo = await carregar();
+    if (salvo && salvo.length) {
+      semanas = salvo;
+      renderizar();
+      return;
+    }
+    // Não existe ainda: gera o plano base com IA
+    const botoes = document.querySelectorAll('#btn-abrir-cronograma');
+    botoes.forEach(function(b) { b.textContent = 'Gerando cronograma...'; });
+    try {
+      const r = await fetch('/api/gemini/study-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weakSubjects: [], upcomingExams: [], weeks: 8 })
+      });
+      semanas = await r.json();
+    } catch (e) {
+      semanas = [];
+    }
+    botoes.forEach(function(b) { b.textContent = 'Meu Cronograma'; });
+    renderizar();
+  }
+
+  function renderizar() {
+    let modal = document.getElementById('modal-cronograma');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-cronograma';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div style="background:#10141D;color:#fff;border-radius:16px;max-width:720px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 style="font-size:20px;margin:0;">Meu Cronograma <span style="color:#60A5FA;">editável</span></h2>
+          <button onclick="document.getElementById('modal-cronograma').style.display='none'"
+                  style="background:none;border:none;color:#9E9E9E;font-size:22px;cursor:pointer;">✕</button>
+        </div>
+        <p style="color:#9E9E9E;font-size:13px;margin:0 0 16px;">Clique nos campos para editar, use ↑↓ para reordenar, + para adicionar semana, ⟳ para regenerar com IA.</p>
+        <div id="lista-semanas">${semanas.map(linhaSemana).join('')}</div>
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+          <button onclick="Cronograma.adicionarSemana()" style="padding:10px 16px;border-radius:8px;border:1px solid #60A5FA;background:none;color:#60A5FA;cursor:pointer;">+ Adicionar semana</button>
+          <button onclick="Cronograma.salvar()" style="padding:10px 20px;border-radius:8px;border:none;background:#1E3A8A;color:#fff;cursor:pointer;font-weight:600;">Salvar cronograma</button>
+          <span id="status-cronograma" style="align-self:center;color:#1DB954;font-size:13px;"></span>
+        </div>
+      </div>`;
+    modal.style.display = 'flex';
+    // Liga eventos de edição e reordenação
+    modal.querySelectorAll('[data-acao]').forEach((btn) => {
+      btn.onclick = () => {
+        const acao = btn.dataset.acao;
+        const i = Number(btn.dataset.indice);
+        if (acao === 'subir' && i > 0) { [semanas[i-1], semanas[i]] = [semanas[i], semanas[i-1]]; }
+        if (acao === 'descer' && i < semanas.length - 1) { [semanas[i+1], semanas[i]] = [semanas[i], semanas[i+1]]; }
+        if (acao === 'excluir') semanas.splice(i, 1);
+        if (acao === 'regenerar') return regenerarSemana(i);
+        renderizar();
+      };
+    });
+    // Edição inline: campo vira editável e salva ao sair
+    modal.querySelectorAll('[data-editavel]').forEach((el) => {
+      el.onclick = () => {
+        if (el.querySelector('input')) return;
+        const campo = el.dataset.campo;
+        const i = Number(el.dataset.indice);
+        const atual = semanas[i][campo] ?? '';
+        const input = document.createElement('input');
+        input.value = atual;
+        input.type = campo === 'estimatedHours' ? 'number' : 'text';
+        input.style.cssText = 'width:100%;background:#1A2130;border:1px solid #60A5FA;border-radius:6px;color:#fff;padding:4px 8px;font:inherit;';
+        el.textContent = '';
+        el.appendChild(input);
+        input.focus();
+        input.select();
+        const confirmar = () => {
+          semanas[i][campo] = campo === 'estimatedHours' ? (Number(input.value) || 0) : input.value.slice(0, 200);
+          renderizar();
+        };
+        input.onblur = confirmar;
+        input.onkeydown = (ev) => { if (ev.key === 'Enter') input.blur(); if (ev.key === 'Escape') { input.onblur = null; renderizar(); } };
+      };
+    });
+  }
+
+  function linhaSemana(sem, i) {
+    return `<div style="display:flex;gap:10px;align-items:center;background:#1A2130;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+      <span style="min-width:52px;color:#60A5FA;font-weight:700;">Sem ${sem.week ?? i+1}</span>
+      <span data-editavel data-campo="topic" data-indice="${i}" style="flex:1;cursor:pointer;">${sem.topic || '—'}</span>
+      <span data-editavel data-campo="focus" data-indice="${i}" style="flex:1;color:#9E9E9E;cursor:pointer;">${sem.focus || '—'}</span>
+      <span data-editavel data-campo="estimatedHours" data-indice="${i}" style="min-width:56px;text-align:right;cursor:pointer;color:#60A5FA;">${sem.estimatedHours ?? 0}h</span>
+      <span style="display:flex;gap:2px;">
+        <button data-acao="subir" data-indice="${i}" title="Subir" style="background:none;border:none;color:#9E9E9E;cursor:pointer;">↑</button>
+        <button data-acao="descer" data-indice="${i}" title="Descer" style="background:none;border:none;color:#9E9E9E;cursor:pointer;">↓</button>
+        <button data-acao="regenerar" data-indice="${i}" title="Regenerar com IA" style="background:none;border:none;color:#60A5FA;cursor:pointer;">⟳</button>
+        <button data-acao="excluir" data-indice="${i}" title="Excluir" style="background:none;border:none;color:#ff6b6b;cursor:pointer;">✕</button>
+      </span>
+    </div>`;
+  }
+
+  async function regenerarSemana(i) {
+    const status = document.getElementById('status-cronograma');
+    if (status) { status.style.color = '#60A5FA'; status.textContent = 'Regenerando semana ' + semanas[i].week + '...'; }
+    try {
+      const r = await fetch('/api/cronograma/regenerar-semana', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          week: semanas[i].week,
+          weakSubjects: [], // opcional: passe as matérias fracas do onboarding aqui
+          upcomingExams: []
+        })
+      });
+      const nova = await r.json();
+      if (!nova.erro) semanas[i] = nova;
+    } catch (e) {}
+    if (status) { status.style.color = '#1DB954'; status.textContent = 'Semana atualizada!'; }
+    renderizar();
+  }
+
+  function adicionarSemana() {
+    const proximo = Math.max(0, ...semanas.map((s) => Number(s.week) || 0)) + 1;
+    semanas.push({ week: proximo, topic: '', focus: '', estimatedHours: 0 });
+    renderizar();
+  }
+
+  async function salvar() {
+    const status = document.getElementById('status-cronograma');
+    if (status) { status.style.color = '#60A5FA'; status.textContent = 'Salvando...'; }
+    try {
+      const r = await fetch('/api/cronograma', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cronograma: semanas })
+      });
+      const d = await r.json();
+      if (status) {
+        status.style.color = d.sucesso ? '#1DB954' : '#ff6b6b';
+        status.textContent = d.sucesso ? 'Salvo!' : (d.erro || 'Erro ao salvar.');
+      }
+    } catch (e) {
+      if (status) { status.style.color = '#ff6b6b'; status.textContent = 'Erro de conexão.'; }
+    }
+  }
+
+  // Botão que abre o cronograma: adicione no HTML do app
+  // <button id="btn-abrir-cronograma" onclick="Cronograma.abrir()">Meu Cronograma</button>
+  function abrir() {
+    carregarOuGerar();
+  }
+
+  return { abrir, adicionarSemana, salvar };
+})();
+</script>
   </body>
 </html>
 

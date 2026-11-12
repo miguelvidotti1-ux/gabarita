@@ -549,18 +549,34 @@ export default function CronogramaVestibulares({ onNavegarParaAba }: CronogramaV
         {/* Animated ambient light orb - More subtle */}
         <div className="absolute -top-1/2 -right-1/4 w-[500px] h-[500px] bg-indigo-500/20 blur-[100px] rounded-full" />
 
-        <div className="relative z-10 space-y-4 max-w-2xl">
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest text-indigo-200">
-            <CalendarIcon size={14} />
-            <span>CRONOGRAMA OFICIAL 2026</span>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest text-indigo-200">
+              <CalendarIcon size={14} />
+              <span>CRONOGRAMA OFICIAL 2026</span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-2">
+              Agenda de Vestibulares
+            </h1>
+            <p className="text-indigo-100 text-base md:text-xl leading-relaxed font-medium max-w-xl">
+              Monitore datas cruciais, configure lembretes inteligentes e mantenha
+              o foco no dia de cada prova.
+            </p>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-2">
-            Agenda de Vestibulares
-          </h1>
-          <p className="text-indigo-100 text-base md:text-xl leading-relaxed font-medium max-w-xl">
-            Monitore datas cruciais, configure lembretes inteligentes e mantenha
-            o foco no dia de cada prova.
-          </p>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                if (typeof (window as any).Cronograma?.abrir === 'function') {
+                  (window as any).Cronograma.abrir();
+                }
+              }}
+              className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/30 active:scale-95"
+            >
+              <Sparkles size={16} />
+              <span>Meu Cronograma</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -796,7 +812,19 @@ export default function CronogramaVestibulares({ onNavegarParaAba }: CronogramaV
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           {/* Calendar view selector */}
-          <div className="flex flex-wrap bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--card-border)] shrink-0 gap-1">
+          <div className="flex flex-wrap bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--card-border)] shrink-0 gap-1 items-center">
+            <button
+              onClick={() => {
+                if (typeof (window as any).Cronograma?.abrir === 'function') {
+                  (window as any).Cronograma.abrir();
+                }
+              }}
+              className="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-600/25 border border-blue-400/20 active:scale-95"
+              title="Abrir editor de cronograma de 8 semanas com IA"
+            >
+              <Sparkles size={13} className="text-white" />
+              <span>Meu Cronograma</span>
+            </button>
             <button
               onClick={() => setActiveView("weekly")}
               className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -964,13 +992,13 @@ export default function CronogramaVestibulares({ onNavegarParaAba }: CronogramaV
               </div>
 
               {/* Day cells */}
-              <div className="grid grid-cols-7 gap-1 md:gap-4">
+              <div className="grid grid-cols-7 gap-1 md:gap-2">
                 {calendarCells.map((day, idx) => {
                   if (day === null) {
                     return (
                       <div
                         key={`empty-${idx}`}
-                        className="h-16 md:h-24 bg-[var(--bg-secondary)]/10 rounded-xl"
+                        className="h-16 md:h-24 bg-transparent rounded-2xl"
                       />
                     );
                   }
@@ -994,44 +1022,36 @@ export default function CronogramaVestibulares({ onNavegarParaAba }: CronogramaV
                           handleOpenDetailedModal(hasEvents[0]);
                         }
                       }}
-                      className={`h-24 p-2 md:p-3 rounded-2xl md:rounded-3xl border transition-all flex flex-col justify-between overflow-hidden relative cursor-pointer ${
+                      className={`h-24 md:h-28 p-2 md:p-3 rounded-2xl border transition-all flex flex-col justify-start overflow-hidden relative cursor-pointer ${
                         isToday
-                          ? "border-emerald-500 dark:border-emerald-500/70 ring-2 ring-emerald-500/10 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.02] shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                          ? "border-[var(--text-accent)] bg-[var(--text-accent)]/10 shadow-[0_0_10px_rgba(var(--text-accent-rgb),0.2)]"
                           : hasEvents.length > 0
-                            ? "border-[var(--text-accent)]/30 bg-[var(--text-accent)]/[0.05] hover:bg-[var(--text-accent)]/[0.09] shadow-sm"
-                            : "border-transparent bg-slate-100 dark:bg-slate-800/30 hover:bg-slate-200 dark:hover:bg-slate-800/50"
+                            ? "border-[var(--card-border)] bg-[var(--card-bg)] hover:border-[var(--text-accent)]/50"
+                            : "border-[var(--card-border)] bg-[var(--bg-secondary)]/20 hover:bg-[var(--bg-secondary)]/40"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`font-mono text-xs md:text-sm font-bold ${isToday ? "text-emerald-500 font-extrabold" : "text-[var(--text-primary)]"}`}
-                        >
-                          {day}
-                        </span>
-                        {isToday && (
-                          <span className="text-[8px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider scale-90 origin-right">
-                            Hoje
-                          </span>
-                        )}
-                      </div>
+                      <span
+                        className={`text-xs md:text-sm font-bold ${
+                          isToday 
+                            ? "text-[var(--text-accent)]" 
+                            : hasEvents.length > 0 
+                              ? "text-[var(--text-primary)]" 
+                              : "text-[var(--text-secondary)]"
+                        }`}
+                      >
+                        {day}
+                      </span>
 
                       {/* Show mini pointers for events */}
-                      <div className="space-y-1 overflow-y-auto max-h-12 scrollbar-none">
+                      <div className="mt-1 space-y-1 overflow-y-auto scrollbar-none">
                         {hasEvents.map((e) => (
-                          <button
+                          <div
                             key={e.id}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleOpenDetailedModal(e);
-                            }}
-                            className="w-full text-left bg-indigo-500/20 hover:bg-indigo-500/35 text-indigo-700 dark:text-indigo-300 text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg truncate block leading-tight mb-1 active:scale-95 transition-all outline-none"
-                            title={`${e.name} (${e.institution}) - Clique para ver local de prova`}
+                            className="w-full text-left bg-[var(--text-accent)] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md truncate leading-tight transition-all"
+                            title={`${e.name} (${e.institution})`}
                           >
-                            <span className="flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                              <span className="truncate">{e.name}</span>
-                            </span>
-                          </button>
+                            {e.name}
+                          </div>
                         ))}
                       </div>
                     </div>
