@@ -25,9 +25,15 @@ async function startServer() {
   app.use(express.json({ limit: "20mb" }));
   app.use(cookieParser());
 
+  // ========== MULTER (upload de arquivos) — deve vir ANTES de qualquer rota ==========
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 } // 8 MB
+  });
+  const ALLOWED_FOTO = new Set(["png", "jpg", "jpeg", "webp"]);
+
   // Mount Spotify OAuth 2.0 API routes
   app.use("/api/spotify", spotifyRouter);
-
   // Mount Mercado Pago API routes
   app.use("/api/mercadopago", mercadoPagoRouter);
 
@@ -1400,12 +1406,6 @@ Retorne exclusivamente um JSON com este formato:
   });
 
   // ========== ROTAS DE BOLETIM ESCOLAR E CALIBRAÇÃO DE NOTAS ==========
-  const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 8 * 1024 * 1024 } // 8 MB
-  });
-
-  const ALLOWED_FOTO = new Set(["png", "jpg", "jpeg", "webp"]);
 
   // 1. Extração de notas a partir da foto do boletim com IA
   app.post("/api/onboarding/notas/foto", upload.single("boletim"), async (req, res) => {
