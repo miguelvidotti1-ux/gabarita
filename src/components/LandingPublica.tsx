@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { MercadoPagoService } from '../services/mercadoPagoService';
 import { PesquisaModal } from './PesquisaModal';
+import { PLANOS_CONFIG, gerarPixEmvComValor } from '../../shared/planos';
 
 export interface PlanLandingDetail {
   id: 'mensal' | 'trimestral' | 'semestral' | 'anual';
@@ -55,63 +56,63 @@ export interface PlanLandingDetail {
 export const PLAN_PIX_KEYS: Record<'mensal' | 'trimestral' | 'semestral' | 'anual', PlanLandingDetail> = {
   mensal: {
     id: 'mensal',
-    name: 'Mensal',
-    price: 39.90,
-    formattedPrice: 'R$ 39,90',
-    periodLabel: '/mês',
-    cycleLabel: 'Acesso completo por 30 dias, sem fidelidade',
-    duracao_dias: 30,
-    descricao: 'Tudo ilimitado por 30 dias: IA, correções, simulados e playlists',
-    subtext: 'Acesso completo por 30 dias, sem fidelidade',
+    name: PLANOS_CONFIG.mensal.nome,
+    price: PLANOS_CONFIG.mensal.price,
+    formattedPrice: PLANOS_CONFIG.mensal.formattedPrice,
+    periodLabel: PLANOS_CONFIG.mensal.periodLabel,
+    cycleLabel: PLANOS_CONFIG.mensal.cycleLabel,
+    duracao_dias: PLANOS_CONFIG.mensal.duracao_dias,
+    descricao: PLANOS_CONFIG.mensal.descricao,
+    subtext: PLANOS_CONFIG.mensal.subtext,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077504960226',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540539.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077504960226304EDA0'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.mensal.price, 'daqr1745077504960226')
   },
   trimestral: {
     id: 'trimestral',
-    name: 'Trimestral',
-    price: 99.90,
-    formattedPrice: 'R$ 99,90',
-    periodLabel: '/3 meses',
-    cycleLabel: '3 meses de acesso completo — economia de R$ 19,80',
-    duracao_dias: 90,
-    descricao: '3 meses de acesso completo — economia de R$ 19,80',
-    subtext: 'Economia de R$ 19,80 — ideal para a reta final',
+    name: PLANOS_CONFIG.trimestral.nome,
+    price: PLANOS_CONFIG.trimestral.price,
+    formattedPrice: PLANOS_CONFIG.trimestral.formattedPrice,
+    periodLabel: PLANOS_CONFIG.trimestral.periodLabel,
+    cycleLabel: PLANOS_CONFIG.trimestral.cycleLabel,
+    duracao_dias: PLANOS_CONFIG.trimestral.duracao_dias,
+    descricao: PLANOS_CONFIG.trimestral.descricao,
+    subtext: PLANOS_CONFIG.trimestral.subtext,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077506510046',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540590.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077506510046304EE43'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.trimestral.price, 'daqr1745077506510046')
   },
   semestral: {
     id: 'semestral',
-    name: 'Semestral',
-    price: 179.90,
-    formattedPrice: 'R$ 179,90',
-    periodLabel: '/6 meses',
-    cycleLabel: '6 meses de acesso completo — economia de R$ 59,50',
-    duracao_dias: 180,
-    descricao: '6 meses de acesso completo — economia de R$ 59,50',
-    subtext: 'Economia de R$ 59,50 — acompanha o ciclo completo de simulados',
+    name: PLANOS_CONFIG.semestral.nome,
+    price: PLANOS_CONFIG.semestral.price,
+    formattedPrice: PLANOS_CONFIG.semestral.formattedPrice,
+    periodLabel: PLANOS_CONFIG.semestral.periodLabel,
+    cycleLabel: PLANOS_CONFIG.semestral.cycleLabel,
+    duracao_dias: PLANOS_CONFIG.semestral.duracao_dias,
+    descricao: PLANOS_CONFIG.semestral.descricao,
+    subtext: PLANOS_CONFIG.semestral.subtext,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077507226366',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406179.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr17450775072263663049663'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.semestral.price, 'daqr1745077507226366')
   },
   anual: {
     id: 'anual',
-    name: 'Anual',
-    price: 299.90,
-    formattedPrice: 'R$ 299,90',
-    periodLabel: '/ano',
-    cycleLabel: 'Acesso completo por 12 meses — equivalente a R$ 24,99/mês',
-    duracao_dias: 365,
-    descricao: 'Acesso completo por 12 meses — equivalente a R$ 24,99/mês',
-    subtext: 'Equivalente a R$ 24,99/mês — do início do ano até a prova',
+    name: PLANOS_CONFIG.anual.nome,
+    price: PLANOS_CONFIG.anual.price,
+    formattedPrice: PLANOS_CONFIG.anual.formattedPrice,
+    periodLabel: PLANOS_CONFIG.anual.periodLabel,
+    cycleLabel: PLANOS_CONFIG.anual.cycleLabel,
+    duracao_dias: PLANOS_CONFIG.anual.duracao_dias,
+    descricao: PLANOS_CONFIG.anual.descricao,
+    subtext: PLANOS_CONFIG.anual.subtext,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077507570396',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406299.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077507570396304CDF1'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.anual.price, 'daqr1745077507570396')
   }
 };
 
@@ -840,20 +841,24 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
 
               <div className="pt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-white">R$ 39,90</span>
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white">{PLANOS_CONFIG.mensal.formattedPrice}</span>
                   <span className="text-xs text-slate-400">/mês</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1">Cobrança única de R$ 39,90</div>
+                <div className="text-[11px] text-slate-500 mt-1">Cobrança única de {PLANOS_CONFIG.mensal.formattedPrice}</div>
               </div>
 
               <div className="pt-4 border-t border-[#1E2534] space-y-2.5 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <span>Simulador Sisu + Análise IA</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Check size={14} className="text-emerald-400 shrink-0" />
                   <span>CorrigeBot de Redação Ilimitado</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check size={14} className="text-emerald-400 shrink-0" />
-                  <span>VestBot IA de Vestibular 24h</span>
+                  <span>Tutor IA de Vestibular 24h</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check size={14} className="text-emerald-400 shrink-0" />
@@ -883,23 +888,23 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-white">Trimestral</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                  Economize R$ 19,80
+                  {PLANOS_CONFIG.trimestral.savings}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">Ideal para intensivos e reta final do exame.</p>
 
               <div className="pt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-white">R$ 99,90</span>
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white">{PLANOS_CONFIG.trimestral.formattedPrice}</span>
                   <span className="text-xs text-slate-400">/3 meses</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1">Equivalente a R$ 33,30/mês</div>
+                <div className="text-[11px] text-slate-500 mt-1">Equivalente a {PLANOS_CONFIG.trimestral.equivalenteMensal}</div>
               </div>
 
               <div className="pt-4 border-t border-[#1E2534] space-y-2.5 text-xs text-slate-300">
                 <div className="flex items-center gap-2">
                   <Check size={14} className="text-emerald-400 shrink-0" />
-                  <span>Tudo do Plano Mensal</span>
+                  <span>Tudo do Plano Mensal (inclui Simulador Sisu)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check size={14} className="text-emerald-400 shrink-0" />
@@ -938,17 +943,17 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-black text-white">Semestral</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                  Economize R$ 59,50
+                  {PLANOS_CONFIG.semestral.savings}
                 </span>
               </div>
               <p className="text-xs text-slate-300">Acompanha o ciclo completo de simulados até as provas.</p>
 
               <div className="pt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-white">R$ 179,90</span>
+                  <span className="text-4xl sm:text-5xl font-black text-white">{PLANOS_CONFIG.semestral.formattedPrice}</span>
                   <span className="text-xs text-slate-400">/6 meses</span>
                 </div>
-                <div className="text-[11px] text-emerald-400 font-semibold mt-1">Apenas R$ 29,98 por mês</div>
+                <div className="text-[11px] text-emerald-400 font-semibold mt-1">Apenas {PLANOS_CONFIG.semestral.equivalenteMensal}</div>
               </div>
 
               <div className="pt-4 border-t border-blue-500/20 space-y-2.5 text-xs text-slate-200">
@@ -958,15 +963,15 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
+                  <span>Simulador Sisu ilimitado + IA</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
                   <span>Correções ilimitadas sem fila</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
                   <span>Cronograma Dinâmico de Estudos</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-blue-400 shrink-0" />
-                  <span>Suporte prioritário via WhatsApp</span>
                 </div>
               </div>
             </div>
@@ -996,10 +1001,10 @@ export const LandingPublica: React.FC<LandingPublicaProps> = ({
 
               <div className="pt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-white">R$ 299,90</span>
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white">{PLANOS_CONFIG.anual.formattedPrice}</span>
                   <span className="text-xs text-slate-400">/ano</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1">Equivalente a R$ 24,99/mês</div>
+                <div className="text-[11px] text-slate-500 mt-1">Equivalente a {PLANOS_CONFIG.anual.equivalenteMensal}</div>
               </div>
 
               <div className="pt-4 border-t border-[#1E2534] space-y-2.5 text-xs text-slate-300">

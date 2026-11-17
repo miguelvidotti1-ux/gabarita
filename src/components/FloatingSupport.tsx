@@ -90,7 +90,7 @@ export default function FloatingSupport() {
     const msgTrimmed = mensagem.trim();
 
     // Montar mensagem pré-preenchida
-    let texto = 'Olá! Preciso de suporte no VestHub.\n\n';
+    let texto = 'Olá! Preciso de suporte no Gabarita.\n\n';
     texto += '*Assunto:* ' + topicoSelecionado;
 
     if (msgTrimmed) {

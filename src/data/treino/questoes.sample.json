@@ -1,0 +1,291 @@
+[
+  {
+    "id": "exemplo-mat-funcao-01",
+    "banca": "ENEM",
+    "ano": 2025,
+    "materia": "Matemática",
+    "topico": "Função Afim e Modelagem",
+    "dificuldade": "facil",
+    "enunciado": "Um plano de transporte universitário cobra uma taxa fixa mensal de $R\\$\\,45{,}00$ mais $R\\$\\,2{,}50$ por viagem realizada no mês. Se um estudante gastou exatamente $R\\$\\,95{,}00$ em um determinado mês, a função $C(x)$ que modela o custo total para $x$ viagens e o número total de viagens feitas são, respectivamente:",
+    "alternativas": [
+      { "letra": "A", "texto": "$C(x) = 45 + 2{,}5x$ e $18$ viagens." },
+      { "letra": "B", "texto": "$C(x) = 45 + 2{,}5x$ e $20$ viagens." },
+      { "letra": "C", "texto": "$C(x) = 45x + 2{,}5$ e $20$ viagens." },
+      { "letra": "D", "texto": "$C(x) = 47{,}5x$ e $19$ viagens." },
+      { "letra": "E", "texto": "$C(x) = 45 + 2{,}5x$ e $22$ viagens." }
+    ],
+    "correta": "B",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "A taxa fixa de $45$ reais corresponde ao coeficiente linear e $2{,}50$ por viagem ao coeficiente angular, logo $C(x) = 45 + 2{,}5x$. Igualando a $95$: $45 + 2{,}5x = 95 \\Rightarrow 2{,}5x = 50 \\Rightarrow x = 20$ viagens.",
+      "porQueErrada": {
+        "A": "Resultaria em $45 + 2{,}5(18) = 90$ reais.",
+        "C": "Inverte a taxa fixa com o valor variável por viagem.",
+        "D": "Soma os coeficientes indevidamente multiplicando ambos por $x$.",
+        "E": "Resultaria em $45 + 2{,}5(22) = 100$ reais."
+      },
+      "macete": "Identifique sempre o valor fixo (termo independente) e o valor por unidade (multiplicado por $x$)."
+    }
+  },
+  {
+    "id": "exemplo-mat-probabilidade-02",
+    "banca": "FUVEST",
+    "ano": 2025,
+    "materia": "Matemática",
+    "topico": "Probabilidade e Análise Combinatória",
+    "dificuldade": "media",
+    "enunciado": "Uma urna contém $4$ bolas azuis e $6$ bolas brancas, idênticas ao tato. Retiram-se sucessivamente e sem reposição duas bolas dessa urna. A probabilidade de que ambas as bolas retiradas sejam azuis é dada por:",
+    "alternativas": [
+      { "letra": "A", "texto": "$\\frac{4}{25}$" },
+      { "letra": "B", "texto": "$\\frac{2}{15}$" },
+      { "letra": "C", "texto": "$\\frac{1}{5}$" },
+      { "letra": "D", "texto": "$\\frac{6}{25}$" },
+      { "letra": "E", "texto": "$\\frac{1}{3}$" }
+    ],
+    "correta": "B",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "Na primeira retirada há $4$ azuis em $10$ bolas ($\\frac{4}{10}$). Sem reposição, restam $3$ azuis em $9$ bolas ($\\frac{3}{9}$). Multiplicando: $$P = \\frac{4}{10} \\cdot \\frac{3}{9} = \\frac{12}{90} = \\frac{2}{15}$$",
+      "porQueErrada": {
+        "A": "Calcula como se houvesse reposição: $(4/10)^2 = 16/100 = 4/25$.",
+        "C": "Soma os casos sem considerar a redução do espaço amostral.",
+        "D": "Multiplica por fator incorreto no numerador.",
+        "E": "Considera apenas a probabilidade da segunda retirada isolada ($3/9 = 1/3$)."
+      },
+      "macete": "Sem reposição exige reduzir em 1 tanto o total de bolas no denominador quanto os casos favoráveis na segunda etapa."
+    }
+  },
+  {
+    "id": "exemplo-fis-cinematica-03",
+    "banca": "UNICAMP",
+    "ano": 2025,
+    "materia": "Física",
+    "topico": "Energia Mecânica e Conservação",
+    "dificuldade": "media",
+    "enunciado": "Um carrinho de massa $m = 2{,}0\\,\\text{kg}$ parte do repouso do alto de uma rampa sem atrito de altura $h = 5{,}0\\,\\text{m}$. Adotando $g = 10\\,\\text{m/s}^2$, a velocidade escalar do carrinho ao atingir a base da rampa vale:",
+    "alternativas": [
+      { "letra": "A", "texto": "$5{,}0\\,\\text{m/s}$" },
+      { "letra": "B", "texto": "$10\\,\\text{m/s}$" },
+      { "letra": "C", "texto": "$14\\,\\text{m/s}$" },
+      { "letra": "D", "texto": "$20\\,\\text{m/s}$" }
+    ],
+    "correta": "B",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "Pela conservação da energia mecânica (ausência de atrito), $m g h = \\frac{m v^2}{2}$, logo $$v = \\sqrt{2 g h} = \\sqrt{2 \\cdot 10 \\cdot 5} = \\sqrt{100} = 10\\,\\text{m/s}.$$",
+      "porQueErrada": {
+        "A": "Esquece o fator $2$ da energia cinética ou extrai a raiz apenas de $5 \\cdot 5$.",
+        "C": "Corresponderia aproximadamente a $\\sqrt{200}$.",
+        "D": "Usa $v = 2gh / 5$ sem aplicar a raiz quadrada corretamente."
+      },
+      "macete": "Em descida sem atrito partindo do repouso, a massa cancela e sempre vale $v = \\sqrt{2gh}$."
+    }
+  },
+  {
+    "id": "exemplo-fis-eletrica-04",
+    "banca": "ITA",
+    "ano": 2024,
+    "materia": "Física",
+    "topico": "Eletrodinâmica e Potência Elétrica",
+    "dificuldade": "dificil",
+    "enunciado": "Dois resistores ôhmicos $R_1 = 6{,}0\\,\\Omega$ e $R_2 = 12{,}0\\,\\Omega$ são associados em paralelo e conectados a uma fonte ideal de tensão $U = 24\\,\\text{V}$. A resistência equivalente da associação e a potência total dissipada no circuito são:",
+    "alternativas": [
+      { "letra": "A", "texto": "$18{,}0\\,\\Omega$ e $32\\,\\text{W}$" },
+      { "letra": "B", "texto": "$9{,}0\\,\\Omega$ e $64\\,\\text{W}$" },
+      { "letra": "C", "texto": "$4{,}0\\,\\Omega$ e $144\\,\\text{W}$" },
+      { "letra": "D", "texto": "$4{,}0\\,\\Omega$ e $96\\,\\text{W}$" },
+      { "letra": "E", "texto": "$2{,}0\\,\\Omega$ e $288\\,\\text{W}$" }
+    ],
+    "correta": "C",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "Em paralelo: $R_{eq} = \\frac{R_1 R_2}{R_1 + R_2} = \\frac{6 \\cdot 12}{6 + 12} = \\frac{72}{18} = 4{,}0\\,\\Omega$. A potência total é $$P = \\frac{U^2}{R_{eq}} = \\frac{24^2}{4} = \\frac{576}{4} = 144\\,\\text{W}.$$",
+      "porQueErrada": {
+        "A": "Soma os resistores como se estivessem em série ($6 + 12 = 18\\,\\Omega$).",
+        "B": "Calcula a média aritmética dos resistores.",
+        "D": "Calcula a potência apenas do resistor $R_1$ ($24^2 / 6 = 96\\,\\text{W}$).",
+        "E": "Divisão incorreta da resistência equivalente."
+      },
+      "macete": "Para dois resistores em paralelo, use 'produto pela soma' e lembre que $R_{eq}$ é sempre menor que o menor resistor."
+    }
+  },
+  {
+    "id": "exemplo-qui-estequio-05",
+    "banca": "UNESP",
+    "ano": 2025,
+    "materia": "Química",
+    "topico": "pH e Equilíbrio Iônico da Água",
+    "dificuldade": "media",
+    "enunciado": "Considere uma solução aquosa diluída de ácido clorídrico ($\\text{HCl}$), ácido forte, na concentração de $1{,}0 \\times 10^{-3}\\,\\text{mol/L}$ a $25\\,^\\circ\\text{C}$ ($K_w = 1{,}0 \\times 10^{-14}$). O $\\text{pH}$ e o $\\text{pOH}$ dessa solução são, respectivamente:",
+    "alternativas": [
+      { "letra": "A", "texto": "$3$ e $11$" },
+      { "letra": "B", "texto": "$11$ e $3$" },
+      { "letra": "C", "texto": "$4$ e $10$" },
+      { "letra": "D", "texto": "$2$ e $12$" },
+      { "letra": "E", "texto": "$1$ e $13$" }
+    ],
+    "correta": "A",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "Como $\\text{HCl}$ é ácido forte, ioniza-se totalmente: $[\\text{H}^+] = 10^{-3}\\,\\text{mol/L}$. Assim, $\\text{pH} = -\\log(10^{-3}) = 3$. A $25\\,^\\circ\\text{C}$, $\\text{pH} + \\text{pOH} = 14$, logo $\\text{pOH} = 14 - 3 = 11$.",
+      "porQueErrada": {
+        "B": "Troca os valores de pH e pOH (tratando solução ácida como básica).",
+        "C": "Expoente errado no logaritmo.",
+        "D": "Confunde com concentração $10^{-2}\\,\\text{mol/L}$.",
+        "E": "Confunde com concentração $10^{-1}\\,\\text{mol/L}$."
+      },
+      "macete": "Quando $[\\text{H}^+] = 10^{-n}$, o pH é exatamente $n$, e a $25\\,^\\circ\\text{C}$ vale sempre $\\text{pOH} = 14 - \\text{pH}$."
+    }
+  },
+  {
+    "id": "exemplo-bio-genetica-06",
+    "banca": "ENEM",
+    "ano": 2024,
+    "materia": "Biologia",
+    "topico": "Citologia e Metabolismo Energético",
+    "dificuldade": "facil",
+    "enunciado": "Durante a respiração celular aeróbia em células eucarióticas, uma etapa fundamental ocorre nas cristas da membrana interna de uma organela específica, gerando o maior saldo de moléculas de ATP por meio da cadeia transportadora de elétrons e fosforilação oxidativa. Essa organela é:",
+    "alternativas": [
+      { "letra": "A", "texto": "O complexo golgiense." },
+      { "letra": "B", "texto": "O lisossomo." },
+      { "letra": "C", "texto": "A mitocôndria." },
+      { "letra": "D", "texto": "O retículo endoplasmático liso." },
+      { "letra": "E", "texto": "O peroxissomo." }
+    ],
+    "correta": "C",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "As mitocôndrias possuem membrana externa lisa e membrana interna dobrada em cristas mitocondriais, onde se localizam as proteínas da cadeia respiratória e a ATP sintase responsáveis pela fosforilação oxidativa.",
+      "porQueErrada": {
+        "A": "Atua no processamento, empacotamento e secreção de substâncias.",
+        "B": "Responsável pela digestão intracelular de partículas e organelas.",
+        "D": "Realiza síntese de lipídios e destoxificação celular.",
+        "E": "Participa da oxidação de ácidos graxos e decomposição de peróxido de hidrogênio."
+      },
+      "macete": "Cristas internas + cadeia respiratória + saldo alto de ATP apontam diretamente para a mitocôndria."
+    }
+  },
+  {
+    "id": "exemplo-hist-brasil-07",
+    "banca": "UERJ",
+    "ano": 2025,
+    "materia": "História",
+    "topico": "Era Vargas e Industrialização",
+    "dificuldade": "media",
+    "textoBase": "Entre 1930 e 1945, o Estado brasileiro assumiu papel central na coordenação da economia nacional, combinando legislação trabalhista urbana com investimentos em infraestrutura básica e siderurgia.",
+    "enunciado": "A criação da Companhia Siderúrgica Nacional (CSN), em Volta Redonda (RJ), e da Consolidação das Leis do Trabalho (CLT), em 1943, expressam uma estratégia do período conhecido como Era Vargas voltada principalmente para:",
+    "alternativas": [
+      { "letra": "A", "texto": "A substituição de importações e a regulação estatal das relações entre capital e trabalho." },
+      { "letra": "B", "texto": "A abertura irrestrita ao livre-comércio agrário com redução imediata das tarifas alfandegárias." },
+      { "letra": "C", "texto": "A descentralização federativa que devolvia autonomia fiscal plena às oligarquias estaduais." },
+      { "letra": "D", "texto": "A abolição dos sindicatos oficiais para estimular greves autônomas no setor rural." },
+      { "letra": "E", "texto": "A privatização das reservas minerais estratégicas antes da Segunda Guerra Mundial." }
+    ],
+    "correta": "A",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "O projeto varguista articulou o nacional-desenvolvimentismo (indústria de base como CSN para substituir importações) ao trabalhismo/corporativismo estatal (CLT regulando direitos urbanos sob controle do Estado).",
+      "porQueErrada": {
+        "B": "A política adotada foi protecionista para a indústria nascente, não de livre-comércio irrestrito.",
+        "C": "A Era Vargas, especialmente no Estado Novo, promoveu forte centralização política e administrativa.",
+        "D": "O sindicalismo foi atrelado ao Ministério do Trabalho, e a CLT focou inicialmente o trabalhador urbano.",
+        "E": "O Estado criou empresas estatais estratégicas em vez de privatizar o setor siderúrgico."
+      },
+      "macete": "Associe Era Vargas a dois eixos simultâneos: indústria de base estatal + trabalhismo urbano regulado."
+    }
+  },
+  {
+    "id": "exemplo-geo-clima-08",
+    "banca": "FUVEST",
+    "ano": 2024,
+    "materia": "Geografia",
+    "topico": "Urbanização e Ilhas de Calor",
+    "dificuldade": "facil",
+    "enunciado": "Nas grandes metrópoles brasileiras, observa-se frequentemente que a temperatura média no centro adensado é superior à das áreas periféricas arborizadas. Esse fenômeno microclimático urbano, intensificado pela impermeabilização do solo e pela concentração de concreto e asfalto, denomina-se:",
+    "alternativas": [
+      { "letra": "A", "texto": "Efeito estufa global." },
+      { "letra": "B", "texto": "El Niño." },
+      { "letra": "C", "texto": "Ilha de calor urbana." },
+      { "letra": "D", "texto": "Friagem amazônica." },
+      { "letra": "E", "texto": "Maritimidade." }
+    ],
+    "correta": "C",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "As ilhas de calor ocorrem em áreas urbanas devido ao baixo albedo do asfalto, pouca evapotranspiração pela ausência de vegetação, verticalização e emissão de calor por veículos e indústrias.",
+      "porQueErrada": {
+        "A": "O efeito estufa é um fenômeno atmosférico planetário, não restrito ao gradiente centro-periferia urbano.",
+        "B": "El Niño refere-se ao aquecimento anômalo das águas do Pacífico Equatorial.",
+        "D": "Friagem é a incursão de massa polar até a Amazônia durante o inverno.",
+        "E": "Maritimidade é a influência reguladora do oceano sobre a amplitude térmica."
+      },
+      "macete": "Gradiente térmico entre centro cimentado e periferia vegetada = Ilha de calor."
+    }
+  },
+  {
+    "id": "exemplo-port-sintaxe-09",
+    "banca": "FGV",
+    "ano": 2025,
+    "materia": "Português",
+    "topico": "Interpretação de Texto e Coesão",
+    "dificuldade": "media",
+    "textoBase": "\"Embora os algoritmos ampliem a velocidade de acesso à informação, a leitura crítica exige pausa, contexto e confronto de fontes — habilidades que não se automatizam sem esforço intelectual.\"",
+    "enunciado": "No período acima, a oração iniciada pela conjunção \"Embora\" estabelece com a oração principal uma relação lógico-semântica de:",
+    "alternativas": [
+      { "letra": "A", "texto": "Causa, justificando por que os algoritmos eliminam a leitura crítica." },
+      { "letra": "B", "texto": "Condição, impondo um requisito prévio para a velocidade de acesso." },
+      { "letra": "C", "texto": "Concessão, admitindo uma vantagem dos algoritmos sem invalidar a exigência de leitura crítica." },
+      { "letra": "D", "texto": "Consequência, apresentando o resultado direto da pausa e do contexto." },
+      { "letra": "E", "texto": "Finalidade, indicando o objetivo principal do uso de algoritmos na leitura." }
+    ],
+    "correta": "C",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "\"Embora\" é conjunção subordinativa adverbial concessiva: reconhece um fato verdadeiro (agilidade dos algoritmos), mas ressalta uma ressalva que prevalece na argumentação (necessidade de pausa e leitura crítica).",
+      "porQueErrada": {
+        "A": "Não há relação causal ('porque', 'visto que'), mas contraste argumentativo.",
+        "B": "Conjunções condicionais seriam 'se', 'caso', 'desde que'.",
+        "D": "Consequência seria introduzida por 'tanto que', 'de modo que'.",
+        "E": "Finalidade utilizaria 'para que', 'a fim de que'."
+      },
+      "macete": "Conjunções como 'embora', 'conquanto' e 'ainda que' indicam sempre concessão (ideia de quebra de expectativa)."
+    }
+  },
+  {
+    "id": "exemplo-fil-etica-10",
+    "banca": "UNICAMP",
+    "ano": 2024,
+    "materia": "Filosofia",
+    "topico": "Teoria do Conhecimento e Racionalismo",
+    "dificuldade": "dificil",
+    "textoBase": "Na obra Meditações Metafísicas, René Descartes submete todas as crenças oriundas dos sentidos e até mesmo verdades matemáticas à dúvida metódica, buscando encontrar um ponto de apoio indubitável para reconstruir o edifício do saber.",
+    "enunciado": "No projeto filosófico cartesiano, a afirmação \"penso, logo existo\" cumpre o papel de:",
+    "alternativas": [
+      { "letra": "A", "texto": "Comprovar que o conhecimento científico nasce exclusivamente da experiência sensorial imediata." },
+      { "letra": "B", "texto": "Estabelecer uma primeira certeza racional inabalável que resiste ao próprio exercício da dúvida." },
+      { "letra": "C", "texto": "Sustentar o ceticismo absoluto, concluindo que nenhuma verdade pode ser conhecida pelo sujeito." },
+      { "letra": "D", "texto": "Submeter a razão humana à autoridade incontestável dos dogmas medievais." }
+    ],
+    "correta": "B",
+    "anulada": false,
+    "fonte": "Questão de exemplo",
+    "explicacaoCache": {
+      "resolucao": "Para Descartes, mesmo que um gênio maligno engane o sujeito sobre o mundo sensível, o próprio ato de duvidar já é pensamento; logo, o sujeito que pensa necessariamente existe. O cogito inaugura a primeira verdade clara e distinta do racionalismo moderno.",
+      "porQueErrada": {
+        "A": "Descreve o empirismo, corrente oposta ao racionalismo cartesiano.",
+        "C": "A dúvida em Descartes é metódica (um meio para achar certeza), não cética definitiva.",
+        "D": "Descartes busca autonomia da razão crítica em ruptura com o argumento de autoridade escolástico."
+      },
+      "macete": "Em Descartes, a dúvida é instrumento provisório (metódica) para atingir a primeira certeza: o cogito."
+    }
+  }
+]

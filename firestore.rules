@@ -183,6 +183,20 @@ service cloud.firestore {
              data.updatedAt is string;
     }
 
+    function isValidCustomTrail(data) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'category', 'color_theme', 'cards', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'userId', 'title', 'description', 'category', 'color_theme', 'cards', 'createdAt']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 64 &&
+             data.color_theme is string && data.color_theme.size() > 0 && data.color_theme.size() <= 32 &&
+             data.cards is list && data.cards.size() > 0 && data.cards.size() <= 50 &&
+             data.cards[0] is map &&
+             data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
     function isValidQuizResult(data) {
       return data.keys().hasAll(['userId', 'score', 'totalQuestions', 'percentage', 'questions', 'timestamp']) &&
              data.userId is string && data.userId == request.auth.uid &&
@@ -267,6 +281,36 @@ service cloud.firestore {
       allow write: if isOwner(userId) && isValidCardInteraction(request.resource.data);
     }
 
+    match /users/{userId}/custom_trails/{trailId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) && trailId.size() <= 128 && trailId.matches('^[a-zA-Z0-9_\\-]+$') && isValidCustomTrail(request.resource.data);
+    }
+
+    match /users/{userId}/sisu_notas/{edicao} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) && edicao.size() <= 16;
+    }
+
+    match /users/{userId}/sisu_perfil/{docId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId);
+    }
+
+    match /users/{userId}/sisu_simulacoes/{simId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId);
+    }
+
+    match /users/{userId}/sisu_favoritos/{cursoId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) && cursoId.size() <= 128;
+    }
+
+    match /sisu_cursos/{cursoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /user_achievements/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow write: if isOwner(userId);
@@ -281,6 +325,45 @@ service cloud.firestore {
       allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId && isValidEssay(request.resource.data);
       allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && isValidEssay(request.resource.data);
+    }
+
+    match /questoes/{questaoId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /reportes_questoes/{reporteId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create, update: if isAuthenticated()
+        && reporteId.size() <= 128
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.questaoId is string
+        && request.resource.data.questaoId.size() <= 128
+        && request.resource.data.motivo is string
+        && request.resource.data.motivo.size() <= 64;
+    }
+
+    match /users/{userId}/tentativas/{tentativaId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId)
+        && tentativaId.size() <= 128
+        && request.resource.data.userId == userId
+        && request.resource.data.questaoId is string
+        && request.resource.data.questaoId.size() <= 128;
+    }
+
+    match /users/{userId}/revisao/{questaoId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId)
+        && questaoId.size() <= 128
+        && request.resource.data.userId == userId
+        && request.resource.data.questaoId is string
+        && request.resource.data.questaoId.size() <= 128;
+    }
+
+    match /users/{userId}/treino_sessoes/{sessaoId} {
+      allow read, delete: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) && sessaoId.size() <= 128;
     }
   }
 }

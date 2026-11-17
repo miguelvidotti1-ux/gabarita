@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" class="dark" style="background-color: #07090e; color: #fafafa;">
+<html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,10 +8,23 @@
     <meta name="description" content="Redação corrigida no padrão ENEM, FUVEST, UNICAMP e UNESP. IA de vestibular 24h. Simulados com diagnóstico TRI. Playlists de foco com letras." />
     <meta property="og:title" content="gabarita — Treine como a banca corrige" />
     <meta property="og:description" content="Redação corrigida no padrão ENEM, FUVEST, UNICAMP e UNESP. IA de vestibular 24h. Simulados com diagnóstico TRI. Playlists de foco com letras." />
+    <script>
+      (function() {
+        try {
+          var savedTheme = localStorage.getItem('theme') || localStorage.getItem('vestibular-theme') || 'dark';
+          var root = document.documentElement;
+          if (savedTheme === 'light') {
+            root.classList.remove('dark');
+            root.setAttribute('data-theme', 'light');
+          } else {
+            root.classList.add('dark');
+            root.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <style>
       html, body {
-        background-color: #07090E !important;
-        color: #FAFAFA !important;
         margin: 0;
         padding: 0;
         min-height: 100vh;
@@ -52,7 +65,7 @@
       gtag('config', 'G-MD9V98HE12');
     </script>
   </head>
-  <body class="bg-[#07090e] text-[#fafafa]">
+  <body class="bg-[var(--bg-main)] text-[var(--text-main)]">
     <!-- Skip link: primeiro elemento do <body> -->
     <a href="#root" class="skip-link">Pular para o conteúdo principal</a>
 
@@ -568,7 +581,7 @@
                     </div>
                     <div class="pc-input-group">
                         <label class="pc-label">Descrição (opcional)</label>
-                        <textarea class="pc-input pc-textarea" id="pc-descricao" placeholder="Playlist criada no VestHub para estudo focado"></textarea>
+                        <textarea class="pc-input pc-textarea" id="pc-descricao" placeholder="Playlist criada no Gabarita para estudo focado"></textarea>
                     </div>
                     <div class="pc-resumo" id="pc-resumo"></div>
                 </div>
@@ -1121,9 +1134,9 @@
         document.getElementById('pc-step-3').style.display = 'block';
 
         // Pré-preencher nome
-        var nomePadrao = 'VestHub — ' + pcEstado.estiloSelecionado.nome;
+        var nomePadrao = 'Gabarita — ' + pcEstado.estiloSelecionado.nome;
         document.getElementById('pc-nome').value = nomePadrao;
-        document.getElementById('pc-descricao').value = 'Playlist de estudo criada no VestHub • ' + pcEstado.estiloSelecionado.nome;
+        document.getElementById('pc-descricao').value = 'Playlist de estudo criada no Gabarita • ' + pcEstado.estiloSelecionado.nome;
 
         // Resumo
         document.getElementById('pc-resumo').innerHTML =
@@ -1398,10 +1411,25 @@ window.Cronograma = (() => {
 
   async function carregar() {
     try {
-      const r = await fetch('/api/cronograma');
+      const headers = {};
+      try {
+        const sessao = localStorage.getItem('vestibularpro_session_user');
+        if (sessao) {
+          const u = JSON.parse(sessao);
+          if (u.uid) headers['x-usuario-id'] = u.uid;
+        }
+      } catch (_) {}
+      const r = await fetch('/api/cronograma', { headers });
       const d = await r.json();
       if (d.existe && Array.isArray(d.cronograma?.semanas)) return d.cronograma.semanas;
     } catch (e) {}
+    try {
+      const local = localStorage.getItem('cronograma_semanas_salvas');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch (_) {}
     return null;
   }
 
@@ -1535,9 +1563,20 @@ window.Cronograma = (() => {
     const status = document.getElementById('status-cronograma');
     if (status) { status.style.color = '#60A5FA'; status.textContent = 'Salvando...'; }
     try {
+      localStorage.setItem('cronograma_semanas_salvas', JSON.stringify(semanas));
+    } catch (_) {}
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      try {
+        const sessao = localStorage.getItem('vestibularpro_session_user');
+        if (sessao) {
+          const u = JSON.parse(sessao);
+          if (u.uid) headers['x-usuario-id'] = u.uid;
+        }
+      } catch (_) {}
       const r = await fetch('/api/cronograma', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ cronograma: semanas })
       });
       const d = await r.json();
@@ -1546,17 +1585,290 @@ window.Cronograma = (() => {
         status.textContent = d.sucesso ? 'Salvo!' : (d.erro || 'Erro ao salvar.');
       }
     } catch (e) {
-      if (status) { status.style.color = '#ff6b6b'; status.textContent = 'Erro de conexão.'; }
+      if (status) { status.style.color = '#1DB954'; status.textContent = 'Salvo localmente!'; }
     }
   }
 
   // Botão que abre o cronograma: adicione no HTML do app
-  // <button id="btn-abrir-cronograma" onclick="Cronograma.abrir()">Meu Cronograma</button>
   function abrir() {
-    carregarOuGerar();
+    window.dispatchEvent(new CustomEvent('abrir-cronograma-macro'));
+    const btnAba = document.getElementById('btn-abrir-cronograma');
+    if (btnAba) {
+      btnAba.click();
+    } else {
+      carregarOuGerar();
+    }
   }
 
   return { abrir, adicionarSemana, salvar };
+})();
+</script>
+<script>
+/* ============================================================
+   SIMULADOS PERSONALIZADOS — gabarita
+   Vestibular + matéria + dificuldade + nº de questões.
+   Questões com figura recebem imagem gerada pelo servidor.
+   ============================================================ */
+window.Simulado = (() => {
+  let atual = null;      // simulado em andamento
+  let respostas = {};    // id da questão -> alternativa escolhida
+  let finalizado = false;
+  let nivelEscolhido = 'media';
+
+  const BANCAS = ["ENEM","FUVEST","UNICAMP","UNESP","UERJ","ITA","IME","FGV","UNIFESP","PUC-SP","MACKENZIE"];
+  const MATERIAS = ["Matemática","Física","Química","Biologia","História","Geografia","Português",
+                    "Literatura","Redação","Filosofia","Sociologia","Inglês"];
+  const NIVEIS = { facil: "Fácil", media: "Média", dificil: "Difícil" };
+
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function authHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    try {
+      const sessao = localStorage.getItem('vestibularpro_session_user');
+      if (sessao) {
+        const u = JSON.parse(sessao);
+        if (u.uid || u.email) headers['x-usuario-id'] = u.uid || u.email;
+      }
+      const token = localStorage.getItem('vestibularpro_auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    } catch (_) {}
+    return headers;
+  }
+
+  function mostrarAviso(texto) {
+    const el = document.getElementById('sim-aviso');
+    if (el) {
+      el.textContent = texto;
+      el.style.display = texto ? 'block' : 'none';
+    }
+  }
+
+  function modal() {
+    let m = document.getElementById('modal-simulado');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'modal-simulado';
+      m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      document.body.appendChild(m);
+    }
+    return m;
+  }
+
+  function abrirFormulario() {
+    nivelEscolhido = 'media';
+    const m = modal();
+    m.innerHTML = `
+      <div style="background:#10141D;color:#fff;border:1px solid #1E2534;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h2 style="font-size:20px;margin:0;">📝 Criar Simulado</h2>
+          <button onclick="Simulado.fechar()" style="background:none;border:none;color:#9E9E9E;font-size:22px;cursor:pointer;">✕</button>
+        </div>
+        <div id="sim-aviso" style="display:none;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.4);color:#ff8787;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px;"></div>
+        <label style="display:block;font-size:13px;color:#9E9E9E;margin:10px 0 4px;">Vestibular</label>
+        <select id="sim-vestibular" style="width:100%;background:#1A2130;border:1px solid #2A3345;border-radius:8px;color:#fff;padding:10px;">
+          ${BANCAS.map(b => `<option>${esc(b)}</option>`).join('')}
+        </select>
+        <label style="display:block;font-size:13px;color:#9E9E9E;margin:10px 0 4px;">Matéria</label>
+        <select id="sim-materia" style="width:100%;background:#1A2130;border:1px solid #2A3345;border-radius:8px;color:#fff;padding:10px;">
+          ${MATERIAS.map(x => `<option>${esc(x)}</option>`).join('')}
+        </select>
+        <label style="display:block;font-size:13px;color:#9E9E9E;margin:10px 0 4px;">Dificuldade</label>
+        <div id="sim-niveis" style="display:flex;gap:8px;">
+          ${Object.entries(NIVEIS).map(([k, v]) => `<button type="button" data-nivel="${k}" ${k === 'media' ? 'data-selecionado="1"' : ''}
+            style="flex:1;padding:10px;border-radius:8px;cursor:pointer;${k==='media'
+              ? 'background:#1E3A8A;color:#fff;border:none;' : 'background:none;color:#9E9E9E;border:1px solid #2A3345;'}">${esc(v)}</button>`).join('')}
+        </div>
+        <label style="display:block;font-size:13px;color:#9E9E9E;margin:12px 0 4px;">
+          Nº de questões: <b id="sim-nq-valor" style="color:#60A5FA;">10</b>
+        </label>
+        <input id="sim-num" type="range" min="5" max="45" step="5" value="10" style="width:100%;accent-color:#60A5FA;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#9E9E9E;"><span>5</span><span>45</span></div>
+        <button id="sim-gerar" type="button" onclick="Simulado.gerar()"
+          style="width:100%;margin-top:18px;padding:14px;border:none;border-radius:10px;background:#1E3A8A;color:#fff;font-weight:700;cursor:pointer;font-size:15px;">
+          Gerar simulado
+        </button>
+        <p style="color:#6B7280;font-size:12px;margin:10px 0 0;">⏱️ A geração das questões e das imagens pode levar até 2–3 minutos.</p>
+      </div>`;
+    m.style.display = 'flex';
+    m.querySelector('#sim-num')?.addEventListener('input', (e) => {
+      const val = document.getElementById('sim-nq-valor');
+      if (val) val.textContent = e.target.value;
+    });
+    m.querySelectorAll('#sim-niveis button').forEach((b) => {
+      b.onclick = () => {
+        m.querySelectorAll('#sim-niveis button').forEach((x) => {
+          delete x.dataset.selecionado;
+          x.style.cssText = 'flex:1;padding:10px;border-radius:8px;cursor:pointer;background:none;color:#9E9E9E;border:1px solid #2A3345;';
+        });
+        b.style.cssText = 'flex:1;padding:10px;border-radius:8px;cursor:pointer;background:#1E3A8A;color:#fff;border:none;';
+        b.dataset.selecionado = '1';
+        nivelEscolhido = b.dataset.nivel || 'media';
+      };
+    });
+  }
+
+  async function gerar() {
+    const m = modal();
+    mostrarAviso('');
+    const nivelBtn = m.querySelector('#sim-niveis button[data-selecionado]');
+    nivelEscolhido = nivelBtn ? nivelBtn.dataset.nivel : 'media';
+    const payload = {
+      vestibular: document.getElementById('sim-vestibular')?.value || 'ENEM',
+      materia: document.getElementById('sim-materia')?.value || 'Matemática',
+      dificuldade: nivelEscolhido,
+      numQuestoes: Number(document.getElementById('sim-num')?.value) || 10,
+    };
+    const btn = document.getElementById('sim-gerar');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Gerando questões e imagens...';
+    }
+    try {
+      const r = await fetch('/api/simulado/criar', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const d = await r.json();
+      if (!r.ok || d.erro || !d.simulado) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Gerar simulado';
+        }
+        return mostrarAviso(d.erro || 'Não foi possível gerar o simulado.');
+      }
+      atual = d.simulado;
+      respostas = {};
+      finalizado = false;
+      renderizarProva();
+    } catch (e) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Gerar simulado';
+      }
+      mostrarAviso('Erro de conexão. Tente novamente.');
+    }
+  }
+
+  function renderizarProva() {
+    const m = modal();
+    const cardAnterior = document.getElementById('sim-card');
+    const scrollPos = cardAnterior ? cardAnterior.scrollTop : 0;
+    const cabecalho = finalizado ? resultadoHTML() : '';
+    m.innerHTML = `
+      <div id="sim-card" style="background:#10141D;color:#fff;border:1px solid #1E2534;border-radius:16px;max-width:760px;width:100%;max-height:92vh;overflow-y:auto;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;">
+          <h2 style="font-size:18px;margin:0;">${esc(atual.vestibular)} · ${esc(atual.materia)}
+            <span style="color:#60A5FA;font-size:13px;">· ${esc(NIVEIS[atual.dificuldade] || 'Média')}
+            · ${atual.questoes.length} questões</span></h2>
+          <button type="button" onclick="Simulado.fechar()" style="background:none;border:none;color:#9E9E9E;font-size:22px;cursor:pointer;">✕</button>
+        </div>
+        <div id="sim-aviso" style="display:none;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.4);color:#ff8787;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px;"></div>
+        ${cabecalho}
+        <div id="sim-questoes">${atual.questoes.map(questaoHTML).join('')}</div>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+          ${finalizado
+            ? `<button type="button" onclick="Simulado.abrirFormulario()" style="padding:12px 20px;border:none;border-radius:10px;background:#1E3A8A;color:#fff;font-weight:600;cursor:pointer;">Criar outro simulado</button>`
+            : `<button type="button" onclick="Simulado.finalizar()" style="padding:12px 20px;border:none;border-radius:10px;background:#1DB954;color:#10141D;font-weight:700;cursor:pointer;">Corrigir simulado</button>
+               <span id="sim-contagem" style="align-self:center;color:#9E9E9E;font-size:13px;"></span>`}
+        </div>
+      </div>`;
+    m.style.display = 'flex';
+    const novoCard = document.getElementById('sim-card');
+    if (novoCard && scrollPos > 0) novoCard.scrollTop = scrollPos;
+    m.querySelectorAll('[data-qid][data-op]').forEach((el) => {
+      el.onclick = () => escolher(el.dataset.qid, Number(el.dataset.op));
+    });
+    atualizarContagem();
+  }
+
+  function questaoHTML(q, i) {
+    const letra = ['A','B','C','D','E'];
+    const imagem = q.image
+      ? `<img src="${esc(q.image)}" alt="Figura da questão ${i+1}"
+          style="width:100%;max-height:320px;object-fit:contain;border-radius:10px;margin:10px 0;background:#fff;">`
+      : (q.imagem_descricao
+          ? `<div style="background:#10141D;border:1px dashed #2A3345;border-radius:10px;padding:10px 12px;margin:10px 0;font-size:12px;color:#9E9E9E;">
+              <strong style="color:#60A5FA;">Figura descritiva:</strong> ${esc(q.imagem_descricao)}
+            </div>`
+          : '');
+    const opcoes = (q.options || []).map((op, j) => {
+      const escolhida = respostas[q.id] === j;
+      const correta = finalizado && j === q.correctAnswer;
+      const erradaEscolhida = finalizado && escolhida && j !== q.correctAnswer;
+      const estilo = correta ? 'border:1px solid #1DB954;background:rgba(29,185,84,.12);'
+        : erradaEscolhida ? 'border:1px solid #ff6b6b;background:rgba(255,107,107,.10);'
+        : escolhida ? 'border:1px solid #60A5FA;background:rgba(96,165,250,.10);'
+        : 'border:1px solid #2A3345;';
+      return `<div data-op="${j}" data-qid="${esc(q.id)}"
+        style="display:flex;gap:10px;padding:10px 12px;border-radius:10px;margin:6px 0;cursor:pointer;${estilo}">
+        <b style="color:#60A5FA;">${letra[j] || j + 1})</b><span>${esc(op)}</span></div>`;
+    }).join('');
+    const resolucao = finalizado ? `<p style="font-size:13px;color:#9E9E9E;margin:8px 0 0;line-height:1.5;">
+      <b style="color:#1DB954;">✅ Resolução:</b> ${esc(q.explanation)}</p>` : '';
+    return `<div style="background:#1A2130;border-radius:12px;padding:16px;margin-bottom:12px;">
+      <p style="font-size:12px;color:#60A5FA;margin:0 0 6px;">Questão ${i+1} · ${esc(q.topic || q.subject)}</p>
+      <p style="margin:0;line-height:1.5;white-space:pre-line;">${esc(q.text)}</p>
+      ${imagem}${opcoes}${resolucao}</div>`;
+  }
+
+  function escolher(qid, op) {
+    if (finalizado) return;
+    respostas[qid] = op;
+    renderizarProva();
+  }
+
+  function atualizarContagem() {
+    const el = document.getElementById('sim-contagem');
+    if (el && atual) el.textContent = `${Object.keys(respostas).length}/${atual.questoes.length} respondidas`;
+  }
+
+  async function finalizar() {
+    if (!atual) return;
+    if (Object.keys(respostas).length < atual.questoes.length) {
+      const faltando = atual.questoes.length - Object.keys(respostas).length;
+      mostrarAviso(`Responda as ${faltando} ${faltando === 1 ? 'questão que falta' : 'questões que faltam'} antes de corrigir.`);
+      const card = document.getElementById('sim-card');
+      if (card) card.scrollTop = 0;
+      return;
+    }
+    mostrarAviso('');
+    try {
+      const r = await fetch(`/api/simulado/${encodeURIComponent(atual.id)}/finalizar`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ respostas: Object.entries(respostas).map(([id, escolha]) => ({ id, escolha })) }),
+      });
+      const d = await r.json();
+      if (!r.ok || d.erro) return mostrarAviso(d.erro || 'Erro ao registrar resultado.');
+    } catch (e) {}
+    finalizado = true;
+    renderizarProva();
+    const card = document.getElementById('sim-card');
+    if (card) card.scrollTop = 0;
+  }
+
+  function resultadoHTML() {
+    const acertos = atual.questoes.filter((q) => respostas[q.id] === q.correctAnswer).length;
+    const total = Math.max(1, atual.questoes.length);
+    const pct = Math.round((acertos / total) * 100);
+    return `<div style="background:#1A2130;border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;">
+      <span style="font-size:30px;font-weight:800;color:${pct >= 70 ? '#1DB954' : pct >= 50 ? '#60A5FA' : '#ff6b6b'};">${pct}%</span>
+      <p style="margin:4px 0 0;color:#9E9E9E;font-size:13px;">${acertos} de ${atual.questoes.length} questões corretas</p>
+    </div>`;
+  }
+
+  function fechar() { modal().style.display = 'none'; }
+
+  return { abrirFormulario, gerar, escolher, finalizar, fechar };
 })();
 </script>
   </body>

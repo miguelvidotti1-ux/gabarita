@@ -40,6 +40,9 @@ import FloatingSupport from './components/FloatingSupport';
 import DynamicOnboardingModal from './components/DynamicOnboardingModal';
 import PesquisaModal from './components/PesquisaModal';
 
+const SimuladorSisuView = React.lazy(() => import('./features/sisu/SimuladorSisuView'));
+const TreinoRapidoView = React.lazy(() => import('./features/treino/TreinoRapidoView'));
+
 export default function App() {
   const isOnline = useOnlineStatus();
   const [user, setUser] = React.useState<User | any | null>(() => {
@@ -56,7 +59,15 @@ export default function App() {
     }
     return null;
   });
-  const [activeTab, setActiveTab] = React.useState('home');
+  const [activeTab, setActiveTab] = React.useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.location.pathname === '/sisu') return 'sisu';
+        if (window.location.pathname === '/treino') return 'treino';
+      }
+    } catch {}
+    return 'home';
+  });
   const [selectedVestibular, setSelectedVestibular] = React.useState<Vestibular>(Vestibular.ENEM);
   const [loading, setLoading] = React.useState(false);
   const [quizQuestions, setQuizQuestions] = React.useState<Question[]>([]);
@@ -66,12 +77,44 @@ export default function App() {
   const [showPesquisa, setShowPesquisa] = React.useState(false);
   const [showLogin, setShowLogin] = React.useState(false);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = React.useState<'mensal' | 'trimestral' | 'semestral' | 'anual'>('semestral');
+  const [vestbotPrompt, setVestbotPrompt] = React.useState<string | null>(null);
+  const [planInactiveNotice, setPlanInactiveNotice] = React.useState(false);
 
   React.useEffect(() => {
     const handleAbrirPesquisa = () => setShowPesquisa(true);
     window.addEventListener('abrir-pesquisa', handleAbrirPesquisa);
     return () => window.removeEventListener('abrir-pesquisa', handleAbrirPesquisa);
   }, []);
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      if (window.location.pathname === '/sisu') {
+        setActiveTab('sisu');
+      } else if (window.location.pathname === '/treino') {
+        setActiveTab('treino');
+      } else if (activeTab === 'sisu' || activeTab === 'treino') {
+        setActiveTab('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeTab]);
+
+  React.useEffect(() => {
+    try {
+      if (activeTab === 'sisu' && window.location.pathname !== '/sisu') {
+        window.history.pushState({ tab: 'sisu' }, '', '/sisu');
+      } else if (activeTab === 'treino' && window.location.pathname !== '/treino') {
+        window.history.pushState({ tab: 'treino' }, '', '/treino');
+      } else if (
+        activeTab !== 'sisu' &&
+        activeTab !== 'treino' &&
+        (window.location.pathname === '/sisu' || window.location.pathname === '/treino')
+      ) {
+        window.history.pushState({ tab: activeTab }, '', '/');
+      }
+    } catch {}
+  }, [activeTab]);
 
   React.useEffect(() => {
     async function testConnection() {
@@ -226,6 +269,50 @@ export default function App() {
         );
       case 'agenda':
         return <CronogramaVestibulares onNavegarParaAba={setActiveTab} />;
+      case 'sisu':
+        return (
+          <React.Suspense
+            fallback={
+              <div className="min-h-[320px] flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
+                <GraduationCap className="w-10 h-10 text-blue-400 animate-pulse" />
+                <p className="text-sm font-semibold">Carregando Simulador Sisu...</p>
+              </div>
+            }
+          >
+            <SimuladorSisuView
+              user={user}
+              onNavigatePlanos={() => {
+                setPlanInactiveNotice(true);
+                setActiveTab('planos');
+              }}
+              onNavigateLogin={() => setShowLogin(true)}
+            />
+          </React.Suspense>
+        );
+      case 'treino':
+        return (
+          <React.Suspense
+            fallback={
+              <div className="min-h-[320px] flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
+                <Zap className="w-10 h-10 text-blue-400 animate-pulse" />
+                <p className="text-sm font-semibold">Carregando Treino Rápido...</p>
+              </div>
+            }
+          >
+            <TreinoRapidoView
+              user={user}
+              onNavigatePlanos={() => {
+                setPlanInactiveNotice(true);
+                setActiveTab('planos');
+              }}
+              onNavigateLogin={() => setShowLogin(true)}
+              onAskVestBot={(prompt) => {
+                setVestbotPrompt(prompt);
+                setActiveTab('chat');
+              }}
+            />
+          </React.Suspense>
+        );
       case 'conquistas':
         return <SistemasConquistasMetas />;
       case 'skillswipe':
@@ -284,7 +371,12 @@ export default function App() {
       case 'videos':
         return <Videos vestibular={selectedVestibular} />;
       case 'chat':
-        return <ChatWithAI />;
+        return (
+          <ChatWithAI
+            initialPrompt={vestbotPrompt}
+            onPromptConsumed={() => setVestbotPrompt(null)}
+          />
+        );
       case 'transcricao':
         return (
           <AudioTranscriberView
@@ -301,9 +393,26 @@ export default function App() {
       case 'sobre':
         return <Sobre />;
       case 'dashboard':
-        return <Dashboard selectedVestibular={selectedVestibular} />;
+        return (
+          <Dashboard
+            selectedVestibular={selectedVestibular}
+            onOpenSisu={() => setActiveTab('sisu')}
+            onOpenTreino={() => setActiveTab('treino')}
+          />
+        );
       case 'planos':
-        return <PlanSelection onComplete={() => setActiveTab('home')} currentPlanId={selectedPlanForCheckout} userEmail={user?.email} userName={user?.displayName} />;
+        return (
+          <PlanSelection
+            onComplete={() => {
+              setPlanInactiveNotice(false);
+              setActiveTab('home');
+            }}
+            currentPlanId={selectedPlanForCheckout}
+            userEmail={user?.email}
+            userName={user?.displayName}
+            inactiveNotice={planInactiveNotice}
+          />
+        );
       case 'quiz':
         return <Quiz questions={quizQuestions} isFullExam={isFullExam} onComplete={() => setActiveTab('home')} vestibular={selectedVestibular} timeLimit={quizTimeLimit} />;
       case 'login':

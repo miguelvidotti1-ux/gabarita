@@ -8,12 +8,14 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "treino:gerar-explicacoes": "tsx server/scripts/gerarExplicacoesTreino.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.14",
+    "@types/katex": "^0.16.8",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
     "cookie-parser": "^1.4.7",
@@ -21,7 +23,9 @@
     "express": "^4.21.2",
     "firebase": "^12.11.0",
     "html2canvas": "^1.4.1",
+    "jose": "^6.2.17",
     "jspdf": "^4.2.1",
+    "katex": "^0.19.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "multer": "^2.5.0",
@@ -31,7 +35,9 @@
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.6.0",
     "vite": "^6.2.0",
-    "xlsx": "^0.18.5"
+    "vitest": "^5.1.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

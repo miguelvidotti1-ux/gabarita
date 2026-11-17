@@ -203,6 +203,89 @@
         "source": { "type": "string" }
       },
       "required": ["userId", "vestibulares", "studyMethod", "dailyHours", "source"]
+    },
+    "CustomTrail": {
+      "title": "CustomTrail",
+      "description": "User-created custom flashcard trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 120 },
+        "description": { "type": "string", "maxLength": 500 },
+        "category": { "type": "string", "maxLength": 64 },
+        "color_theme": { "type": "string", "maxLength": 32 },
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "front_content": { "type": "string" },
+              "back_content": { "type": "string" },
+              "topic": { "type": "string" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "category", "color_theme", "cards", "createdAt"]
+    },
+    "TreinoQuestao": {
+      "title": "TreinoQuestao",
+      "description": "Objective question stored in bank (admin writable)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "banca": { "type": "string" },
+        "ano": { "type": "integer" },
+        "materia": { "type": "string" },
+        "topico": { "type": "string" },
+        "dificuldade": { "type": "string", "enum": ["facil", "media", "dificil"] },
+        "correta": { "type": "string" }
+      },
+      "required": ["id", "banca", "ano", "materia", "correta"]
+    },
+    "TreinoTentativa": {
+      "title": "TreinoTentativa",
+      "description": "User attempt in Treino Rápido",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "questaoId": { "type": "string", "maxLength": 128 },
+        "alternativaEscolhida": { "type": "string" },
+        "acertou": { "type": "boolean" },
+        "tempoSeg": { "type": "number" },
+        "xpGanho": { "type": "number" },
+        "respondidaEm": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "questaoId", "alternativaEscolhida", "acertou"]
+    },
+    "TreinoRevisao": {
+      "title": "TreinoRevisao",
+      "description": "Spaced repetition state for a question",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "questaoId": { "type": "string", "maxLength": 128 },
+        "passo": { "type": "integer" },
+        "intervaloDias": { "type": "integer" },
+        "proximaRevisaoEm": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "questaoId", "passo", "intervaloDias", "proximaRevisaoEm"]
+    },
+    "ReporteQuestao": {
+      "title": "ReporteQuestao",
+      "description": "User-submitted issue report for a question",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "questaoId": { "type": "string", "maxLength": 128 },
+        "motivo": { "type": "string" },
+        "detalhe": { "type": "string" }
+      },
+      "required": ["id", "userId", "questaoId", "motivo"]
     }
   },
   "firestore": {
@@ -249,6 +332,50 @@
     "/users/{userId}/questionnaire": {
       "schema": "Questionnaire",
       "description": "User onboarding questionnaire data"
+    },
+    "/users/{userId}/custom_trails/{trailId}": {
+      "schema": "CustomTrail",
+      "description": "User-created custom flashcard trails"
+    },
+    "/users/{userId}/sisu_notas/{edicao}": {
+      "schema": "SisuNotas",
+      "description": "User Enem scores per valid edition"
+    },
+    "/users/{userId}/sisu_perfil/{docId}": {
+      "schema": "SisuPerfil",
+      "description": "User Sisu quota profile and selected options"
+    },
+    "/users/{userId}/sisu_simulacoes/{simulacaoId}": {
+      "schema": "SisuSimulacao",
+      "description": "Saved Sisu simulations history"
+    },
+    "/users/{userId}/sisu_favoritos/{cursoId}": {
+      "schema": "SisuFavorito",
+      "description": "User favorite Sisu courses"
+    },
+    "/sisu_cursos/{cursoId}": {
+      "schema": "CursoSisu",
+      "description": "Sisu courses catalog (admin writable)"
+    },
+    "/questoes/{questaoId}": {
+      "schema": "TreinoQuestao",
+      "description": "Treino Rápido question bank"
+    },
+    "/reportes_questoes/{reporteId}": {
+      "schema": "ReporteQuestao",
+      "description": "Reported errors on Treino Rápido questions"
+    },
+    "/users/{userId}/tentativas/{tentativaId}": {
+      "schema": "TreinoTentativa",
+      "description": "User Treino Rápido attempts"
+    },
+    "/users/{userId}/revisao/{questaoId}": {
+      "schema": "TreinoRevisao",
+      "description": "User spaced repetition schedule per question"
+    },
+    "/users/{userId}/treino_sessoes/{sessaoId}": {
+      "schema": "TreinoTentativa",
+      "description": "In-progress and finished Treino Rápido sessions"
     }
   }
 }

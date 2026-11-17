@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { spotifyRouter } from "./server/spotifyRoutes";
 import {
   CorretorRedacaoService,
@@ -19,6 +19,9 @@ import { boletimStore, ServicoBoletim, ServicoAnaliseNotas } from "./server/bole
 import multer from "multer";
 import { randomBytes, scryptSync, timingSafeEqual, createHmac } from "crypto";
 import { mercadoPagoRouter, PLANOS_PADRAO } from "./server/mercadoPagoRoutes";
+import { createSisuRouter } from "./server/routes/sisu";
+import { createTreinoRouter } from "./server/routes/treino";
+import { ai, generateWithFallback } from "./server/geminiClient";
 
 async function startServer() {
   const app = express();
@@ -250,105 +253,22 @@ async function startServer() {
     }
   });
 
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY || "",
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
-    }
-  });
+  // Mount Simulador Sisu API routes (reuses existing Gemini generateWithFallback pipeline)
+  app.use(
+    "/api/sisu",
+    createSisuRouter({
+      generateWithFallback,
+      uploadMiddleware: upload.single("arquivo"),
+    })
+  );
 
-  const DEFAULT_CANDIDATE_MODELS = [
-    'gemini-3.1-flash-lite',
-    'gemini-3.5-transcribe',
-    'gemini-3.8-flash',
-    'gemini-flash-latest',
-  ];
-
-  // Armazena cooldown temporário para modelos que excederam a cota diária ou por minuto
-  const modelCooldowns = new Map<string, number>();
-
-  async function generateWithFallback(options: {
-    contents: any;
-    config?: any;
-    candidateModels?: string[];
-  }) {
-    const models = options.candidateModels || DEFAULT_CANDIDATE_MODELS;
-    let lastError: any = null;
-
-    for (const modelName of models) {
-      // Se o modelo estiver em cooldown devido a cota esgotada (429), pula para o próximo modelo
-      const cooldownUntil = modelCooldowns.get(modelName) || 0;
-      if (Date.now() < cooldownUntil) {
-        continue;
-      }
-
-      // Clona e higieniza a configuração conforme diretrizes do modelo
-      const cleanConfig = options.config ? { ...options.config } : {};
-      if (
-        modelName.startsWith('gemini-3.') ||
-        modelName.startsWith('gemini-4') ||
-        modelName.includes('flash')
-      ) {
-        delete cleanConfig.temperature;
-        delete cleanConfig.topP;
-        delete cleanConfig.topK;
-        delete cleanConfig.candidateCount;
-      }
-
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const response = await ai.models.generateContent({
-            model: modelName,
-            contents: options.contents,
-            config: cleanConfig,
-          });
-          if (response && response.text) {
-            return response;
-          }
-        } catch (err: any) {
-          lastError = err;
-          const msg = err?.message || '';
-          const is429 =
-            err?.status === 429 ||
-            msg.includes('429') ||
-            msg.includes('RESOURCE_EXHAUSTED') ||
-            msg.includes('Quota exceeded') ||
-            msg.includes('rate-limits');
-
-          const isTransient =
-            err?.status === 503 ||
-            msg.includes('503') ||
-            msg.includes('high demand') ||
-            msg.includes('UNAVAILABLE');
-
-          console.warn(`[Gemini API] Info com modelo ${modelName} (tentativa ${attempt + 1}):`, is429 ? 'Cota de requisições atingida (429), ativando modelo alternativo...' : msg);
-
-          // Se a cota do modelo esgotou (429):
-          if (is429) {
-            // Se for cota diária (per day), aplica cooldown longo (4h), caso contrário 60s
-            const isDaily = msg.includes('per day') || msg.includes('PerDay') || msg.includes('hours') || msg.includes('RetryInfo');
-            const cooldownTime = isDaily ? Date.now() + 4 * 60 * 60 * 1000 : Date.now() + 60 * 1000;
-            modelCooldowns.set(modelName, cooldownTime);
-            if (modelName === 'gemini-3.8-flash' || modelName === 'gemini-flash-latest') {
-              modelCooldowns.set('gemini-3.8-flash', cooldownTime);
-              modelCooldowns.set('gemini-flash-latest', cooldownTime);
-            }
-            break;
-          }
-
-          if (isTransient && attempt === 0) {
-            await new Promise((r) => setTimeout(r, 600));
-          } else {
-            break;
-          }
-        }
-      }
-    }
-
-    throw lastError || new Error('Não foi possível obter resposta dos modelos de IA.');
-  }
+  // Mount Treino Rápido API routes (protected by subscription middleware + Gemini fallback)
+  app.use(
+    "/api/treino",
+    createTreinoRouter({
+      generateWithFallback,
+    })
+  );
 
   const FALLBACK_ESSAY_THEMES: Record<string, string[]> = {
     ENEM: [
@@ -708,7 +628,238 @@ Retorne APENAS um array JSON:
       res.status(500).json({ error: err?.message || "Erro ao gerar questões" });
     }
   });
+  // ========== GERADOR DE SIMULADOS PERSONALIZADOS ==========
+  const SIMULADOS_PATH = path.join(process.cwd(), "data", "simulados.json");
+  const SIM_IMAGENS_DIR = path.join(process.cwd(), "data", "simulado_imagens");
+  try { fs.mkdirSync(SIM_IMAGENS_DIR, { recursive: true }); } catch (_) {}
 
+  function carregarSimulados(): Record<string, any> {
+    try {
+      const dados = JSON.parse(fs.readFileSync(SIMULADOS_PATH, "utf-8"));
+      if (dados && typeof dados === "object") return dados;
+    } catch (_) {}
+    return {};
+  }
+  function salvarSimulados(mapa: Record<string, any>): void {
+    try {
+      fs.mkdirSync(path.dirname(SIMULADOS_PATH), { recursive: true });
+      fs.writeFileSync(SIMULADOS_PATH, JSON.stringify(mapa, null, 2), "utf-8");
+    } catch (e: any) {
+      console.error("[Simulado] Erro ao salvar:", e);
+    }
+  }
+
+  // Gera a imagem de uma questão a partir da descrição (modelo de imagem do Gemini).
+  // Salva o PNG em data/simulado_imagens e devolve a URL interna. Falha graciosa: null.
+  async function gerarImagemQuestao(descricao: string, vestibular: string): Promise<string | null> {
+    try {
+      const promptImagem = `Gere uma ilustração didática, de estilo limpo e acadêmico, para uma questão de prova do vestibular "${vestibular}". A imagem deve conter EXATAMENTE a figura descrita a seguir, com os dados visíveis e legíveis, sem texto explicativo adicional fora da figura: ${descricao}`;
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-image",
+        contents: promptImagem,
+        config: { responseModalities: ["TEXT", "IMAGE"] },
+      });
+      const partes: any[] = (response as any).candidates?.[0]?.content?.parts || [];
+      for (const parte of partes) {
+        const inline = parte.inlineData || parte.inline_data;
+        if (inline?.data) {
+          const nomeArquivo = `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+          fs.writeFileSync(path.join(SIM_IMAGENS_DIR, nomeArquivo), Buffer.from(inline.data, "base64"));
+          return `/api/simulado/imagem/${nomeArquivo}`;
+        }
+      }
+    } catch (e: any) {
+      console.warn("[Simulado] Geração de imagem indisponível, questão seguirá com fallback:", e?.message || e);
+    }
+    return null;
+  }
+
+  // Servir as imagens geradas (arquivos de nome controlado)
+  app.get("/api/simulado/imagem/:arquivo", (req, res) => {
+    try {
+      const nome = String(req.params.arquivo || "");
+      if (!/^img_[0-9]+_[a-z0-9]+\.png$/.test(nome)) {
+        return res.status(400).json({ erro: "Arquivo inválido." });
+      }
+      const caminho = path.join(SIM_IMAGENS_DIR, nome);
+      if (!fs.existsSync(caminho)) {
+        return res.status(404).json({ erro: "Imagem não encontrada." });
+      }
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.send(fs.readFileSync(caminho));
+    } catch (_) {
+      return res.status(500).json({ erro: "Erro ao carregar imagem." });
+    }
+  });
+
+  // CRIAR simulado: vestibular + matéria + dificuldade + n° de questões
+  app.post("/api/simulado/criar", async (req, res) => {
+    try {
+      const uid = String(req.body?.usuario_id || extractUsuarioId(req) || "usuario_padrao");
+      const vestibular = String(req.body?.vestibular || "ENEM").toUpperCase().slice(0, 20);
+      const materia = String(req.body?.materia || "").trim().slice(0, 60);
+      const dificuldade = ["facil", "media", "dificil"].includes(String(req.body?.dificuldade))
+        ? String(req.body.dificuldade) : "media";
+      const numQuestoes = Math.max(5, Math.min(45, Number(req.body?.numQuestoes) || 10));
+      if (!materia) {
+        return res.status(400).json({ erro: "Escolha a matéria do simulado." });
+      }
+
+      // Geração em 2 níveis: com figuras (descrição) e autossuficiente (sem figuras)
+      const prompt = `Você é uma banca examinadora do vestibular ${vestibular}.
+Crie ${numQuestoes} questões de MÚLTIPLA ESCOLHA sobre ${materia}, dificuldade ${dificuldade}.
+REGRAS:
+- Estilo fiel às provas do ${vestibular} (enunciados com contexto do mundo real).
+- 5 alternativas (A-E) por questão; APENAS UMA correta.
+- Se a questão DEPENDER de figura (gráfico, mapa, tabela, circuito, célula, reação etc.), preencha o campo "imagem_descricao" com uma descrição TÉCNICA E COMPLETA da figura que deve ser gerada (rótulos, eixos, valores, cores) — a imagem será criada automaticamente a partir desse texto. NÃO coloque URL externa.
+- Se a questão NÃO precisar de figura, deixe "imagem_descricao" vazio e garanta que TODOS os dados necessários estejam no enunciado.
+- Distribua as questões entre subtemas variados de ${materia}.
+Retorne APENAS um array JSON com EXATAMENTE ${numQuestoes} itens:
+[
+  {
+    "id": "string",
+    "text": "enunciado completo e autossuficiente",
+    "options": ["texto da alternativa A", "texto da B", "texto da C", "texto da D", "texto da E"],
+    "correctAnswer": 0,
+    "explanation": "resolução passo a passo",
+    "subject": "${materia}",
+    "topic": "subtema específico",
+    "imagem_descricao": ""
+  }
+]`;
+      const response = await generateWithFallback({
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                text: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctAnswer: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
+                subject: { type: Type.STRING },
+                topic: { type: Type.STRING },
+                imagem_descricao: { type: Type.STRING, nullable: true },
+              },
+              required: ["id", "text", "options", "correctAnswer", "explanation", "subject"],
+            },
+          },
+        },
+      });
+      const rawText = (response.text || "").trim();
+      if (!rawText) return res.status(500).json({ erro: "Sem resposta do modelo." });
+      const cleanJson = rawText.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
+      let questoes: any[] = JSON.parse(cleanJson);
+      if (!Array.isArray(questoes)) return res.status(500).json({ erro: "Formato de resposta inesperado." });
+
+      questoes = questoes.slice(0, numQuestoes).map((q: any, i: number) => {
+        const opts = (Array.isArray(q.options) ? q.options : []).slice(0, 5).map((o: any) => String(o).slice(0, 500));
+        const maxIdx = Math.max(0, opts.length - 1);
+        const rawAns = Number(q.correctAnswer);
+        const correctAnswer = Number.isFinite(rawAns) ? Math.max(0, Math.min(maxIdx, Math.trunc(rawAns))) : 0;
+        return {
+          id: String(q.id || `q${i + 1}`),
+          text: String(q.text || `Questão ${i + 1}`).slice(0, 2000),
+          options: opts,
+          correctAnswer,
+          explanation: String(q.explanation || "").slice(0, 2000),
+          subject: materia,
+          topic: String(q.topic || materia).slice(0, 100),
+          image: null as string | null,
+          imagem_descricao: String(q.imagem_descricao || "").trim().slice(0, 1000) || undefined,
+        };
+      });
+
+      // Gera até 5 imagens por simulado para evitar timeout (falha mantém imagem_descricao como fallback)
+      let imagensGeradas = 0;
+      for (const q of questoes) {
+        if (imagensGeradas >= 5) break;
+        if (q.imagem_descricao && q.options.length >= 2) {
+          const url = await gerarImagemQuestao(q.imagem_descricao, vestibular);
+          if (url) {
+            q.image = url;
+            q.imagem_descricao = undefined;
+          }
+          imagensGeradas++;
+        }
+      }
+
+      const simulado = {
+        id: "sim_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
+        usuario: uid,
+        vestibular,
+        materia,
+        dificuldade,
+        criado_em: new Date().toISOString(),
+        respondido: false,
+        acertos: null,
+        questoes,
+      };
+
+      const todos = carregarSimulados();
+      todos[uid] = todos[uid] || [];
+      todos[uid].unshift(simulado);
+      if (todos[uid].length > 15) todos[uid] = todos[uid].slice(0, 15); // guarda os 15 mais recentes
+      salvarSimulados(todos);
+
+      return res.json({ sucesso: true, simulado });
+    } catch (err: any) {
+      console.error("[Simulado] Erro ao criar:", err);
+      return res.status(500).json({ erro: err?.message || "Erro ao criar simulado." });
+    }
+  });
+
+  // Listar os meus simulados
+  app.get("/api/simulado", (req, res) => {
+    try {
+      const uid = String(req.query?.usuario_id || extractUsuarioId(req) || "usuario_padrao");
+      const lista = (carregarSimulados()[uid] || []).map((s: any) => ({
+        id: s.id, vestibular: s.vestibular, materia: s.materia,
+        dificuldade: s.dificuldade, criado_em: s.criado_em,
+        numQuestoes: s.questoes?.length || 0, respondido: s.respondido, acertos: s.acertos,
+      }));
+      return res.json({ simulados: lista });
+    } catch (_) {
+      return res.json({ simulados: [] });
+    }
+  });
+
+  // Registra o resultado do simulado (quando a pessoa termina e confere)
+  app.post("/api/simulado/:id/finalizar", (req, res) => {
+    try {
+      const uid = String(req.body?.usuario_id || extractUsuarioId(req) || "usuario_padrao");
+      const sid = String(req.params.id || "");
+      const todos = carregarSimulados();
+      const simulado =
+        (todos[uid] || []).find((s: any) => s.id === sid) ||
+        (todos["usuario_padrao"] || []).find((s: any) => s.id === sid);
+      if (!simulado) return res.status(404).json({ erro: "Simulado não encontrado." });
+      const respostas = req.body?.respostas;
+      if (!Array.isArray(respostas)) return res.status(400).json({ erro: "Respostas inválidas." });
+      let acertos = 0;
+      for (const r of respostas.slice(0, 45)) {
+        if (r?.escolha === null || r?.escolha === undefined || r?.escolha === "") continue;
+        const escolhaNum = Number(r.escolha);
+        if (!Number.isInteger(escolhaNum)) continue;
+        const q = simulado.questoes.find((x: any) => x.id === String(r?.id));
+        if (q && escolhaNum === q.correctAnswer) acertos++;
+      }
+      simulado.respondido = true;
+      simulado.acertos = acertos;
+      salvarSimulados(todos);
+      return res.json({
+        sucesso: true, acertos, total: simulado.questoes.length,
+        percentual: Math.round((acertos / Math.max(1, simulado.questoes.length)) * 100),
+      });
+    } catch (err: any) {
+      return res.status(500).json({ erro: err?.message || "Erro ao finalizar simulado." });
+    }
+  });
   app.post("/api/gemini/essay-theme", async (req, res) => {
     const { 
       vestibular = "ENEM", 
@@ -1703,10 +1854,13 @@ Retorne exclusivamente um JSON com este formato:
   // Carrega o cronograma do usuário (as alterações dele têm prioridade sobre a IA)
   app.get("/api/cronograma", (req, res) => {
     try {
-      const uid = extractUsuarioId(req);
+      const uid = String(req.query?.usuario_id || extractUsuarioId(req) || "usuario_padrao");
       const todos = carregarCronogramas();
       if (todos[uid]) {
         return res.json({ existe: true, cronograma: todos[uid] });
+      }
+      if (todos["usuario_padrao"]) {
+        return res.json({ existe: true, cronograma: todos["usuario_padrao"] });
       }
       return res.json({ existe: false, cronograma: null });
     } catch (err: any) {
@@ -1718,10 +1872,7 @@ Retorne exclusivamente um JSON com este formato:
   // Salva o cronograma editado pelo usuário
   app.post("/api/cronograma", (req, res) => {
     try {
-      const uid = extractUsuarioId(req);
-      if (uid === "usuario_padrao") {
-        return res.status(401).json({ erro: "Faça login para salvar seu cronograma." });
-      }
+      const uid = String(req.body?.usuario_id || extractUsuarioId(req) || "usuario_padrao");
       const lista = req.body?.cronograma;
       if (!Array.isArray(lista) || lista.length === 0 || lista.length > 52) {
         return res.status(400).json({ erro: "Cronograma inválido (1 a 52 semanas)." });

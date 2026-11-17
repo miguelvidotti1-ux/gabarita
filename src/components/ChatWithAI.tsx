@@ -72,10 +72,16 @@ const WELCOME_MESSAGE: Message = {
   timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 };
 
-export default function ChatWithAI() {
+interface ChatWithAIProps {
+  initialPrompt?: string | null;
+  onPromptConsumed?: () => void;
+}
+
+export default function ChatWithAI({ initialPrompt, onPromptConsumed }: ChatWithAIProps = {}) {
   const [conversas, setConversas] = useState<ConversaItem[]>([]);
   const [activeConversaId, setActiveConversaId] = useState<number | null>(null);
   const [carregandoConversas, setCarregandoConversas] = useState(false);
+  const lastHandledPromptRef = useRef<string | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
@@ -94,8 +100,47 @@ export default function ChatWithAI() {
 
   // Carrega as conversas salvas no início
   useEffect(() => {
-    carregarConversas();
+    void carregarConversas();
   }, []);
+
+  // Quando vier de outra aba (ex: "Pergunte ao VestBot"), abre nova conversa e envia o contexto
+  useEffect(() => {
+    const promptTrim = initialPrompt?.trim();
+    if (!promptTrim || lastHandledPromptRef.current === promptTrim) return;
+    lastHandledPromptRef.current = promptTrim;
+
+    const iniciarComContexto = async () => {
+      try {
+        const res = await fetch('/api/chat/conversas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo: 'Dúvida Treino Rápido' }),
+        });
+        let createdId: number | null = null;
+        if (res.ok) {
+          const data = await res.json();
+          createdId = data.conversa_id ?? null;
+          if (createdId) {
+            const nova: ConversaItem = {
+              id: createdId,
+              titulo: data.titulo || 'Dúvida Treino Rápido',
+              atualizada_em: new Date().toISOString(),
+              total_mensagens: 0,
+            };
+            setConversas((prev) => [nova, ...prev.filter((c) => c.id !== nova.id)]);
+            setActiveConversaId(createdId);
+            localStorage.setItem('gabarita_conversa_id', String(createdId));
+          }
+        }
+        setMessages([WELCOME_MESSAGE]);
+        await enviarMensagemComConversa(promptTrim, createdId);
+      } finally {
+        onPromptConsumed?.();
+      }
+    };
+
+    void iniciarComContexto();
+  }, [initialPrompt]);
 
   const carregarConversas = async (preferredId?: number) => {
     try {
@@ -216,10 +261,10 @@ export default function ChatWithAI() {
     }
   };
 
-  const handleSend = async (messageToSend?: string) => {
-    const text = (messageToSend || input).trim();
+  const enviarMensagemComConversa = async (text: string, conversaOverrideId?: number | null) => {
     if (!text || loading) return;
 
+    const targetConversaId = conversaOverrideId !== undefined ? conversaOverrideId : activeConversaId;
     const userMsgId = 'user-' + Date.now();
     const timeNow = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -228,11 +273,10 @@ export default function ChatWithAI() {
       textareaRef.current.style.height = 'auto';
     }
 
-    const updatedMessages: Message[] = [
-      ...messages, 
-      { id: userMsgId, role: 'user', text, timestamp: timeNow }
-    ];
-    setMessages(updatedMessages);
+    setMessages((prev) => [
+      ...prev,
+      { id: userMsgId, role: 'user', text, timestamp: timeNow },
+    ]);
     setLoading(true);
 
     try {
@@ -241,7 +285,7 @@ export default function ChatWithAI() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pergunta: text,
-          conversa_id: activeConversaId,
+          conversa_id: targetConversaId,
         }),
       });
 
@@ -310,6 +354,11 @@ export default function ChatWithAI() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSend = async (messageToSend?: string) => {
+    const text = (messageToSend || input).trim();
+    await enviarMensagemComConversa(text);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -27,12 +27,25 @@ export default defineConfig(({mode}) => {
         },
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+          globPatterns: ['**/*.{js,css,html,svg,png,woff2,json}'],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com/,
               handler: 'CacheFirst',
               options: { cacheName: 'google-fonts' }
+            },
+            {
+              urlPattern: /\/api\/sisu\/cursos/,
+              handler: 'StaleWhileRevalidate',
+              options: { cacheName: 'sisu-cursos-cache' }
+            },
+            {
+              urlPattern: /\/api\/treino\/(pacote-offline|questoes)/,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'gabarita-treino-cache',
+                networkTimeoutSeconds: 4,
+              }
             }
           ]
         }

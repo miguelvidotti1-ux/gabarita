@@ -27,13 +27,15 @@ import {
   Settings,
   Info,
   Headphones,
-  Mic
+  Mic,
+  Zap
 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import VestibularProLogo from './VestibularProLogo';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useTheme } from '../hooks/useTheme';
+import ThemeToggle from './ThemeToggle';
 import EditProfileModal, { UserProfileData } from './EditProfileModal';
 import ConfigModal from './ConfigModal';
 import ToastFeedback, { ToastData } from './ToastFeedback';
@@ -119,8 +121,10 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
       items: [
         { id: 'home', label: 'Início', icon: Home },
         { id: 'dashboard', label: 'Meu Painel', icon: LayoutDashboard },
+        { id: 'treino', label: 'Treino Rápido', icon: Zap, isNew: true },
         { id: 'agenda', label: 'Cronograma', icon: Calendar },
         { id: 'vestibulares', label: 'Vestibulares', icon: GraduationCap },
+        { id: 'sisu', label: 'Simulador Sisu', icon: GraduationCap, isNew: true },
         { id: 'gabaritos', label: 'Gabaritos', icon: CheckCircle },
       ]
     },
@@ -176,7 +180,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
   };
 
   const displayName = profileData?.displayName || user?.displayName || 'Miguel Vidotti';
-  const displayRole = user?.role === 'admin' ? 'Administrador' : 'Estudante · Anual';
+  const displayRole = user?.role === 'admin' ? 'Administrador' : 'Assinante Gabarita';
 
   const getInitials = () => {
     if (displayName) {
@@ -199,7 +203,8 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
           <VestibularProLogo className="w-9 h-9" bgVariant="black" />
           <span className="font-extrabold tracking-tight text-xl text-[var(--text-main)]">Gabarita</span>
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)} 
             className="text-[var(--text-muted)] p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
@@ -221,9 +226,10 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
             onClick={() => setActiveTab('home')}
             className="flex items-center gap-2.5 cursor-pointer"
           >
-            <VestibularProLogo className="w-9 h-9" bgVariant="black" />
+            <VestibularProLogo className="w-9 h-9" bgVariant={theme === 'dark' ? 'black' : 'primary'} />
             <span className="font-extrabold tracking-tight text-xl text-[var(--text-main)]">Gabarita</span>
           </button>
+          <ThemeToggle />
         </div>
 
         {/* Navigation Sections */}
@@ -258,27 +264,26 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
                       >
                         <Icon size={18} className="shrink-0" />
                         <span className="flex-1 truncate">{item.label}</span>
-                        {item.isNew && (
-                          <span className="bg-sky-100 dark:bg-zinc-800 text-sky-800 dark:text-zinc-200 font-bold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        {item.isNew ? (
+                          <span className="bg-sky-100 dark:bg-zinc-800 text-sky-800 dark:text-zinc-200 font-bold text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider">
                             Novo
                           </span>
-                        )}
+                        ) : null}
                       </button>
                       {isAgenda && (
                         <div className="pl-6 pr-1">
                           <button
-                            id="btn-abrir-cronograma"
+                            id="btn-abrir-cronograma-menu"
                             onClick={() => {
-                              if (typeof (window as any).Cronograma?.abrir === 'function') {
-                                (window as any).Cronograma.abrir();
-                              }
+                              setActiveTab('agenda');
+                              window.dispatchEvent(new CustomEvent('abrir-cronograma-macro'));
                               setIsMenuOpen(false);
                             }}
                             className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 hover:text-blue-300 border border-blue-500/20 transition-all cursor-pointer text-left"
-                            title="Abrir editor de cronograma"
+                            title="Abrir Meu Cronograma & Planejamento"
                           >
                             <Sparkles size={12} className="text-blue-400 shrink-0" />
-                            <span className="truncate">Meu Cronograma</span>
+                            <span className="truncate">Meu Cronograma & Planejamento</span>
                           </button>
                         </div>
                       )}
@@ -367,7 +372,6 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
       {/* Main Content */}
       <main 
         className="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto bg-[var(--bg-main)]"
-        style={{ backgroundColor: '#000000', borderColor: '#10141d' }}
       >
         <motion.div
           key={activeTab}

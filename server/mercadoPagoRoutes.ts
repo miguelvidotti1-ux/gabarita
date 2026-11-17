@@ -100,76 +100,52 @@ interface TransactionRecord {
 
 const recentTransactions: Map<string, TransactionRecord> = new Map();
 
+import { PLANOS_CONFIG, PLANOS_LISTA, gerarPixEmvComValor } from "../shared/planos";
+
 export const PLAN_PIX_KEYS: Record<string, { code: string; price: number; formattedPrice: string; beneficiary: string; city: string; txid: string }> = {
   mensal: {
-    price: 39.90,
-    formattedPrice: "R$ 39,90",
+    price: PLANOS_CONFIG.mensal.price,
+    formattedPrice: PLANOS_CONFIG.mensal.formattedPrice,
     beneficiary: "Luiz De Luca",
     city: "São Paulo",
     txid: "1745077504960226",
-    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540539.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077504960226304EDA0"
+    code: gerarPixEmvComValor(PLANOS_CONFIG.mensal.price, "daqr1745077504960226")
   },
   trimestral: {
-    price: 99.90,
-    formattedPrice: "R$ 99,90",
+    price: PLANOS_CONFIG.trimestral.price,
+    formattedPrice: PLANOS_CONFIG.trimestral.formattedPrice,
     beneficiary: "Luiz De Luca",
     city: "São Paulo",
     txid: "1745077506510046",
-    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540590.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077506510046304EE43"
+    code: gerarPixEmvComValor(PLANOS_CONFIG.trimestral.price, "daqr1745077506510046")
   },
   semestral: {
-    price: 179.90,
-    formattedPrice: "R$ 179,90",
+    price: PLANOS_CONFIG.semestral.price,
+    formattedPrice: PLANOS_CONFIG.semestral.formattedPrice,
     beneficiary: "Luiz De Luca",
     city: "São Paulo",
     txid: "1745077507226366",
-    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406179.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr17450775072263663049663"
+    code: gerarPixEmvComValor(PLANOS_CONFIG.semestral.price, "daqr1745077507226366")
   },
   anual: {
-    price: 299.90,
-    formattedPrice: "R$ 299,90",
+    price: PLANOS_CONFIG.anual.price,
+    formattedPrice: PLANOS_CONFIG.anual.formattedPrice,
     beneficiary: "Luiz De Luca",
     city: "São Paulo",
     txid: "1745077507570396",
-    code: "00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406299.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077507570396304CDF1"
+    code: gerarPixEmvComValor(PLANOS_CONFIG.anual.price, "daqr1745077507570396")
   }
 };
 
-export const PLANOS_PADRAO = [
-  {
-    nome: 'mensal',
-    preco_centavos: 3990,
-    preco_reais: 39.90,
-    duracao_dias: 30,
-    descricao: 'Tudo ilimitado por 30 dias: IA, correções, simulados e playlists',
-    subtext: 'Acesso completo por 30 dias, sem fidelidade'
-  },
-  {
-    nome: 'trimestral',
-    preco_centavos: 9990,
-    preco_reais: 99.90,
-    duracao_dias: 90,
-    descricao: '3 meses de acesso completo — economia de R$ 19,80',
-    subtext: 'Economia de R$ 19,80 — ideal para o reta final'
-  },
-  {
-    nome: 'semestral',
-    preco_centavos: 17990,
-    preco_reais: 179.90,
-    duracao_dias: 180,
-    descricao: '6 meses de acesso completo — economia de R$ 59,50',
-    subtext: 'Economia de R$ 59,50 — acompanha o ciclo completo de simulados',
-    destaque: true
-  },
-  {
-    nome: 'anual',
-    preco_centavos: 29990,
-    preco_reais: 299.90,
-    duracao_dias: 365,
-    descricao: 'Acesso completo por 12 meses — equivalente a R$ 24,99/mês',
-    subtext: 'Equivalente a R$ 24,99/mês — do início do ano até a prova'
-  }
-];
+export const PLANOS_PADRAO = PLANOS_LISTA.map((p) => ({
+  nome: p.id,
+  preco_centavos: p.preco_centavos,
+  preco_reais: p.price,
+  duracao_dias: p.duracao_dias,
+  descricao: p.descricao,
+  subtext: p.subtext,
+  destaque: p.destaque || false,
+}));
 
 /**
  * GET /api/mercadopago/planos

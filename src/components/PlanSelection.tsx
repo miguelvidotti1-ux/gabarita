@@ -28,12 +28,14 @@ import {
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { MercadoPagoService, PixPaymentResponse } from '../services/mercadoPagoService';
+import { PLANOS_CONFIG, gerarPixEmvComValor } from '../../shared/planos';
 
 interface PlanSelectionProps {
   onComplete?: () => void;
   userEmail?: string;
   userName?: string;
   currentPlanId?: 'mensal' | 'trimestral' | 'semestral' | 'anual';
+  inactiveNotice?: boolean;
 }
 
 interface PlanOption {
@@ -56,53 +58,53 @@ export const PLAN_PIX_KEYS: Record<
   { code: string; price: number; formattedPrice: string; beneficiary: string; city: string; txid: string }
 > = {
   mensal: {
-    price: 39.90,
-    formattedPrice: 'R$ 39,90',
+    price: PLANOS_CONFIG.mensal.price,
+    formattedPrice: PLANOS_CONFIG.mensal.formattedPrice,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077504960226',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540539.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077504960226304EDA0'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.mensal.price, 'daqr1745077504960226')
   },
   trimestral: {
-    price: 99.90,
-    formattedPrice: 'R$ 99,90',
+    price: PLANOS_CONFIG.trimestral.price,
+    formattedPrice: PLANOS_CONFIG.trimestral.formattedPrice,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077506510046',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b520400005303986540590.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077506510046304EE43'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.trimestral.price, 'daqr1745077506510046')
   },
   semestral: {
-    price: 179.90,
-    formattedPrice: 'R$ 179,90',
+    price: PLANOS_CONFIG.semestral.price,
+    formattedPrice: PLANOS_CONFIG.semestral.formattedPrice,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077507226366',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406179.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr17450775072263663049663'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.semestral.price, 'daqr1745077507226366')
   },
   anual: {
-    price: 299.90,
-    formattedPrice: 'R$ 299,90',
+    price: PLANOS_CONFIG.anual.price,
+    formattedPrice: PLANOS_CONFIG.anual.formattedPrice,
     beneficiary: 'Luiz De Luca',
     city: 'São Paulo',
     txid: '1745077507570396',
-    code: '00020126580014br.gov.bcb.pix0136b07c3c7d-57b9-4a7f-b19d-2963b5c4018b5204000053039865406299.905802BR5912Luiz De Luca6009Sao Paulo62230519daqr1745077507570396304CDF1'
+    code: gerarPixEmvComValor(PLANOS_CONFIG.anual.price, 'daqr1745077507570396')
   }
 };
 
 const PLANS: PlanOption[] = [
   {
     id: 'mensal',
-    name: 'Mensal',
-    price: 39.90,
-    preco_centavos: 3990,
-    duracao_dias: 30,
-    descricao: 'Tudo ilimitado por 30 dias: IA, correções, simulados e playlists',
-    subtext: 'Acesso completo por 30 dias, sem fidelidade',
+    name: PLANOS_CONFIG.mensal.nome,
+    price: PLANOS_CONFIG.mensal.price,
+    preco_centavos: PLANOS_CONFIG.mensal.preco_centavos,
+    duracao_dias: PLANOS_CONFIG.mensal.duracao_dias,
+    descricao: PLANOS_CONFIG.mensal.descricao,
+    subtext: PLANOS_CONFIG.mensal.subtext,
     periodLabel: '/mês (30 dias)',
     cycleLabel: 'Cobrança por 30 dias',
     features: [
-      { text: 'Acesso completo por 30 dias sem fidelidade', enabled: true },
-      { text: 'IA de vestibular e VestBot 24h', enabled: true },
+      { text: 'Treino Rápido e Simulador Sisu completos', enabled: true },
+      { text: 'IA de vestibular e Tutor 24h', enabled: true },
       { text: 'Correções ilimitadas no padrão ENEM e bancas', enabled: true },
       { text: 'Simulados com diagnóstico TRI', enabled: true },
       { text: 'Playlists de foco com letras', enabled: true },
@@ -110,60 +112,60 @@ const PLANS: PlanOption[] = [
   },
   {
     id: 'trimestral',
-    name: 'Trimestral',
-    price: 99.90,
-    preco_centavos: 9990,
-    duracao_dias: 90,
-    descricao: '3 meses de acesso completo — economia de R$ 19,80',
-    subtext: 'Economia de R$ 19,80 — ideal para o reta final',
+    name: PLANOS_CONFIG.trimestral.nome,
+    price: PLANOS_CONFIG.trimestral.price,
+    preco_centavos: PLANOS_CONFIG.trimestral.preco_centavos,
+    duracao_dias: PLANOS_CONFIG.trimestral.duracao_dias,
+    descricao: PLANOS_CONFIG.trimestral.descricao,
+    subtext: PLANOS_CONFIG.trimestral.subtext,
     periodLabel: '/3 meses (90 dias)',
     cycleLabel: 'Cobrança a cada 90 dias',
-    savings: 'Economia de R$ 19,80',
+    savings: PLANOS_CONFIG.trimestral.savings,
     features: [
       { text: '3 meses de acesso completo (90 dias)', enabled: true },
-      { text: 'Economia de R$ 19,80 no período', enabled: true },
-      { text: 'Ideal para o reta final dos vestibulares', enabled: true },
+      { text: `Equivalente a ${PLANOS_CONFIG.trimestral.equivalenteMensal}`, enabled: true },
+      { text: 'Treino Rápido + Simulador Sisu completos', enabled: true },
       { text: 'Tudo ilimitado: IA, correções, simulados e playlists', enabled: true },
       { text: 'Diagnóstico TRI e plano do boletim', enabled: true },
     ]
   },
   {
     id: 'semestral',
-    name: 'Semestral',
-    price: 179.90,
-    preco_centavos: 17990,
-    duracao_dias: 180,
-    descricao: '6 meses de acesso completo — economia de R$ 59,50',
-    subtext: 'Economia de R$ 59,50 — acompanha o ciclo completo de simulados',
+    name: PLANOS_CONFIG.semestral.nome,
+    price: PLANOS_CONFIG.semestral.price,
+    preco_centavos: PLANOS_CONFIG.semestral.preco_centavos,
+    duracao_dias: PLANOS_CONFIG.semestral.duracao_dias,
+    descricao: PLANOS_CONFIG.semestral.descricao,
+    subtext: PLANOS_CONFIG.semestral.subtext,
     periodLabel: '/6 meses (180 dias)',
     cycleLabel: 'Cobrança a cada 180 dias',
-    savings: 'Economia de R$ 59,50',
+    savings: PLANOS_CONFIG.semestral.savings,
     popular: true,
     features: [
       { text: '6 meses de acesso completo (180 dias)', enabled: true },
-      { text: 'Economia de R$ 59,50 no período', enabled: true },
-      { text: 'Acompanha o ciclo completo de simulados', enabled: true },
+      { text: `${PLANOS_CONFIG.semestral.savings} (${PLANOS_CONFIG.semestral.equivalenteMensal})`, enabled: true },
+      { text: 'Treino Rápido + Simulador Sisu ilimitados + IA', enabled: true },
       { text: 'Mais escolhido pelos vestibulandos', enabled: true },
-      { text: 'Tudo ilimitado: IA, correções, simulados e suporte', enabled: true },
+      { text: 'Tudo ilimitado: correções, simulados e suporte', enabled: true },
     ]
   },
   {
     id: 'anual',
-    name: 'Anual',
-    price: 299.90,
-    preco_centavos: 29990,
-    duracao_dias: 365,
-    descricao: 'Acesso completo por 12 meses — equivalente a R$ 24,99/mês',
-    subtext: 'Equivalente a R$ 24,99/mês — do início do ano até a prova',
+    name: PLANOS_CONFIG.anual.nome,
+    price: PLANOS_CONFIG.anual.price,
+    preco_centavos: PLANOS_CONFIG.anual.preco_centavos,
+    duracao_dias: PLANOS_CONFIG.anual.duracao_dias,
+    descricao: PLANOS_CONFIG.anual.descricao,
+    subtext: PLANOS_CONFIG.anual.subtext,
     periodLabel: '/ano (365 dias)',
     cycleLabel: 'Cobrança anual única (365 dias)',
-    savings: 'R$ 24,99/mês',
+    savings: PLANOS_CONFIG.anual.savings,
     features: [
       { text: 'Acesso completo por 12 meses (365 dias)', enabled: true },
-      { text: 'Equivalente a R$ 24,99/mês', enabled: true },
-      { text: 'Preparação do início do ano até a prova', enabled: true },
-      { text: 'Tudo ilimitado + mentorias e novidades', enabled: true },
-      { text: 'Acesso VIP garantido durante todo o ano letivo', enabled: true },
+      { text: `Equivalente a ${PLANOS_CONFIG.anual.equivalenteMensal}`, enabled: true },
+      { text: 'Treino Rápido + Simulador Sisu do início à prova', enabled: true },
+      { text: 'Tudo ilimitado + atualizações do ano inclusas', enabled: true },
+      { text: 'Acesso completo garantido durante todo o ano letivo', enabled: true },
     ]
   }
 ];
@@ -172,7 +174,8 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
   onComplete, 
   userEmail,
   userName,
-  currentPlanId = 'semestral'
+  currentPlanId = 'semestral',
+  inactiveNotice = false
 }) => {
   // State
   const [activePlanId, setActivePlanId] = useState<'mensal' | 'trimestral' | 'semestral' | 'anual'>(currentPlanId);
@@ -507,7 +510,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-xs font-semibold text-amber-400">
                 <Crown size={14} className="text-amber-400" />
-                <span>Gestão de Assinatura & Acesso Premium</span>
+                <span>Gestão de Assinatura Gabarita</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-main)] tracking-tight">
                 Planos & Assinatura
@@ -530,6 +533,13 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
             )}
           </div>
         </div>
+
+        {inactiveNotice && screen === 'overview' && (
+          <div className="mx-6 sm:mx-10 mt-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/35 text-amber-300 flex items-center gap-3 text-xs sm:text-sm font-semibold">
+            <AlertCircle size={18} className="shrink-0 text-amber-400" />
+            <span>Sua assinatura não está ativa. Escolha um plano para continuar.</span>
+          </div>
+        )}
 
         {/* OVERVIEW SCREEN */}
         {screen === 'overview' && (
@@ -1312,7 +1322,7 @@ export const PlanSelection: React.FC<PlanSelectionProps> = ({
                       Cancelar Assinatura?
                     </h3>
                     <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">
-                      Seu plano atual continuará ativo até <span className="font-semibold text-white">{calculateNextBillingDate(activePlanObj.id)}</span>. Após essa data, seu acesso aos simulados e gabaritos comentados será limitado.
+                      Seu plano atual continuará ativo até <span className="font-semibold text-white">{calculateNextBillingDate(activePlanObj.id)}</span>. Após essa data, sua assinatura será encerrada e o acesso ficará suspenso até a renovação.
                     </p>
                   </div>
 

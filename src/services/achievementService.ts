@@ -64,6 +64,33 @@ const generateAchievements = (): Conquista[] => {
     });
   });
 
+  list.push({
+    id: 'c_sisu_10',
+    nome: 'Estrategista Sisu',
+    descricao: 'Simule 10 cursos distintos no Simulador Sisu para mapear suas melhores chances.',
+    icone: 'GraduationCap',
+    requisito: { tipo: 'tarefas_concluidas', valor: 10 },
+    recompensa: '+100 XP · Selo Sisu',
+  });
+
+  list.push({
+    id: 'c_treino_streak_10',
+    nome: 'Primeira sequência de 10',
+    descricao: 'Acerte 10 questões seguidas no Treino Rápido sem errar.',
+    icone: 'Flame',
+    requisito: { tipo: 'tarefas_concluidas', valor: 10 },
+    recompensa: '+50 XP · Selo Treino Rápido',
+  });
+
+  list.push({
+    id: 'c_treino_revisao_dia',
+    nome: 'Revisão em dia',
+    descricao: 'Conclua todas as questões pendentes de revisão espaçada no Treino Rápido.',
+    icone: 'CheckCircle',
+    requisito: { tipo: 'metas_atingidas', valor: 1 },
+    recompensa: '+40 XP · Selo Revisão',
+  });
+
   return list;
 };
 
@@ -446,5 +473,39 @@ export const achievementService = {
     } catch (error) {
       console.error("Error tracking user activity automatically: ", error);
     }
+  },
+
+  async unlockSisuEstrategistaIfNeeded(usuarioId: string, distinctCoursesCount: number): Promise<Conquista | null> {
+    if (distinctCoursesCount < 10) return null;
+    const conquista = DEFAULT_CONQUISTAS.find((c) => c.id === 'c_sisu_10');
+    if (!conquista) return null;
+
+    const profile = await this.getUsuarioConquistas(usuarioId);
+    if (profile.conquistasLiberadas.some((c) => c.conquistaId === 'c_sisu_10')) {
+      return null;
+    }
+
+    const updated = desbloquearConquista(profile, conquista);
+    await this.saveUsuarioConquistas(usuarioId, updated);
+    window.dispatchEvent(new CustomEvent('achievement-unlocked', { detail: conquista }));
+    return conquista;
+  },
+
+  async unlockTreinoBadgeIfNeeded(
+    usuarioId: string,
+    badgeId: 'c_treino_streak_10' | 'c_treino_revisao_dia'
+  ): Promise<Conquista | null> {
+    const conquista = DEFAULT_CONQUISTAS.find((c) => c.id === badgeId);
+    if (!conquista) return null;
+
+    const profile = await this.getUsuarioConquistas(usuarioId);
+    if (profile.conquistasLiberadas.some((c) => c.conquistaId === badgeId)) {
+      return null;
+    }
+
+    const updated = desbloquearConquista(profile, conquista);
+    await this.saveUsuarioConquistas(usuarioId, updated);
+    window.dispatchEvent(new CustomEvent('achievement-unlocked', { detail: conquista }));
+    return conquista;
   }
 };

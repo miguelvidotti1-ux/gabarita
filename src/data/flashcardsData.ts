@@ -12,6 +12,8 @@ export interface StudyTrail {
   category: string;
   color_theme: string;
   cards: Flashcard[];
+  isCustom?: boolean;
+  createdAt?: string;
 }
 
 export const FLASHCARDS_TRAILS: StudyTrail[] = [

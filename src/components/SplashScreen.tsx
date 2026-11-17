@@ -111,7 +111,7 @@ export default function SplashScreen({
             <div className="flex items-center gap-2.5 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg">
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
               <span className="text-xs font-black tracking-widest text-slate-200 uppercase">
-                VestHub
+                Gabarita
               </span>
               <span className="text-[10px] text-blue-400 font-bold px-1.5 py-0.5 rounded bg-blue-500/20">
                 Abertura Oficial

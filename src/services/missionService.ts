@@ -124,7 +124,48 @@ class MissionEngine {
       missions.push(this._createMission(type, topic, rand));
     }
 
-    return missions.slice(0, 5);
+    const finalMissions = missions.slice(0, 4);
+    finalMissions.push({
+      id: `sisu-2a-opcao-${dateStr}`,
+      title: 'Simule sua 2ª opção no Simulador Sisu',
+      type: 'review',
+      topic: 'Simulador Sisu',
+      target: 1,
+      progress: 0,
+      completed: false,
+      xp: 35,
+    });
+    finalMissions.push({
+      id: `treino-rapido-${dateStr}`,
+      title: 'Responda 10 questões no Treino Rápido',
+      type: 'questions',
+      topic: 'Treino Rápido',
+      target: 10,
+      progress: 0,
+      completed: false,
+      xp: 40,
+    });
+
+    return finalMissions;
+  }
+
+  public completeSisuSecondOptionMission(): boolean {
+    const missions = this.getMissionsForToday();
+    const targetMission = missions.find(
+      (m) => m.topic === 'Simulador Sisu' || m.id.startsWith('sisu-2a-opcao')
+    );
+    if (!targetMission || targetMission.completed) return false;
+    this.updateProgress(targetMission.id, 1);
+    return true;
+  }
+
+  public updateTreinoProgress(delta: number = 1): void {
+    const missions = this.getMissionsForToday();
+    const targetMission = missions.find(
+      (m) => m.topic === 'Treino Rápido' || m.id.startsWith('treino-rapido')
+    );
+    if (!targetMission || targetMission.completed) return;
+    this.updateProgress(targetMission.id, delta);
   }
 
   public getMissionsForToday(): Mission[] {
@@ -138,6 +179,36 @@ class MissionEngine {
       localStorage.setItem(key, JSON.stringify(missions));
     } else {
       missions = JSON.parse(stored);
+      let changed = false;
+      if (!missions.some((m) => m.id.startsWith('sisu-2a-opcao'))) {
+        missions.push({
+          id: `sisu-2a-opcao-${today}`,
+          title: 'Simule sua 2ª opção no Simulador Sisu',
+          type: 'review',
+          topic: 'Simulador Sisu',
+          target: 1,
+          progress: 0,
+          completed: false,
+          xp: 35,
+        });
+        changed = true;
+      }
+      if (!missions.some((m) => m.id.startsWith('treino-rapido'))) {
+        missions.push({
+          id: `treino-rapido-${today}`,
+          title: 'Responda 10 questões no Treino Rápido',
+          type: 'questions',
+          topic: 'Treino Rápido',
+          target: 10,
+          progress: 0,
+          completed: false,
+          xp: 40,
+        });
+        changed = true;
+      }
+      if (changed) {
+        localStorage.setItem(key, JSON.stringify(missions));
+      }
     }
     return missions;
   }

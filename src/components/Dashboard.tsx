@@ -1,5 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
-import { Trophy, Target, Clock, BookOpen, Loader2, FileText, Zap, CheckCircle, Lightbulb, Sparkles, RefreshCw, CheckSquare, Square, BookmarkCheck, X, Award } from 'lucide-react';
+import { Trophy, Target, Clock, BookOpen, Loader2, FileText, Zap, CheckCircle, Lightbulb, Sparkles, RefreshCw, CheckSquare, Square, BookmarkCheck, X, Award, GraduationCap, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { generateStudyPlan, StudyPlan, getDailyStudyTip, DailyStudyTip } from '../services/geminiService';
 import { levelSystem, LevelSystemStatus } from '../services/levelService';
@@ -15,6 +15,10 @@ import { SeletorFiltros } from './SeletorFiltros';
 import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { motion, AnimatePresence } from 'motion/react';
+import { getCachedCursosLocal, loadFavoritos, loadSimulacoes } from '../features/sisu/sisuService';
+import { formatarNotaBR } from '../../shared/sisuEngine';
+import { CursoSisu, SisuSimulacaoSalva } from '../../shared/sisuTypes';
+import { fetchRevisoesPendentes, getTreinoStatsHoje } from '../features/treino/treinoService';
 
 interface SubjectPerformance {
   id: string;
@@ -70,6 +74,8 @@ interface EssayHistoryItem {
 
 interface DashboardProps {
   selectedVestibular?: string;
+  onOpenSisu?: () => void;
+  onOpenTreino?: () => void;
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
@@ -93,7 +99,7 @@ export default function Dashboard(props: DashboardProps) {
   );
 }
 
-function DashboardInner({ selectedVestibular }: DashboardProps) {
+function DashboardInner({ selectedVestibular, onOpenSisu, onOpenTreino }: DashboardProps) {
   const { filtroGlobal } = useGraficos();
   const [studyPlan, setStudyPlan] = useState<StudyPlan[]>([]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
@@ -115,6 +121,16 @@ function DashboardInner({ selectedVestibular }: DashboardProps) {
     simulatedCount: 0
   });
   const [vestibularStats, setVestibularStats] = useState<{ name: string, acertos: number, total: number }[]>([]);
+
+  const [sisuSonho, setSisuSonho] = useState<{
+    cursoFav: CursoSisu | null;
+    ultimaSim: SisuSimulacaoSalva | null;
+  }>({ cursoFav: null, ultimaSim: null });
+
+  const [treinoHoje, setTreinoHoje] = useState(() => ({
+    ...getTreinoStatsHoje(),
+    revisoesPendentes: 0,
+  }));
 
   // State for Dica de Estudo do Dia (Gemini API)
   const [dailyTip, setDailyTip] = useState<DailyStudyTip | null>(null);
@@ -160,6 +176,37 @@ function DashboardInner({ selectedVestibular }: DashboardProps) {
     setTipVestibular(currentVestib);
     fetchDailyTip(currentVestib);
   }, [selectedVestibular]);
+
+  useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    Promise.all([loadFavoritos(uid), loadSimulacoes(uid)]).then(([favIds, sims]) => {
+      const cursos = getCachedCursosLocal();
+      const cursoFav =
+        (favIds.length > 0 ? cursos.find((c) => c.id === favIds[0]) : null) ||
+        (sims.length > 0 ? cursos.find((c) => c.id === sims[0].curso1Id) : null) ||
+        null;
+      const ultimaSim = cursoFav
+        ? sims.find((s) => s.curso1Id === cursoFav.id || s.curso2Id === cursoFav.id) || sims[0] || null
+        : sims[0] || null;
+      setSisuSonho({ cursoFav, ultimaSim });
+    });
+
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      void fetchRevisoesPendentes()
+        .then((res) => {
+          setTreinoHoje((prev) => ({ ...prev, revisoesPendentes: res.totalPendentes }));
+        })
+        .catch(() => {});
+    }
+
+    const onTreinoUpdate = () => {
+      const statsAtualizados = getTreinoStatsHoje();
+      setTreinoHoje((prev) => ({ ...prev, ...statsAtualizados }));
+    };
+    window.addEventListener('treino-stats-updated', onTreinoUpdate);
+    return () => window.removeEventListener('treino-stats-updated', onTreinoUpdate);
+  }, []);
 
   useEffect(() => {
     if (selectedVestibular) {
@@ -409,6 +456,79 @@ function DashboardInner({ selectedVestibular }: DashboardProps) {
             <p className="text-2xl font-black text-[var(--text-main)]">{stat.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Cards rápidos: Treino de hoje + Simulador Sisu */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-light)] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-[var(--primary-soft)] text-blue-400 flex items-center justify-center shrink-0">
+              <Zap size={22} />
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400">
+                Treino Rápido · Diário
+              </span>
+              <h2 className="text-lg font-bold text-[var(--text-main)] mt-0.5">
+                Treino de hoje
+              </h2>
+              <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5 font-mono tabular-nums">
+                {treinoHoje.respondidasHoje} questão(ões) hoje · sequência {treinoHoje.streakAtual} ·{' '}
+                {treinoHoje.revisoesPendentes} revisão(ões) pendente(s)
+              </p>
+            </div>
+          </div>
+          {onOpenTreino && (
+            <button
+              type="button"
+              onClick={onOpenTreino}
+              className="px-5 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold inline-flex items-center justify-center gap-2 shadow-sm shadow-[var(--shadow-primary)] cursor-pointer shrink-0 transition-all"
+            >
+              <span>Treinar agora</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-light)] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-[var(--primary-soft)] text-blue-400 flex items-center justify-center shrink-0">
+              <GraduationCap size={22} />
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400">
+                Simulador Sisu · Curso dos Sonhos
+              </span>
+              <h2 className="text-lg font-bold text-[var(--text-main)] mt-0.5">
+                Sua chance no curso dos sonhos
+              </h2>
+              {sisuSonho.cursoFav ? (
+                <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
+                  <strong className="text-[var(--text-main)]">
+                    {sisuSonho.cursoFav.curso} — {sisuSonho.cursoFav.iesSigla}
+                  </strong>
+                  {sisuSonho.ultimaSim && sisuSonho.ultimaSim.notaFinalOpcao1 !== null
+                    ? ` · Última nota ponderada: ${formatarNotaBR(sisuSonho.ultimaSim.notaFinalOpcao1)} (${sisuSonho.ultimaSim.chanceOpcao1})`
+                    : ' · Clique para simular suas notas do Enem neste curso.'}
+                </p>
+              ) : (
+                <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
+                  Favorite um curso no Simulador Sisu para acompanhar sua média ponderada e projeção de corte aqui.
+                </p>
+              )}
+            </div>
+          </div>
+          {onOpenSisu && (
+            <button
+              type="button"
+              onClick={onOpenSisu}
+              className="px-5 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold inline-flex items-center justify-center gap-2 shadow-sm shadow-[var(--shadow-primary)] cursor-pointer shrink-0 transition-all"
+            >
+              <span>Abrir Simulador Sisu</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Pomodoro & Study Methods */}

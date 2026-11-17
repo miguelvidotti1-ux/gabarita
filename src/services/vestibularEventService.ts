@@ -11,6 +11,7 @@ export interface VestibularEvent {
   localDeProva?: string;
   enderecoDeProva?: string;
   dicasTransporte?: string;
+  oficial?: boolean;
 }
 
 export type VestibularList = VestibularEvent[];
@@ -295,6 +296,15 @@ const DEFAULT_EVENTS: VestibularEvent[] = [
     date: '2026-12-14T13:00:00.000Z',
     notes: '36 questões discursivas + redação.',
     alertDaysBefore: 5
+  },
+  {
+    id: 'e_sisu_2027',
+    name: 'Sisu 2027 — Inscrições (Previsão)',
+    institution: 'MEC (Sisu)',
+    date: '2027-01-19T12:00:00.000Z',
+    notes: 'Previsão de abertura das inscrições do Sisu 2027 após divulgação das notas do Enem 2026 — data a confirmar pelo MEC.',
+    alertDaysBefore: 15,
+    oficial: false
   }
 ];
 

@@ -21,7 +21,7 @@ export const STUDY_TRACKS_WITH_LYRICS: StudyTrackWithLyrics[] = [
   {
     id: 'track-lofi-foco',
     title: 'Lo-Fi Foco Total (Respira & Concentra)',
-    artist: 'VestibularPro Focus Beats',
+    artist: 'Gabarita Focus Beats',
     album: 'Sessão de Estudos & Memorização',
     category: 'Lo-Fi Instrumental & Voz Suave',
     coverUrl: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=500&auto=format&fit=crop&q=80',

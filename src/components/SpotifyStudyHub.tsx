@@ -164,7 +164,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   const [isMinimized, setIsMinimized] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('VestibularPro - Foco nos Estudos');
+  const [newPlaylistName, setNewPlaylistName] = useState('Gabarita - Foco nos Estudos');
   const [newPlaylistDesc, setNewPlaylistDesc] = useState('Músicas selecionadas para foco e resolução de questões');
   
   // Spotify OAuth states
@@ -676,8 +676,8 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   const handleCreateEstiloPlaylist = async () => {
     if (!estiloTracks.length) return;
     const currentEstilo = estilosList.find(e => e.id === selectedEstiloId);
-    const nome = `VestHub • ${currentEstilo?.nome || 'Foco Total'}`;
-    const descricao = currentEstilo?.descricao || 'Playlist gerada pelo VestHub para estudos e foco';
+    const nome = `Gabarita • ${currentEstilo?.nome || 'Foco Total'}`;
+    const descricao = currentEstilo?.descricao || 'Playlist gerada pelo Gabarita para estudos e foco';
     const uris = estiloTracks.map(t => t.uri);
 
     setIsCreatingEstiloPlaylist(true);

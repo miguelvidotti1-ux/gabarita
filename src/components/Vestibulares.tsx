@@ -121,7 +121,7 @@ export default function Vestibulares({ onSelect, onStartQuiz }: { onSelect: (v: 
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold rounded-lg">
-                      100% Gratuito
+                      Acesso Liberado
                     </span>
                     {isActive && (
                       <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-semibold rounded-lg">

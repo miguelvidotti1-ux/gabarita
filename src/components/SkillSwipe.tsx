@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Zap, Trophy, ChevronLeft, BookOpen, Sparkles, Check, 
   RotateCcw, RefreshCw, Star, Info, HelpCircle, Flame, Target,
-  BarChart2, Trash2, ArrowLeft, CheckCircle2, AlertCircle
+  BarChart2, Trash2, ArrowLeft, CheckCircle2, AlertCircle, Search, X
 } from 'lucide-react';
 import { levelSystem, LevelSystemStatus } from '../services/levelService';
 import { missionEngine } from '../services/missionService';
@@ -11,7 +11,58 @@ import { FLASHCARDS_TRAILS, StudyTrail, Flashcard } from '../data/flashcardsData
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { collection, getDocs, setDoc, deleteDoc, doc, writeBatch, query, where } from 'firebase/firestore';
-import { FlashcardCreatorModal } from './FlashcardCreatorModal';
+import { FlashcardCreatorModal, CreatedFlashcardsPayload } from './FlashcardCreatorModal';
+
+const CUSTOM_TRAILS_STORAGE_KEY = 'skillswipe_custom_trails_v1';
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'História': '#FF6B6B',
+  'Geografia': '#4ECDC4',
+  'Ciências': '#45B7D1',
+  'Biologia': '#10B981',
+  'Matemática': '#96CEB4',
+  'Química': '#9B59B6',
+  'Física': '#3498DB',
+  'Sociologia': '#34495E',
+  'Filosofia': '#E67E22',
+  'Artes': '#E74C3C',
+  'Português': '#1ABC9C',
+  'Inglês': '#F1C40F',
+  'Redação': '#EC4899',
+  'Atualidades': '#0EA5E9',
+  'Personalizado': '#6366F1',
+};
+
+function loadCustomTrailsFromLocalStorage(): StudyTrail[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_TRAILS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((t) => t && typeof t.id === 'string' && typeof t.title === 'string' && Array.isArray(t.cards))
+      .map((t) => ({ ...t, isCustom: true }));
+  } catch (err) {
+    console.error('Error reading custom trails from localStorage:', err);
+    return [];
+  }
+}
+
+function saveCustomTrailsToLocalStorage(trails: StudyTrail[]) {
+  try {
+    localStorage.setItem(CUSTOM_TRAILS_STORAGE_KEY, JSON.stringify(trails));
+  } catch (err) {
+    console.error('Error saving custom trails to localStorage:', err);
+  }
+}
+
+function normalizeSearchText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
 
 export default function SkillSwipe() {
   const [levelStatus, setLevelStatus] = useState<LevelSystemStatus | null>(null);
@@ -26,8 +77,12 @@ export default function SkillSwipe() {
   // View states: 'trails' (catalog), 'session' (studying), 'stats' (general statistics dashboard)
   const [activeView, setActiveView] = useState<'trails' | 'session' | 'stats'>('trails');
 
-  // Category Filtering
+  // Category Filtering & Title Search
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [customTrails, setCustomTrails] = useState<StudyTrail[]>(() => loadCustomTrailsFromLocalStorage());
+  const [createdBanner, setCreatedBanner] = useState<StudyTrail | null>(null);
+  const [confirmDeleteTrailId, setConfirmDeleteTrailId] = useState<string | null>(null);
   
   // Session counters
   const [knownCount, setKnownCount] = useState(0);
@@ -64,11 +119,49 @@ export default function SkillSwipe() {
         } catch (err) {
           console.error("Error loading card interactions from Firestore:", err);
           loadSeenFromLocalStorage();
+        }
+
+        try {
+          const customRef = collection(db, 'users', user.uid, 'custom_trails');
+          const customSnap = await getDocs(customRef);
+          const remoteTrails: StudyTrail[] = [];
+          customSnap.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data && typeof data.id === 'string' && typeof data.title === 'string' && Array.isArray(data.cards)) {
+              remoteTrails.push({
+                id: data.id,
+                title: data.title,
+                description: data.description || '',
+                category: data.category || 'Personalizado',
+                color_theme: data.color_theme || '#6366F1',
+                cards: data.cards,
+                isCustom: true,
+                createdAt: data.createdAt || '',
+              });
+            }
+          });
+
+          const localTrails = loadCustomTrailsFromLocalStorage();
+          const mergedMap = new Map<string, StudyTrail>();
+          [...remoteTrails, ...localTrails].forEach((trail) => {
+            if (!mergedMap.has(trail.id)) {
+              mergedMap.set(trail.id, { ...trail, isCustom: true });
+            }
+          });
+          const merged = Array.from(mergedMap.values()).sort((a, b) =>
+            (b.createdAt || '').localeCompare(a.createdAt || '')
+          );
+          setCustomTrails(merged);
+          saveCustomTrailsToLocalStorage(merged);
+        } catch (err) {
+          console.error("Error loading custom trails from Firestore:", err);
+          setCustomTrails(loadCustomTrailsFromLocalStorage());
         } finally {
           setLoadingSeen(false);
         }
       } else {
         loadSeenFromLocalStorage();
+        setCustomTrails(loadCustomTrailsFromLocalStorage());
         setLoadingSeen(false);
       }
     });
@@ -92,8 +185,11 @@ export default function SkillSwipe() {
     setLevelStatus(levelSystem.getStatus());
   };
 
+  // Combine user-created trails with built-in trails so they appear together seamlessly
+  const allTrails: StudyTrail[] = [...customTrails, ...FLASHCARDS_TRAILS];
+
   // Get list of all unique categories
-  const categories = ['Todas', ...Array.from(new Set(FLASHCARDS_TRAILS.map(t => t.category)))];
+  const categories = ['Todas', ...Array.from(new Set(allTrails.map(t => t.category)))];
 
   // ── Deduplicate cards: ensures absolute global uniqueness of cards by front_content
   const dedupeCards = (trailCards: Flashcard[], trailId: string) => {
@@ -101,9 +197,12 @@ export default function SkillSwipe() {
     const unique: Flashcard[] = [];
     let dups = 0;
 
-    const otherTrailsCards = FLASHCARDS_TRAILS
-      .filter(t => t.id !== trailId)
-      .flatMap(t => t.cards);
+    const isCustomTrail = trailId.startsWith('custom_');
+    const otherTrailsCards = isCustomTrail
+      ? []
+      : FLASHCARDS_TRAILS
+          .filter(t => t.id !== trailId)
+          .flatMap(t => t.cards);
 
     const otherFronts = new Set<string>(
       otherTrailsCards.map(c => c.front_content.toLowerCase().trim())
@@ -189,7 +288,7 @@ export default function SkillSwipe() {
   };
 
   const resetTrailProgress = async (trailId: string) => {
-    const trail = FLASHCARDS_TRAILS.find(t => t.id === trailId);
+    const trail = allTrails.find(t => t.id === trailId);
     if (!trail) return;
     const { unique } = dedupeCards(trail.cards, trail.id);
     const trailCardIds = unique.map(c => c.id);
@@ -275,16 +374,19 @@ export default function SkillSwipe() {
       if (flashcardMission) {
         missionEngine.updateProgress(flashcardMission.id, 1);
       }
-    } else {
-      setReviewCount(prev => prev + 1);
-      
-      // Append to the end of cards array so they see it again later in this session (SRS fallback)
-      setCurrentCards(prev => {
-        const updated = [...prev];
-        const cardToMove = updated[cardIndex];
-        updated.push(cardToMove);
-        return updated;
-      });
+    }
+
+    // Sincroniza progresso com window.Progresso
+    if (typeof window !== 'undefined' && (window as any).Progresso && (window as any).DisciplinaAtual) {
+      try {
+        const materia = activeTrail?.category || 'Geral';
+        const disciplina = (window as any).DisciplinaAtual.detectar ? (window as any).DisciplinaAtual.detectar(materia) : materia;
+        const temaSlug = (window as any).DisciplinaAtual.slug(activeTrail?.title || activeTrail?.category || 'geral');
+        const total = currentCards.length || 1;
+        const vistos = Math.min(cardIndex + 1, total);
+        (window as any).Progresso.registrar(disciplina, temaSlug, 'flashcards', vistos / total);
+        (window as any).Progresso.aplicarNaTela(disciplina);
+      } catch (e) {}
     }
 
     setTimeout(() => {
@@ -314,12 +416,81 @@ export default function SkillSwipe() {
     refreshLevelStatus();
   };
 
+  const handleCardsCreated = async (payload: CreatedFlashcardsPayload) => {
+    const trailId = `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const createdAt = new Date().toISOString();
+    const colorTheme = CATEGORY_COLORS[payload.category] || '#6366F1';
+
+    const formattedCards: Flashcard[] = payload.cards.map((card, index) => ({
+      id: `${trailId}_c${index + 1}`,
+      front_content: card.front_content,
+      back_content: card.back_content,
+      topic: card.topic || payload.title,
+    }));
+
+    const newTrail: StudyTrail = {
+      id: trailId,
+      title: payload.title,
+      description: payload.description,
+      category: payload.category || 'Personalizado',
+      color_theme: colorTheme,
+      cards: formattedCards,
+      isCustom: true,
+      createdAt,
+    };
+
+    const updatedCustomTrails = [newTrail, ...customTrails];
+    setCustomTrails(updatedCustomTrails);
+    saveCustomTrailsToLocalStorage(updatedCustomTrails);
+
+    // Clear filters so the newly created deck is immediately visible alongside the others
+    setSelectedCategory('Todas');
+    setSearchQuery('');
+    setCreatedBanner(newTrail);
+
+    if (currentUser) {
+      try {
+        await setDoc(doc(db, 'users', currentUser.uid, 'custom_trails', trailId), {
+          id: trailId,
+          userId: currentUser.uid,
+          title: newTrail.title,
+          description: newTrail.description,
+          category: newTrail.category,
+          color_theme: newTrail.color_theme,
+          cards: formattedCards,
+          createdAt,
+        });
+      } catch (err) {
+        console.error('Error saving custom trail to Firestore:', err);
+      }
+    }
+  };
+
+  const handleDeleteCustomTrail = async (trailId: string) => {
+    const updatedCustomTrails = customTrails.filter((t) => t.id !== trailId);
+    setCustomTrails(updatedCustomTrails);
+    saveCustomTrailsToLocalStorage(updatedCustomTrails);
+    setConfirmDeleteTrailId(null);
+
+    if (createdBanner?.id === trailId) {
+      setCreatedBanner(null);
+    }
+
+    if (currentUser) {
+      try {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'custom_trails', trailId));
+      } catch (err) {
+        console.error('Error deleting custom trail from Firestore:', err);
+      }
+    }
+  };
+
   // Calculate Global Statistics dynamically based on deduplicated card records
   const getGlobalStats = () => {
     let grandTotal = 0;
     let grandSeen = 0;
     
-    const perTrail = FLASHCARDS_TRAILS.map(trail => {
+    const perTrail = allTrails.map(trail => {
       const { unique } = dedupeCards(trail.cards, trail.id);
       const total = unique.length;
       const seen = unique.filter(card => seenCardIds.includes(card.id)).length;
@@ -351,9 +522,22 @@ export default function SkillSwipe() {
 
   const stats = getGlobalStats();
 
-  const filteredTrails = selectedCategory === 'Todas'
-    ? FLASHCARDS_TRAILS
-    : FLASHCARDS_TRAILS.filter(t => t.category === selectedCategory);
+  const normalizedQuery = normalizeSearchText(searchQuery);
+  const filteredTrails = allTrails.filter((t) => {
+    const matchesCategory = selectedCategory === 'Todas' || t.category === selectedCategory;
+    if (!matchesCategory) return false;
+    if (!normalizedQuery) return true;
+
+    const inTitle = normalizeSearchText(t.title).includes(normalizedQuery);
+    const inCategory = normalizeSearchText(t.category).includes(normalizedQuery);
+    const inDescription = normalizeSearchText(t.description || '').includes(normalizedQuery);
+    const inCards = t.cards.some(
+      (c) =>
+        normalizeSearchText(c.topic || '').includes(normalizedQuery) ||
+        normalizeSearchText(c.front_content || '').includes(normalizedQuery)
+    );
+    return inTitle || inCategory || inDescription || inCards;
+  });
 
   return (
     <div className="space-y-8 py-6">
@@ -425,9 +609,71 @@ export default function SkillSwipe() {
             exit={{ opacity: 0, y: -15 }}
             className="space-y-6"
           >
-            {/* Header and Category Selector */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h2 className="text-xl font-bold text-[var(--text-primary)]">Selecione uma Trilha de Estudos</h2>
+            {createdBanner && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-[var(--text-primary)]">
+                      Baralho &ldquo;{createdBanner.title}&rdquo; criado com {createdBanner.cards.length} flashcards!
+                    </p>
+                    <p className="text-xs text-[var(--text-secondary)]">
+                      Ele já está disponível junto dos demais na categoria {createdBanner.category}.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      const target = createdBanner;
+                      setCreatedBanner(null);
+                      handleStartTrail(target);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Estudar Agora
+                  </button>
+                  <button
+                    onClick={() => setCreatedBanner(null)}
+                    className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                    aria-label="Fechar aviso"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Header, Search Bar and Category Selector */}
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Selecione uma Trilha de Estudos</h2>
+
+                <div className="relative w-full md:w-80">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por título, matéria ou assunto..."
+                    className="w-full pl-10 pr-9 py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                      aria-label="Limpar busca"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+              </div>
               
               {/* Horizontal scroll/list categories */}
               <div className="flex flex-wrap gap-2">
@@ -460,23 +706,33 @@ export default function SkillSwipe() {
                   const seenCount = trailStat?.seen || 0;
                   const totalCount = trailStat?.total || 0;
                   const isCompletedSubject = totalCount > 0 && seenCount === totalCount;
+                  const isNewlyCreated = createdBanner?.id === trail.id;
                   
                   return (
                     <motion.div
                       key={trail.id}
                       whileHover={{ y: -5 }}
                       className={`bg-[var(--card-bg)] border rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:border-indigo-500/30 transition-all cursor-pointer group relative overflow-hidden ${
-                        isCompletedSubject ? 'border-emerald-500/20 shadow-emerald-500/5' : 'border-[var(--card-border)]'
+                        isNewlyCreated
+                          ? 'border-emerald-500/60 ring-2 ring-emerald-500/20'
+                          : isCompletedSubject
+                          ? 'border-emerald-500/20 shadow-emerald-500/5'
+                          : 'border-[var(--card-border)]'
                       }`}
                       onClick={() => handleStartTrail(trail)}
                     >
-                      {/* Dominada Badge Overlay */}
-                      {isCompletedSubject && (
+                      {/* Dominada or Custom Badge Overlay */}
+                      {isCompletedSubject ? (
                         <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border border-emerald-500/20">
                           <CheckCircle2 size={12} className="fill-emerald-500/10" />
                           <span>Dominada</span>
                         </div>
-                      )}
+                      ) : trail.isCustom ? (
+                        <div className="absolute top-4 right-4 flex items-center gap-1 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border border-indigo-500/20">
+                          <Sparkles size={11} />
+                          <span>Criado por você</span>
+                        </div>
+                      ) : null}
 
                       <div className="space-y-4">
                         {/* Trail color badge */}
@@ -487,7 +743,7 @@ export default function SkillSwipe() {
                           >
                             <BookOpen size={20} />
                           </div>
-                          {!isCompletedSubject && (
+                          {!isCompletedSubject && !trail.isCustom && (
                             <span className="text-xs font-black font-mono text-[var(--text-secondary)]">
                               {totalCount - seenCount} novos / {totalCount} total
                             </span>
@@ -495,12 +751,21 @@ export default function SkillSwipe() {
                         </div>
 
                         <div className="space-y-1">
-                          <h3 className="text-base font-bold text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">
-                            {trail.title}
-                          </h3>
-                          <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: trail.color_theme }}>
-                            {trail.category}
-                          </p>
+                          <div className="flex items-center justify-between gap-2">
+                            <h3 className="text-base font-bold text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">
+                              {trail.title}
+                            </h3>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: trail.color_theme }}>
+                              {trail.category}
+                            </p>
+                            {trail.isCustom && !isCompletedSubject && (
+                              <span className="text-[11px] font-black font-mono text-[var(--text-secondary)]">
+                                {totalCount} {totalCount === 1 ? 'card' : 'cards'}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <p className="text-xs text-[var(--text-secondary)] line-clamp-3 leading-relaxed">
@@ -522,22 +787,61 @@ export default function SkillSwipe() {
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-[var(--card-border)] mt-4 flex items-center justify-between">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm(`Deseja mesmo resetar o progresso em ${trail.title}?`)) {
-                              resetTrailProgress(trail.id);
-                            }
-                          }}
-                          disabled={seenCount === 0}
-                          className={`text-[10px] font-black uppercase tracking-wider flex items-center gap-1 hover:text-rose-500 transition-colors cursor-pointer ${
-                            seenCount === 0 ? 'text-[var(--text-secondary)] opacity-30 cursor-not-allowed' : 'text-[var(--text-secondary)]'
-                          }`}
-                        >
-                          <RotateCcw size={12} />
-                          <span>Resetar</span>
-                        </button>
+                      <div className="pt-4 border-t border-[var(--card-border)] mt-4 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(`Deseja mesmo resetar o progresso em ${trail.title}?`)) {
+                                resetTrailProgress(trail.id);
+                              }
+                            }}
+                            disabled={seenCount === 0}
+                            className={`text-[10px] font-black uppercase tracking-wider flex items-center gap-1 hover:text-rose-500 transition-colors cursor-pointer ${
+                              seenCount === 0 ? 'text-[var(--text-secondary)] opacity-30 cursor-not-allowed' : 'text-[var(--text-secondary)]'
+                            }`}
+                          >
+                            <RotateCcw size={12} />
+                            <span>Resetar</span>
+                          </button>
+
+                          {trail.isCustom && (
+                            confirmDeleteTrailId === trail.id ? (
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 text-[10px] font-bold"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCustomTrail(trail.id)}
+                                  className="px-2 py-0.5 rounded bg-rose-600 text-white hover:bg-rose-700 cursor-pointer"
+                                >
+                                  Excluir
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteTrailId(null)}
+                                  className="px-2 py-0.5 rounded bg-slate-700 text-slate-200 hover:bg-slate-600 cursor-pointer"
+                                >
+                                  Não
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConfirmDeleteTrailId(trail.id);
+                                }}
+                                className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1 text-[var(--text-secondary)] hover:text-rose-500 transition-colors cursor-pointer"
+                                title="Excluir baralho personalizado"
+                              >
+                                <Trash2 size={12} />
+                                <span>Excluir</span>
+                              </button>
+                            )
+                          )}
+                        </div>
                         
                         <span className="text-xs font-black text-indigo-500 group-hover:translate-x-1 transition-transform">
                           {isCompletedSubject ? 'Estudar de Novo' : 'Estudar'} →
@@ -550,9 +854,25 @@ export default function SkillSwipe() {
             )}
             
             {filteredTrails.length === 0 && !loadingSeen && (
-              <div className="text-center py-12 bg-[var(--card-bg)] rounded-3xl border border-[var(--card-border)]">
-                <BookOpen size={40} className="mx-auto text-[var(--text-secondary)] opacity-40 mb-3" />
-                <p className="text-sm font-bold text-[var(--text-secondary)]">Nenhuma trilha encontrada nessa categoria.</p>
+              <div className="text-center py-12 bg-[var(--card-bg)] rounded-3xl border border-[var(--card-border)] space-y-3">
+                <BookOpen size={40} className="mx-auto text-[var(--text-secondary)] opacity-40" />
+                <p className="text-sm font-bold text-[var(--text-secondary)]">
+                  {searchQuery
+                    ? `Nenhuma trilha encontrada para "${searchQuery}".`
+                    : 'Nenhuma trilha encontrada nessa categoria.'}
+                </p>
+                {(searchQuery || selectedCategory !== 'Todas') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('Todas');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
               </div>
             )}
           </motion.div>
@@ -1040,11 +1360,7 @@ export default function SkillSwipe() {
       <FlashcardCreatorModal 
         isOpen={showCreator} 
         onClose={() => setShowCreator(false)} 
-        onCreated={(newCards) => {
-          // Handle newly created cards, maybe add to a 'custom' category
-          console.log('Created cards:', newCards);
-          alert('Flashcards criados com sucesso!');
-        }}
+        onCreated={handleCardsCreated}
       />
     </div>
   );

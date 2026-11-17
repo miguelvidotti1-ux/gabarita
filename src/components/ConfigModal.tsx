@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 interface ConfigModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ConfigModalProps {
 }
 
 export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose, onToast }) => {
+  const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [completionSound, setCompletionSound] = useState(true);
 
@@ -79,6 +81,25 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose, onToa
                     }`}
                   />
                 </div>
+              </div>
+
+              {/* Tema Claro / Escuro */}
+              <div className="flex items-center justify-between py-3.5 border-b border-[var(--border-light)]">
+                <div>
+                  <div className="text-sm font-semibold text-[var(--text-main)]">
+                    Tema da interface
+                  </div>
+                  <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                    {theme === 'dark' ? 'Modo escuro ativado' : 'Modo claro ativado'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="px-3.5 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-hover)] text-xs font-semibold text-[var(--text-main)] cursor-pointer hover:border-blue-500 transition-colors"
+                >
+                  {theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+                </button>
               </div>
 
               {/* Som ao concluir simulado */}

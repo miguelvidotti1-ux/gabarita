@@ -1572,7 +1572,7 @@ function getFallbackEstiloTracks(estiloId: string, estiloNome: string) {
       id: `${estiloId}_gen_1`,
       uri: `spotify:track:study_${estiloId}_1`,
       name: `${estiloNome} — Concentração Total`,
-      artist: 'VestHub Soundtracks',
+      artist: 'Gabarita Soundtracks',
       album: `Playlist Especial de ${estiloNome}`,
       duration_ms: 180000,
       image: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=300&auto=format&fit=crop&q=80',
@@ -1582,7 +1582,7 @@ function getFallbackEstiloTracks(estiloId: string, estiloNome: string) {
       id: `${estiloId}_gen_2`,
       uri: `spotify:track:study_${estiloId}_2`,
       name: `${estiloNome} — Foco e Produtividade`,
-      artist: 'VestHub Soundtracks',
+      artist: 'Gabarita Soundtracks',
       album: `Playlist Especial de ${estiloNome}`,
       duration_ms: 210000,
       image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=300&auto=format&fit=crop&q=80',
@@ -1707,8 +1707,8 @@ spotifyRouter.post(['/criar-playlist', '/create-playlist'], async (req: Request,
   }
 
   let userId = data.user_id;
-  const nomePlaylist = data.nome || data.name || 'Playlist VestHub';
-  const descricao = data.descricao || data.description || 'Playlist criada pelo VestHub';
+  const nomePlaylist = data.nome || data.name || 'Playlist Gabarita';
+  const descricao = data.descricao || data.description || 'Playlist criada pelo Gabarita';
   const trackUris: string[] = data.track_uris || [];
 
   if (!trackUris || trackUris.length === 0) {

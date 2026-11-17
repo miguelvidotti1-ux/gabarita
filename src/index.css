@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -12,7 +13,7 @@
   font-family: var(--font-display);
 }
 
-/* ========== TEMA ÚNICO — PREMIUM DARK MODE ========== */
+/* ========== TEMA DARK (PADRÃO GABARITA) ========== */
 :root, [data-theme="dark"], .dark {
   /* ===== TEMA GABARITA — #000000 + #10141D ===== */
   --bg: #000000;        /* fundo principal de todas as abas (era #0A0A0A) */
@@ -83,6 +84,77 @@
   --scrollbar-thumb-hover: var(--bd2);
 
   /* Compatibility */
+  --bg-color: var(--bg);
+  --text-color: var(--txt);
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--bg2);
+  --text-primary: var(--txt);
+  --text-secondary: var(--mut);
+  --text-accent: var(--primary);
+  --card-bg: var(--card);
+  --card-border: var(--bd);
+  --button-bg: var(--primary);
+  --button-bg-hover: var(--primary-h);
+}
+
+/* ========== TEMA CLARO (ACESSÍVEL CONTRASTE AA) ========== */
+[data-theme="light"] {
+  --bg: #F8FAFC;
+  --bg2: #FFFFFF;
+  --card: #FFFFFF;
+  --hover: #F1F5F9;
+  --primary: #1E3A8A;
+  --primary-h: #1D4ED8;
+  --txt: #0F172A;
+  --mut: #475569;
+  --lbl: #64748B;
+  --bd: #E2E8F0;
+  --bd2: #CBD5E1;
+  --ok: #059669;
+  --err: #DC2626;
+  --warn: #D97706;
+  --spot: #1DB954;
+
+  --bg-main: var(--bg);
+  --bg-sidebar: var(--bg2);
+  --bg-card: var(--card);
+  --bg-card-elevated: var(--hover);
+  --bg-input: #FFFFFF;
+  --bg-hover: var(--hover);
+  --bg-badge: rgba(30, 58, 138, 0.1);
+  --bg-badge-neutral: var(--hover);
+  --bg-overlay: rgba(15, 23, 42, 0.55);
+  --bg-modal: var(--card);
+  --bg-tab-active: rgba(30, 58, 138, 0.12);
+  --bg-header: var(--bg2);
+  --bg-table-header: var(--hover);
+  --bg-toggle: var(--bd2);
+
+  --primary-hover: var(--primary-h);
+  --primary-light: rgba(30, 58, 138, 0.12);
+  --primary-soft: rgba(30, 58, 138, 0.08);
+  --primary-border: rgba(30, 58, 138, 0.25);
+
+  --text-main: var(--txt);
+  --text-muted: var(--mut);
+  --text-label: var(--lbl);
+  --text-on-primary: #FFFFFF;
+
+  --border-color: var(--bd2);
+  --border-light: var(--bd);
+  --border-focus: var(--primary-h);
+  --border-strong: var(--bd2);
+
+  --shadow: rgba(15, 23, 42, 0.12);
+  --shadow-soft: rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 8px 24px -8px rgba(15, 23, 42, 0.12);
+  --shadow-primary: rgba(30, 58, 138, 0.2);
+
+  --toggle-knob: #FFFFFF;
+  --scrollbar-track: var(--bg);
+  --scrollbar-thumb: var(--bd2);
+  --scrollbar-thumb-hover: var(--lbl);
+
   --bg-color: var(--bg);
   --text-color: var(--txt);
   --bg-primary: var(--bg);

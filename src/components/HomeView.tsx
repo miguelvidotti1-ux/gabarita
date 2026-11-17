@@ -228,7 +228,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="relative z-10 max-w-3xl space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-badge)] border border-[var(--primary-border)] text-xs font-semibold text-[var(--primary)]">
             <Sparkles size={14} className="animate-pulse text-[var(--primary)]" />
-            <span>Plataforma Premium de Preparação para Vestibulares</span>
+            <span>Plataforma Completa de Preparação para Vestibulares</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-main)] tracking-tight leading-tight">
