@@ -8,7 +8,7 @@ import './index.css';
 if (typeof window !== 'undefined' && 'caches' in window) {
   caches.keys().then((keys) => {
     keys.forEach((key) => {
-      if (key.includes('study-app-cache') || key.includes('v1')) {
+      if (key !== 'gabarita-v1' && (key.includes('study-app-cache') || key.includes('v1'))) {
         caches.delete(key).then(() => {
           console.log('[Cache Cleanup] Removido cache antigo:', key);
         });
@@ -28,17 +28,6 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       }
     }
   }).catch((err) => console.warn('SW cleanup note:', err));
-}
-
-// Safe PWA registration via VitePWA
-try {
-  import('virtual:pwa-register').then(({ registerSW }) => {
-    registerSW({ immediate: true });
-  }).catch(() => {
-    // Graceful fallback if virtual module is not available
-  });
-} catch (e) {
-  console.warn('PWA register note:', e);
 }
 
 const rootElement = document.getElementById('root');
