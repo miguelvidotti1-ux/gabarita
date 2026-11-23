@@ -190,17 +190,137 @@ async function startServer() {
     res.json({ planos: PLANOS_PADRAO });
   });
 
-    // Endpoint de Pesquisa de Mercado / Black Friday
+  // ===== MÉTRICAS DE USO (fase 2 do dashboard) =====
+  // Estrutura: data/metrics.json
+  interface Sessao {
+    usuario: string;
+    primeiraAcao: number;
+    ultimaAcao: number;
+  }
+  interface VisitaPagina {
+    pagina: string;
+    usuario: string;
+    ts: number;
+  }
+  interface Pesquisa {
+    usuario: string;
+    nota: number;          // 0 a 10
+    funcionalidade: string;
+    recomendacao: string;
+    ts: number;
+  }
+
+  const METRICS_FILE = path.join(DATA_DIR, "metrics.json");
+  const TEMPO_LIMITE_SESSAO = 30 * 60 * 1000; // 30 min sem ação encerra a sessão
+
+  function lerMetricas(): { sessoes: Sessao[]; paginas: VisitaPagina[]; pesquisas: Pesquisa[] } {
+    try {
+      const raw = JSON.parse(fs.readFileSync(METRICS_FILE, "utf-8"));
+      return {
+        sessoes: Array.isArray(raw?.sessoes) ? raw.sessoes : [],
+        paginas: Array.isArray(raw?.paginas) ? raw.paginas : [],
+        pesquisas: Array.isArray(raw?.pesquisas) ? raw.pesquisas : [],
+      };
+    } catch {
+      return { sessoes: [], paginas: [], pesquisas: [] };
+    }
+  }
+
+  function salvarMetricas(dados: ReturnType<typeof lerMetricas>) {
+    fs.writeFileSync(METRICS_FILE, JSON.stringify(dados, null, 2), "utf-8");
+  }
+
+  function usuarioDaRequisicao(req: express.Request): string | null {
+    const tokenEmail = verificarToken(req.headers.authorization);
+    if (tokenEmail) return tokenEmail;
+    const headerUser = req.headers["x-usuario-id"];
+    if (typeof headerUser === "string" && headerUser.trim()) {
+      return headerUser.trim().slice(0, 200);
+    }
+    const bodyUser = req.body?.usuario;
+    if (typeof bodyUser === "string" && bodyUser.trim()) {
+      return bodyUser.trim().slice(0, 200);
+    }
+    return null;
+  }
+
+  // Atualiza (ou abre) a sessão do usuário; devolve dados frescos
+  function registrarAcao(email: string, agora: number, dados: ReturnType<typeof lerMetricas>) {
+    const ativa = dados.sessoes.find(
+      (s) => s.usuario === email && agora - s.ultimaAcao < TEMPO_LIMITE_SESSAO
+    );
+    if (ativa) {
+      ativa.ultimaAcao = agora;
+    } else {
+      // sessão anterior ficou "aberta demais" — é ignorada no cálculo como inativa
+      dados.sessoes.push({ usuario: email, primeiraAcao: agora, ultimaAcao: agora });
+    }
+    return dados;
+  }
+
+  // ROTA: registro de navegação — o frontend chama a cada tela aberta
+  app.post("/api/track/page", (req, res) => {
+    try {
+      const email = usuarioDaRequisicao(req);
+      const pagina = typeof req.body?.pagina === "string" ? req.body.pagina.trim().slice(0, 120) : "";
+      if (!email || !pagina) {
+        return res.status(400).json({ erro: "usuario e pagina são obrigatórios" });
+      }
+      const agora = Date.now();
+      const dados = lerMetricas();
+      registrarAcao(email, agora, dados);
+      dados.paginas.push({ pagina, usuario: email, ts: agora });
+      // evita o arquivo crescer sem fim: guarda no máximo 50.000 registros
+      if (dados.paginas.length > 50000) dados.paginas = dados.paginas.slice(-40000);
+      salvarMetricas(dados);
+      return res.json({ ok: true });
+    } catch (e: any) {
+      return res.status(500).json({ ok: false, erro: e?.message || "Erro ao registrar navegação" });
+    }
+  });
+
+  // Endpoint de Pesquisa (suporta pesquisa rápida de satisfação e formulário PesquisaModal)
   app.post("/api/pesquisa", (req, res) => {
     try {
+      const body = req.body || {};
+
+      // Fluxo 1: pesquisa de satisfação (0-10, funcionalidade, recomendação)
+      if (body.nota !== undefined || body.funcionalidade !== undefined) {
+        const email = usuarioDaRequisicao(req);
+        const { nota, funcionalidade, recomendacao } = body;
+        const notaNum = Number(nota);
+
+        if (!email) return res.status(401).json({ erro: "login necessário" });
+        if (!Number.isInteger(notaNum) || notaNum < 0 || notaNum > 10) {
+          return res.status(400).json({ erro: "nota deve ser inteiro de 0 a 10" });
+        }
+        if (!funcionalidade || typeof funcionalidade !== "string" || !funcionalidade.trim()) {
+          return res.status(400).json({ erro: "funcionalidade é obrigatória" });
+        }
+
+        const agora = Date.now();
+        const dados = lerMetricas();
+        registrarAcao(email, agora, dados);
+        dados.pesquisas.push({
+          usuario: email,
+          nota: notaNum,
+          funcionalidade: funcionalidade.trim().slice(0, 200),
+          recomendacao: typeof recomendacao === "string" ? recomendacao.slice(0, 500) : "",
+          ts: agora,
+        });
+        salvarMetricas(dados);
+
+        return res.json({ ok: true, mensagem: "Obrigado pela avaliação!" });
+      }
+
+      // Fluxo 2: Pesquisa de Mercado / PesquisaModal
       if (!podeEnviarPesquisa(req.ip || "desconhecido")) {
         return res.status(429).json({ ok: false, erro: "Muitas respostas enviadas. Tente novamente mais tarde." });
       }
-      const dados = req.body || {};
       // Saneamento: só campos simples, com tamanho limitado
       const limpo: Record<string, string> = {};
       let total = 0;
-      for (const [campo, valor] of Object.entries(dados)) {
+      for (const [campo, valor] of Object.entries(body)) {
         if (typeof campo !== "string" || !campo || campo.length > 60) continue;
         let texto: string;
         if (typeof valor === "object" && valor !== null) {
