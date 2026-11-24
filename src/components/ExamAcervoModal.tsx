@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { X, ExternalLink, Library, ChevronRight, FileText, Download } from 'lucide-react';
+import { X, ExternalLink, Library, ChevronRight, ChevronDown, FileText, Download, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PROVAS_LINKS } from '../data/provas_links';
 import { getUnespYearItem } from '../data/novos_acervos';
 import { getImeYearItem } from '../data/ime_acervo';
+import { getFuvestYearItem } from '../data/fuvest_acervo';
+import { getEnemYearItem, EnemDocItem } from '../data/enem_acervo';
 
 interface Props {
   isOpen: boolean;
@@ -12,9 +14,9 @@ interface Props {
 }
 
 export const DATABASE: Record<string, { year: string; size: string }[]> = {
-  ENEM: Array.from({ length: 16 }, (_, i) => ({ year: (2025 - i).toString(), size: `${(2 + Math.random()).toFixed(1)} MB` })),
-  USP: Array.from({ length: 16 }, (_, i) => ({ year: (2025 - i).toString(), size: `${(2 + Math.random()).toFixed(1)} MB` })),
-  Fuvest: Array.from({ length: 17 }, (_, i) => ({ year: (2026 - i).toString(), size: `${(3 + Math.random()).toFixed(1)} MB` })),
+  ENEM: Array.from({ length: 17 }, (_, i) => ({ year: (2026 - i).toString(), size: `${(2.1 + ((i * 3) % 10) * 0.1).toFixed(1)} MB` })),
+  USP: Array.from({ length: 17 }, (_, i) => ({ year: (2026 - i).toString(), size: `${(2.1 + ((i * 3) % 10) * 0.1).toFixed(1)} MB` })),
+  Fuvest: Array.from({ length: 18 }, (_, i) => ({ year: (2027 - i).toString(), size: `${(3 + ((i * 3) % 10) * 0.1).toFixed(1)} MB` })),
   Unicamp: Array.from({ length: 16 }, (_, i) => ({ year: (2025 - i).toString(), size: `${(2 + Math.random()).toFixed(1)} MB` })),
   Unesp: Array.from({ length: 18 }, (_, i) => ({ year: (2026 - i).toString(), size: `${(2.5 + Math.random()).toFixed(1)} MB` })),
   ITA: Array.from({ length: 19 }, (_, i) => ({ year: (2027 - i).toString(), size: `${(3.2 + ((i * 3) % 10) * 0.15).toFixed(1)} MB` })),
@@ -116,6 +118,18 @@ export const getExamLink = (vest: string, year: string, day?: string, color?: st
   }
 
   if (vest.toUpperCase() === 'ENEM' && day && color) {
+    const enemItem = getEnemYearItem(year);
+    if (enemItem) {
+      const provas = day === '1' ? enemItem.dia1.provas : enemItem.dia2.provas;
+      const match = provas.find(
+        (d) =>
+          d.aplicacao === 'Regular' &&
+          !d.acessibilidade &&
+          d.cor?.toLowerCase() === color.toLowerCase()
+      );
+      if (match) return match.url;
+    }
+
     const key = `ENEM_${year}_${day}_${color}`;
     if (PROVAS_LINKS[key]) {
       return PROVAS_LINKS[key];
@@ -125,7 +139,7 @@ export const getExamLink = (vest: string, year: string, day?: string, color?: st
     const cdMapDay2: Record<string, string> = { 'Amarelo': 'CD5', 'Cinza': 'CD6', 'Azul': 'CD7', 'Verde': 'CD8', 'Rosa': 'CD8' };
     
     const yearNum = parseInt(year, 10);
-    if (yearNum >= 2015 && yearNum <= 2025) {
+    if (yearNum >= 2015 && yearNum <= 2026) {
       const cd = day === '1' ? cdMapDay1[color] : cdMapDay2[color];
       if (cd) {
         return `https://download.inep.gov.br/enem/provas_e_gabaritos/${year}_PV_impresso_D${day}_${cd}.pdf`;
@@ -155,6 +169,10 @@ export const getExamLink = (vest: string, year: string, day?: string, color?: st
   if (vest.toLowerCase() === 'fuvest' && year === '2026-dia1-V4') {
     return 'https://www.fuvest.br/wp-content/uploads/fuvest2026-fase1-prova-V4.pdf';
   }
+  if (vest.toLowerCase() === 'fuvest') {
+    const fuvestItem = getFuvestYearItem(year);
+    if (fuvestItem?.fase1.provaUrl) return fuvestItem.fase1.provaUrl;
+  }
   if (vest.toLowerCase() === 'unesp') {
     if (year === '2020') {
       return '/assets/aistudio/unesp_caderno_de_questoes_prova_de_conhecimentos_gerais_15_nov_2019__v1_6f85d56a.pdf';
@@ -180,8 +198,8 @@ export const getExamLink = (vest: string, year: string, day?: string, color?: st
 
 export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: Props) {
   const [expandedEnemYear, setExpandedEnemYear] = useState<string | null>(null);
+  const [expandedEnemExtras, setExpandedEnemExtras] = useState<Record<string, boolean>>({});
   const [expandedFuvestYear, setExpandedFuvestYear] = useState<string | null>(null);
-  const [expandedFuvestDay, setExpandedFuvestDay] = useState<string | null>(null);
   const [expandedItaYear, setExpandedItaYear] = useState<string | null>(null);
   const [expandedUnespYear, setExpandedUnespYear] = useState<string | null>(null);
   const [expandedImeYear, setExpandedImeYear] = useState<string | null>(null);
@@ -192,8 +210,8 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
 
   const handleClose = () => {
     setExpandedEnemYear(null);
+    setExpandedEnemExtras({});
     setExpandedFuvestYear(null);
-    setExpandedFuvestDay(null);
     setExpandedItaYear(null);
     setExpandedUnespYear(null);
     setExpandedImeYear(null);
@@ -266,6 +284,39 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                         const isImeExpanded = expandedImeYear === item.year;
 
                       if (isEnem) {
+                        const enemData = getEnemYearItem(item.year);
+                        const showExtras = Boolean(expandedEnemExtras[item.year]);
+
+                        const getDot = (cor?: string) => {
+                          switch (cor?.toLowerCase()) {
+                            case 'azul': return 'bg-blue-500';
+                            case 'amarelo': return 'bg-yellow-400';
+                            case 'branco': return 'bg-slate-200 border border-slate-400';
+                            case 'rosa': return 'bg-pink-500';
+                            case 'verde': return 'bg-emerald-500';
+                            case 'cinza': return 'bg-gray-400';
+                            case 'laranja': return 'bg-orange-500';
+                            case 'marrom': return 'bg-amber-800';
+                            case 'roxo': return 'bg-purple-500';
+                            default: return 'bg-teal-500';
+                          }
+                        };
+
+                        const isCore = (d: EnemDocItem) =>
+                          d.isRedacaoTema || (d.aplicacao === 'Regular' && !d.acessibilidade);
+
+                        const d1CoreProvas = enemData?.dia1.provas.filter(isCore) || [];
+                        const d1CoreGabs = enemData?.dia1.gabaritos.filter(isCore) || [];
+                        const d2CoreProvas = enemData?.dia2.provas.filter(isCore) || [];
+                        const d2CoreGabs = enemData?.dia2.gabaritos.filter(isCore) || [];
+
+                        const extraDocs = [
+                          ...(enemData?.dia1.provas.filter(d => !isCore(d)) || []),
+                          ...(enemData?.dia1.gabaritos.filter(d => !isCore(d)) || []),
+                          ...(enemData?.dia2.provas.filter(d => !isCore(d)) || []),
+                          ...(enemData?.dia2.gabaritos.filter(d => !isCore(d)) || [])
+                        ];
+
                         return (
                           <div key={`${vest}-${item.year}`} className="flex flex-col gap-2">
                             <button
@@ -284,7 +335,9 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                 </span>
                                 <div className="flex flex-col items-start">
                                   <span className="text-sm font-black">{vest} {item.year}</span>
-                                  <span className={`text-[10px] font-bold ${isEnemExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>Ver opções de dias</span>
+                                  <span className={`text-[10px] font-bold ${isEnemExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
+                                    Ver provas e gabaritos
+                                  </span>
                                 </div>
                               </div>
                               <ChevronRight size={20} className={`transition-transform duration-300 ${isEnemExpanded ? 'rotate-90' : ''}`} />
@@ -296,89 +349,144 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                   initial={{ height: 0, opacity: 0 }}
                                   animate={{ height: 'auto', opacity: 1 }}
                                   exit={{ height: 0, opacity: 0 }}
-                                  className="overflow-hidden space-y-4 ml-2 pl-3 border-l-2 border-[var(--text-accent)]/30 mt-1"
+                                  className="overflow-hidden space-y-3 ml-2 pl-3 border-l-2 border-[var(--text-accent)]/30 mt-1"
                                 >
-                                  {/* 1º DIA Row */}
+                                  {/* 1º DIA */}
                                   <div className="space-y-1.5 text-left">
                                     <div className="flex items-center gap-1.5">
                                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-accent)]" />
                                       <span className="text-[10px] font-black uppercase text-[var(--text-accent)] tracking-wider">
-                                        1º DIA — Linguagens, Humanas e Redação
+                                        1º DIA — Provas e Gabaritos ({item.year})
                                       </span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      {(() => {
-                                        const buttons = [
-                                          { color: 'Azul', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-blue-500' },
-                                          { color: 'Branco', bg: 'hover:bg-slate-50 dark:hover:bg-slate-900/30 hover:border-slate-400 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-slate-100 border border-slate-400' },
-                                          parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023
-                                            ? { color: 'Rosa', bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-pink-500' }
-                                            : { color: 'Verde', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-emerald-500' },
-                                          { color: 'Amarelo', bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-yellow-400' }
-                                        ];
-                                        if (PROVAS_LINKS[`ENEM_${item.year}_1_Laranja`]) {
-                                          buttons.push({ color: 'Laranja', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-orange-500' });
-                                        } else if (PROVAS_LINKS[`ENEM_${item.year}_1_Laranja (Braile)`]) {
-                                          buttons.push({ color: 'Laranja (Braile)', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-orange-500' });
-                                        }
-                                        return buttons;
-                                      })().map((btn) => (
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                      {d1CoreProvas.map((doc, idx) => (
                                         <a
-                                          key={`d1-${btn.color}`}
-                                          href={getExamLink(vest, item.year, "1", btn.color)}
+                                          key={`modal-enem-d1-p-${idx}`}
+                                          href={doc.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className={`flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border text-xs font-bold transition-all active:scale-95 duration-200 group/btn ${btn.bg}`}
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-teal-500 text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
                                         >
-                                          <div className="flex items-center gap-2">
-                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${btn.dot}`} />
-                                            <span>Caderno {btn.color}</span>
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${getDot(doc.cor)}`} />
+                                            <span className="truncate">{doc.label}</span>
                                           </div>
-                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity" />
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                      {d1CoreGabs.map((doc, idx) => (
+                                        <a
+                                          key={`modal-enem-d1-g-${idx}`}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <CheckCircle2 size={12} className="shrink-0 text-emerald-500" />
+                                            <span className="truncate">{doc.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
                                         </a>
                                       ))}
                                     </div>
                                   </div>
 
-                                  {/* 2º DIA Row */}
+                                  {/* 2º DIA */}
                                   <div className="space-y-1.5 text-left">
                                     <div className="flex items-center gap-1.5">
                                       <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
                                       <span className="text-[10px] font-black uppercase text-violet-500 dark:text-violet-400 tracking-wider">
-                                        2º DIA — Matemática e Natureza
+                                        2º DIA — Provas e Gabaritos ({item.year})
                                       </span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      {(() => {
-                                        const buttons = [
-                                          { color: 'Amarelo', bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-yellow-400' },
-                                          { color: 'Cinza', bg: 'hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:border-gray-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-gray-400' },
-                                          { color: 'Azul', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-blue-500' },
-                                          parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023
-                                            ? { color: 'Rosa', bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-pink-500' }
-                                            : { color: 'Verde', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-emerald-500' }
-                                        ];
-                                        if (PROVAS_LINKS[`ENEM_${item.year}_2_Laranja`]) {
-                                          buttons.push({ color: 'Laranja', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 border-[var(--card-border)] text-[var(--text-primary)]', dot: 'bg-orange-500' });
-                                        }
-                                        return buttons;
-                                      })().map((btn) => (
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                      {d2CoreProvas.map((doc, idx) => (
                                         <a
-                                          key={`d2-${btn.color}`}
-                                          href={getExamLink(vest, item.year, "2", btn.color)}
+                                          key={`modal-enem-d2-p-${idx}`}
+                                          href={doc.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className={`flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border text-xs font-bold transition-all active:scale-95 duration-200 group/btn ${btn.bg}`}
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-violet-500 text-[var(--text-primary)] text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
                                         >
-                                          <div className="flex items-center gap-2">
-                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${btn.dot}`} />
-                                            <span>Caderno {btn.color}</span>
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${getDot(doc.cor)}`} />
+                                            <span className="truncate">{doc.label}</span>
                                           </div>
-                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 transition-opacity" />
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                      {d2CoreGabs.map((doc, idx) => (
+                                        <a
+                                          key={`modal-enem-d2-g-${idx}`}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all active:scale-95 duration-200 group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <CheckCircle2 size={12} className="shrink-0 text-emerald-500" />
+                                            <span className="truncate">{doc.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
                                         </a>
                                       ))}
                                     </div>
                                   </div>
+
+                                  {extraDocs.length > 0 && (
+                                    <div className="pt-1 space-y-2 text-left">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedEnemExtras((prev) => ({
+                                            ...prev,
+                                            [item.year]: !prev[item.year]
+                                          }))
+                                        }
+                                        className="flex items-center justify-between w-full px-3 py-2 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-teal-500/40 text-[11px] font-black text-[var(--text-secondary)] hover:text-teal-500 transition-colors cursor-pointer"
+                                      >
+                                        <span>
+                                          {showExtras
+                                            ? `Ocultar PPL, Digital e Acessibilidade (${extraDocs.length})`
+                                            : `Ver PPL, Digital e Acessibilidade (+${extraDocs.length} arquivos)`}
+                                        </span>
+                                        <ChevronDown
+                                          size={13}
+                                          className={`transition-transform ${showExtras ? 'rotate-180' : ''}`}
+                                        />
+                                      </button>
+
+                                      {showExtras && (
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                          {extraDocs.map((doc, idx) => (
+                                            <a
+                                              key={`modal-enem-extra-${idx}`}
+                                              href={doc.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className={`flex items-center justify-between p-2 rounded-xl border text-[11px] font-bold transition-all group/btn ${
+                                                doc.tipo === 'gabarito'
+                                                  ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400'
+                                                  : 'bg-[var(--bg-secondary)] border-[var(--card-border)] hover:border-teal-500 text-[var(--text-primary)]'
+                                              }`}
+                                            >
+                                              <div className="flex items-center gap-2 min-w-0">
+                                                {doc.tipo === 'gabarito' ? (
+                                                  <CheckCircle2 size={11} className="shrink-0 text-emerald-500" />
+                                                ) : (
+                                                  <span className={`w-2 h-2 rounded-full shrink-0 ${getDot(doc.cor)}`} />
+                                                )}
+                                                <span className="truncate">{doc.label}</span>
+                                              </div>
+                                              <ExternalLink size={10} className="opacity-50 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </motion.div>
                               )}
                             </AnimatePresence>
@@ -594,13 +702,13 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                       }
 
                       if (isFuvest) {
+                        const fuvestData = getFuvestYearItem(item.year);
+                        const hasFase2Dias = Boolean(fuvestData?.fase2.dias && fuvestData.fase2.dias.length > 0);
+                        const hasFase2Gabaritos = Boolean(fuvestData?.fase2.gabaritos && fuvestData.fase2.gabaritos.length > 0);
                         return (
                           <div key={`${vest}-${item.year}`} className="flex flex-col gap-2">
                             <button
-                              onClick={() => {
-                                setExpandedFuvestYear(isFuvestExpanded ? null : item.year);
-                                setExpandedFuvestDay(null);
-                              }}
+                              onClick={() => setExpandedFuvestYear(isFuvestExpanded ? null : item.year)}
                               className={`group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
                                 isFuvestExpanded 
                                   ? 'bg-[#764ba2] border-[#764ba2] shadow-lg text-white' 
@@ -615,7 +723,9 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                 </span>
                                 <div className="flex flex-col items-start">
                                   <span className="text-sm font-black">{vest} {item.year}</span>
-                                  <span className={`text-[10px] font-bold ${isFuvestExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>Ver opções de fases</span>
+                                  <span className={`text-[10px] font-bold ${isFuvestExpanded ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
+                                    Ver provas e gabaritos
+                                  </span>
                                 </div>
                               </div>
                               <ChevronRight size={20} className={`transition-transform duration-300 ${isFuvestExpanded ? 'rotate-90' : ''}`} />
@@ -627,58 +737,98 @@ export default function ExamAcervoModal({ isOpen, onClose, targetVestibular }: P
                                   initial={{ height: 0, opacity: 0 }}
                                   animate={{ height: 'auto', opacity: 1 }}
                                   exit={{ height: 0, opacity: 0 }}
-                                  className="overflow-hidden space-y-3 ml-4"
+                                  className="overflow-hidden space-y-3 ml-2 pl-3 border-l-2 border-indigo-500/30 mt-1"
                                 >
-                                  {/* Day Selection */}
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                      onClick={() => setExpandedFuvestDay(expandedFuvestDay === '1' ? null : '1')}
-                                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-black transition-all ${
-                                        expandedFuvestDay === '1'
-                                          ? 'bg-[var(--text-accent)] border-[var(--text-accent)] text-white'
-                                          : 'bg-[var(--bg-secondary)] border-[var(--card-border)] hover:border-[var(--text-accent)]'
-                                      }`}
-                                    >
-                                      <span>1ª FASE</span>
-                                      <ChevronRight size={14} className={`transition-transform ${expandedFuvestDay === '1' ? 'rotate-90' : ''}`} />
-                                    </button>
-                                    <a
-                                      href={getExamLink(vest, `${item.year}-dia2`)}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-[var(--text-accent)] text-xs font-black text-[var(--text-primary)] transition-all"
-                                    >
-                                      <span>2ª FASE</span>
-                                      <ExternalLink size={12} />
-                                    </a>
+                                  {/* 1ª Fase */}
+                                  <div className="space-y-1.5 text-left">
+                                    <span className="text-[10px] font-black uppercase text-indigo-500 tracking-wider">
+                                      1ª FASE — Prova e Gabarito ({item.year})
+                                    </span>
+                                    <div className="grid grid-cols-1 gap-2">
+                                      <a
+                                        href={fuvestData?.fase1.provaUrl || getExamLink(vest, item.year)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-indigo-500 text-[var(--text-primary)] text-xs font-bold transition-all group/btn"
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <FileText size={12} className="text-indigo-500 shrink-0" />
+                                          <span className="truncate">{fuvestData?.fase1.provaLabel || `FUVEST ${item.year} — Prova 1ª Fase`}</span>
+                                        </div>
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                      </a>
+                                      {fuvestData?.fase1.gabaritoUrl && (
+                                        <a
+                                          href={fuvestData.fase1.gabaritoUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                            <span className="truncate">{fuvestData.fase1.gabaritoLabel}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      )}
+                                      {fuvestData?.fase1.gabaritosAdicionais?.map(gab => (
+                                        <a
+                                          key={gab.url}
+                                          href={gab.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-600 dark:text-teal-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-teal-500" />
+                                            <span className="truncate">{gab.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                    </div>
                                   </div>
 
-                                  {/* Version Selection for Day 1 */}
-                                  <AnimatePresence>
-                                    {expandedFuvestDay === '1' && (
-                                      <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        className="overflow-hidden pl-2 border-l-2 border-[var(--text-accent)]/30 space-y-2"
-                                      >
-                                        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase px-1">Escolha a versão:</p>
-                                        <div className="grid grid-cols-4 gap-2">
-                                          {['V1', 'V2', 'V3', 'V4'].map(version => (
-                                            <a
-                                              key={version}
-                                              href={getExamLink(vest, `${item.year}-dia1-${version}`)}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="flex items-center justify-center p-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:bg-[var(--text-accent)] hover:text-white text-[10px] font-black transition-all"
-                                            >
-                                              {version}
-                                            </a>
-                                          ))}
-                                        </div>
-                                      </motion.div>
-                                    )}
-                                  </AnimatePresence>
+                                  {/* 2ª Fase */}
+                                  {(hasFase2Dias || hasFase2Gabaritos) && (
+                                    <div className="space-y-1.5 text-left pt-1 border-t border-[var(--card-border)]">
+                                      <span className="text-[10px] font-black uppercase text-purple-500 tracking-wider">
+                                        2ª FASE — Provas e Gabaritos ({item.year})
+                                      </span>
+                                      <div className="grid grid-cols-1 gap-2">
+                                        {fuvestData?.fase2.dias.map(d => (
+                                          <a
+                                            key={d.url}
+                                            href={d.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-purple-500 text-[var(--text-primary)] text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                              <FileText size={12} className="text-purple-500 shrink-0" />
+                                              <span className="truncate">{d.label}</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                          </a>
+                                        ))}
+                                        {fuvestData?.fase2.gabaritos?.map(g => (
+                                          <a
+                                            key={g.url}
+                                            href={g.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                              <span className="truncate">{g.label}</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </motion.div>
                               )}
                             </AnimatePresence>

@@ -111,13 +111,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (data) setPlanoSemanal(data);
   }, []);
 
-  const showToast = (type: 'success' | 'error', message: string) => {
+  const showToast = React.useCallback((type: 'success' | 'error', message: string) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, message }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3200);
-  };
+  }, []);
 
   const quickActions = [
     {

@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { PROVAS_LINKS } from '../data/provas_links';
 import FuvestAcervoTable from './FuvestAcervoTable';
+import EnemAcervoTable from './EnemAcervoTable';
 import UnicampAcervoTable from './UnicampAcervoTable';
 import ImeAcervoTable from './ImeAcervoTable';
 import UnespAcervoTable from './UnespAcervoTable';
@@ -15,6 +16,7 @@ import UnifespAcervoTable from './UnifespAcervoTable';
 import MackenzieAcervoTable from './MackenzieAcervoTable';
 import FgvAcervoTable from './FgvAcervoTable';
 import { getFuvestYearItem } from '../data/fuvest_acervo';
+import { getEnemYearItem, EnemDocItem } from '../data/enem_acervo';
 import { getUnicampYearItem } from '../data/unicamp_acervo';
 import { getImeYearItem } from '../data/ime_acervo';
 import { 
@@ -46,6 +48,8 @@ export default function ProvasAcervoView() {
   const [expandedYearKey, setExpandedYearKey] = useState<string | null>(null);
 
   // Table view states per vestibular
+  const [enemViewMode, setEnemViewMode] = useState<'anos' | 'tabela'>('anos');
+  const [expandedEnemExtras, setExpandedEnemExtras] = useState<Record<string, boolean>>({});
   const [fuvestViewMode, setFuvestViewMode] = useState<'anos' | 'tabela'>('anos');
   const [unicampViewMode, setUnicampViewMode] = useState<'anos' | 'tabela'>('anos');
   const [imeViewMode, setImeViewMode] = useState<'anos' | 'tabela'>('anos');
@@ -81,7 +85,7 @@ export default function ProvasAcervoView() {
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-purple-500/20">
                 <Sparkles size={12} className="text-purple-400" />
-                2007 — 2026
+                2007 — 2027
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none">
@@ -129,6 +133,29 @@ export default function ProvasAcervoView() {
         </div>
 
         {/* View Mode Toggle when a specific vestibular that has table is selected */}
+        {selectedVestibular === 'ENEM' && (
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
+            <button
+              onClick={() => setEnemViewMode('anos')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                enemViewMode === 'anos' ? 'bg-teal-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Cards (Padrão ENEM)</span>
+            </button>
+            <button
+              onClick={() => setEnemViewMode('tabela')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                enemViewMode === 'tabela' ? 'bg-teal-600 text-white shadow-sm' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Tabela Oficial</span>
+            </button>
+          </div>
+        )}
+
         {selectedVestibular === 'Fuvest' && (
           <div className="flex items-center gap-1 p-1 bg-[var(--bg-input)] border border-[var(--border-light)] rounded-xl">
             <button
@@ -331,12 +358,35 @@ export default function ProvasAcervoView() {
           // Filter by search
           const filteredItems = items.filter(item => {
             if (!searchTerm) return true;
-            return `${vest} ${item.year}`.toLowerCase().includes(searchTerm.toLowerCase());
+            const term = searchTerm.toLowerCase();
+            if (`${vest} ${item.year}`.toLowerCase().includes(term)) return true;
+            if (isEnem) {
+              const enemData = getEnemYearItem(item.year);
+              if (!enemData) return false;
+              return [
+                ...enemData.dia1.provas,
+                ...enemData.dia1.gabaritos,
+                ...enemData.dia2.provas,
+                ...enemData.dia2.gabaritos
+              ].some(doc => doc.label.toLowerCase().includes(term));
+            }
+            return false;
           });
 
           if (filteredItems.length === 0) return null;
 
           // Check if table view is active
+          if (isEnem && enemViewMode === 'tabela') {
+            return (
+              <div key={vest} className="space-y-4">
+                <h2 className="text-xl font-black text-[var(--text-main)] flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-[#00b894]" />
+                  ENEM (INEP) — Tabela Oficial
+                </h2>
+                <EnemAcervoTable />
+              </div>
+            );
+          }
           if (isFuvest && fuvestViewMode === 'tabela') {
             return (
               <div key={vest} className="space-y-4">
@@ -500,108 +550,214 @@ export default function ProvasAcervoView() {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden space-y-4 ml-2 pl-3 border-l-2 border-[var(--primary)]/30 mt-1"
                           >
-                            {/* ENEM Specific Cadernos */}
-                            {isEnem && (
-                              <>
-                                <div className="space-y-1.5 text-left">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-accent, #00b894)]" />
-                                    <span className="text-[10px] font-black uppercase text-[var(--text-accent, #00b894)] tracking-wider">
-                                      1º DIA — Linguagens, Humanas e Redação
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                      { color: 'Azul', dot: 'bg-blue-500' },
-                                      { color: 'Branco', dot: 'bg-slate-300 border border-slate-500' },
-                                      { color: parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023 ? 'Rosa' : 'Verde', dot: 'bg-pink-500' },
-                                      { color: 'Amarelo', dot: 'bg-yellow-400' }
-                                    ].map(btn => (
-                                      <a
-                                        key={`enem-d1-${btn.color}`}
-                                        href={getExamLink(vest, item.year, '1', btn.color)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[var(--primary)] text-xs font-bold transition-all group/btn"
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${btn.dot}`} />
-                                          <span>Caderno {btn.color}</span>
-                                        </div>
-                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
-                                      </a>
-                                    ))}
-                                  </div>
-                                </div>
+                            {/* ENEM Specific Cadernos e Gabaritos */}
+                            {isEnem && (() => {
+                              const enemData = getEnemYearItem(item.year);
+                              const showExtras = Boolean(expandedEnemExtras[item.year]);
 
-                                <div className="space-y-1.5 text-left">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
-                                    <span className="text-[10px] font-black uppercase text-violet-500 tracking-wider">
-                                      2º DIA — Matemática e Natureza
-                                    </span>
+                              const getDot = (cor?: string) => {
+                                switch (cor?.toLowerCase()) {
+                                  case 'azul': return 'bg-blue-500';
+                                  case 'amarelo': return 'bg-yellow-400';
+                                  case 'branco': return 'bg-slate-200 border border-slate-400';
+                                  case 'rosa': return 'bg-pink-500';
+                                  case 'verde': return 'bg-emerald-500';
+                                  case 'cinza': return 'bg-gray-400';
+                                  case 'laranja': return 'bg-orange-500';
+                                  case 'marrom': return 'bg-amber-800';
+                                  case 'roxo': return 'bg-purple-500';
+                                  default: return 'bg-teal-500';
+                                }
+                              };
+
+                              const isCore = (d: EnemDocItem) =>
+                                d.isRedacaoTema || (d.aplicacao === 'Regular' && !d.acessibilidade);
+
+                              const d1CoreProvas = enemData?.dia1.provas.filter(isCore) || [];
+                              const d1CoreGabs = enemData?.dia1.gabaritos.filter(isCore) || [];
+                              const d2CoreProvas = enemData?.dia2.provas.filter(isCore) || [];
+                              const d2CoreGabs = enemData?.dia2.gabaritos.filter(isCore) || [];
+
+                              const d1ExtraDocs = [
+                                ...(enemData?.dia1.provas.filter(d => !isCore(d)) || []),
+                                ...(enemData?.dia1.gabaritos.filter(d => !isCore(d)) || [])
+                              ];
+                              const d2ExtraDocs = [
+                                ...(enemData?.dia2.provas.filter(d => !isCore(d)) || []),
+                                ...(enemData?.dia2.gabaritos.filter(d => !isCore(d)) || [])
+                              ];
+                              const totalExtras = d1ExtraDocs.length + d2ExtraDocs.length;
+
+                              return (
+                                <div className="space-y-3">
+                                  {/* 1º DIA */}
+                                  <div className="space-y-1.5 text-left">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#00b894]" />
+                                      <span className="text-[10px] font-black uppercase text-[#00b894] tracking-wider">
+                                        1º DIA — Provas e Gabaritos ({item.year})
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                      {d1CoreProvas.map((doc, idx) => (
+                                        <a
+                                          key={`enem-d1-p-${idx}`}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-teal-500 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${getDot(doc.cor)}`} />
+                                            <span className="truncate">{doc.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                      {d1CoreGabs.map((doc, idx) => (
+                                        <a
+                                          key={`enem-d1-g-${idx}`}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <CheckCircle2 size={12} className="shrink-0 text-emerald-500" />
+                                            <span className="truncate">{doc.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                      { color: 'Amarelo', dot: 'bg-yellow-400' },
-                                      { color: 'Cinza', dot: 'bg-gray-400' },
-                                      { color: 'Azul', dot: 'bg-blue-500' },
-                                      { color: parseInt(item.year, 10) >= 2010 && parseInt(item.year, 10) <= 2023 ? 'Rosa' : 'Verde', dot: 'bg-pink-500' }
-                                    ].map(btn => (
-                                      <a
-                                        key={`enem-d2-${btn.color}`}
-                                        href={getExamLink(vest, item.year, '2', btn.color)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-[var(--primary)] text-xs font-bold transition-all group/btn"
+
+                                  {/* 2º DIA */}
+                                  <div className="space-y-1.5 text-left">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                      <span className="text-[10px] font-black uppercase text-violet-500 tracking-wider">
+                                        2º DIA — Provas e Gabaritos ({item.year})
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                      {d2CoreProvas.map((doc, idx) => (
+                                        <a
+                                          key={`enem-d2-p-${idx}`}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-violet-500 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${getDot(doc.cor)}`} />
+                                            <span className="truncate">{doc.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                      {d2CoreGabs.map((doc, idx) => (
+                                        <a
+                                          key={`enem-d2-g-${idx}`}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <CheckCircle2 size={12} className="shrink-0 text-emerald-500" />
+                                            <span className="truncate">{doc.label}</span>
+                                          </div>
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* PPL / Digital / Acessibilidade */}
+                                  {totalExtras > 0 && (
+                                    <div className="pt-1 space-y-2 text-left">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedEnemExtras(prev => ({
+                                            ...prev,
+                                            [item.year]: !prev[item.year]
+                                          }))
+                                        }
+                                        className="flex items-center justify-between w-full px-3 py-2 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-light)] hover:border-teal-500/40 text-[11px] font-black text-[var(--text-muted)] hover:text-teal-500 transition-colors cursor-pointer"
                                       >
-                                        <div className="flex items-center gap-2">
-                                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${btn.dot}`} />
-                                          <span>Caderno {btn.color}</span>
+                                        <span>
+                                          {showExtras
+                                            ? `Ocultar PPL, Digital e Acessibilidade (${totalExtras})`
+                                            : `Ver PPL, Digital e Acessibilidade (+${totalExtras} arquivos)`}
+                                        </span>
+                                        <ChevronDown
+                                          size={13}
+                                          className={`transition-transform ${showExtras ? 'rotate-180' : ''}`}
+                                        />
+                                      </button>
+
+                                      {showExtras && (
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                          {[...d1ExtraDocs, ...d2ExtraDocs].map((doc, idx) => (
+                                            <a
+                                              key={`enem-extra-${idx}`}
+                                              href={doc.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className={`flex items-center justify-between p-2 rounded-xl border text-[11px] font-bold transition-all group/btn ${
+                                                doc.tipo === 'gabarito'
+                                                  ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400'
+                                                  : 'bg-[var(--bg-card)] border-[var(--border-light)] hover:border-teal-500 text-[var(--text-main)]'
+                                              }`}
+                                            >
+                                              <div className="flex items-center gap-2 min-w-0">
+                                                {doc.tipo === 'gabarito' ? (
+                                                  <CheckCircle2 size={11} className="shrink-0 text-emerald-500" />
+                                                ) : (
+                                                  <span className={`w-2 h-2 rounded-full shrink-0 ${getDot(doc.cor)}`} />
+                                                )}
+                                                <span className="truncate">{doc.label}</span>
+                                              </div>
+                                              <ExternalLink size={10} className="opacity-50 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                            </a>
+                                          ))}
                                         </div>
-                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
-                                      </a>
-                                    ))}
-                                  </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
-                              </>
-                            )}
+                              );
+                            })()}
 
                             {/* FUVEST Cadernos */}
                             {isFuvest && (() => {
                               const fuvestData = getFuvestYearItem(item.year);
+                              const hasFase2Dias = Boolean(fuvestData?.fase2.dias && fuvestData.fase2.dias.length > 0);
+                              const hasFase2Gabaritos = Boolean(fuvestData?.fase2.gabaritos && fuvestData.fase2.gabaritos.length > 0);
                               return (
                                 <div className="space-y-3">
                                   <div className="space-y-1.5 text-left">
                                     <div className="flex items-center justify-between px-1">
                                       <span className="text-[10px] font-black uppercase text-indigo-500 tracking-wider">
-                                        1ª FASE — Prova Objetiva
+                                        1ª FASE — Prova e Gabarito ({item.year})
                                       </span>
-                                      {fuvestData?.fase1.gabaritoUrl && (
-                                        <a
-                                          href={fuvestData.fase1.gabaritoUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-[10px] font-bold text-emerald-500 hover:underline flex items-center gap-1"
-                                        >
-                                          <span>Gabarito Oficial</span>
-                                          <ExternalLink size={9} />
-                                        </a>
-                                      )}
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 gap-2">
                                       <a
                                         href={fuvestData?.fase1.provaUrl || getExamLink(vest, item.year)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-indigo-500 text-xs font-bold transition-all group/btn"
                                       >
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-indigo-500" />
-                                          <span>Prova 1ª Fase (PDF)</span>
+                                          <span className="truncate">{fuvestData?.fase1.provaLabel || `FUVEST ${item.year} — Prova 1ª Fase`}</span>
                                         </div>
-                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                        <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
                                       </a>
+
                                       {fuvestData?.fase1.gabaritoUrl && (
                                         <a
                                           href={fuvestData.fase1.gabaritoUrl}
@@ -609,38 +765,88 @@ export default function ProvasAcervoView() {
                                           rel="noopener noreferrer"
                                           className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
                                         >
-                                          <div className="flex items-center gap-2">
+                                          <div className="flex items-center gap-2 min-w-0">
                                             <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
-                                            <span>Gabarito 1ªF (PDF)</span>
+                                            <span className="truncate">{fuvestData.fase1.gabaritoLabel}</span>
                                           </div>
-                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100" />
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
                                         </a>
                                       )}
-                                    </div>
-                                  </div>
 
-                                  <div className="space-y-1.5 text-left">
-                                    <span className="text-[10px] font-black uppercase text-purple-500 tracking-wider">
-                                      2ª FASE — Provas Dissertativas
-                                    </span>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      {fuvestData?.fase2.dias.map(d => (
+                                      {fuvestData?.fase1.gabaritosAdicionais?.map(gab => (
                                         <a
-                                          key={d.label}
-                                          href={d.url}
+                                          key={gab.url}
+                                          href={gab.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-purple-500 text-xs font-bold transition-all group/btn"
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-600 dark:text-teal-400 text-xs font-bold transition-all group/btn"
                                         >
-                                          <div className="flex items-center gap-2">
-                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-purple-500" />
-                                            <span>{d.label}</span>
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-teal-500" />
+                                            <span className="truncate">{gab.label}</span>
                                           </div>
-                                          <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100" />
+                                          <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
                                         </a>
                                       ))}
                                     </div>
+
+                                    {fuvestData?.fase1.cadernosAdicionais && fuvestData.fase1.cadernosAdicionais.length > 0 && (
+                                      <div className="flex flex-wrap gap-1.5 pt-1">
+                                        {fuvestData.fase1.cadernosAdicionais.map(cad => (
+                                          <a
+                                            key={cad.url}
+                                            href={cad.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-indigo-500 text-[10px] font-bold text-[var(--text-muted)] hover:text-indigo-400 transition-colors"
+                                          >
+                                            <span>{cad.label}</span>
+                                            <ExternalLink size={9} />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
+
+                                  {(hasFase2Dias || hasFase2Gabaritos) && (
+                                    <div className="space-y-1.5 text-left">
+                                      <span className="text-[10px] font-black uppercase text-purple-500 tracking-wider">
+                                        2ª FASE — Provas e Gabaritos ({item.year})
+                                      </span>
+                                      <div className="grid grid-cols-1 gap-2">
+                                        {fuvestData?.fase2.dias.map(d => (
+                                          <a
+                                            key={d.url}
+                                            href={d.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] hover:border-purple-500 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-purple-500" />
+                                              <span className="truncate">{d.label}</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-40 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                          </a>
+                                        ))}
+                                        {fuvestData?.fase2.gabaritos?.map(g => (
+                                          <a
+                                            key={g.url}
+                                            href={g.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all group/btn"
+                                          >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                                              <span className="truncate">{g.label}</span>
+                                            </div>
+                                            <ExternalLink size={10} className="opacity-70 group-hover/btn:opacity-100 shrink-0 ml-2" />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}

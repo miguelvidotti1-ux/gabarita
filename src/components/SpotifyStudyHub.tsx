@@ -145,12 +145,44 @@ export interface EstiloTrackItem {
   preview_url: string;
 }
 
+const DEFAULT_ESTILOS_FALLBACK: EstiloMusicalItem[] = [
+  { id: 'lofi', nome: 'Lo-Fi Beats', descricao: 'Batidas relaxantes para foco total', icon: '🎧', seeds: ['lo-fi beats', 'study beats', 'chill lo-fi'] },
+  { id: 'classica', nome: 'Música Clássica', descricao: 'Composições para concentração profunda', icon: '🎻', seeds: ['classical', 'classical study', 'classical focus'] },
+  { id: 'piano', nome: 'Piano Relaxante', descricao: 'Piano suave para leitura e redação', icon: '🎹', seeds: ['piano chill', 'piano study', 'solo piano'] },
+  { id: 'jazz', nome: 'Jazz Suave', descricao: 'Jazz instrumental para manter o ritmo', icon: '🎷', seeds: ['jazz', 'smooth jazz', 'jazz for study'] },
+  { id: 'eletronica', nome: 'Eletrônica Focus', descricao: 'Eletrônica instrumental para alta produtividade', icon: '⚡', seeds: ['electronic focus', 'ambient electronic', 'deep house study'] },
+  { id: 'ambient', nome: 'Ambient', descricao: 'Som ambiente para imersão total', icon: '🌌', seeds: ['ambient', 'ambient study', 'white noise ambient'] },
+  { id: 'rock', nome: 'Rock Instrumental', descricao: 'Rock sem vocais para manter energia', icon: '🎸', seeds: ['instrumental rock', 'post rock', 'rock study'] },
+  { id: 'indie', nome: 'Indie Folk', descricao: 'Indie acústico para estudos tranquilos', icon: '🪕', seeds: ['indie folk', 'acoustic study', 'indie acoustic'] },
+  { id: 'hiphop', nome: 'Hip-Hop Beats', descricao: 'Beats de hip-hop para manter o flow', icon: '🎤', seeds: ['hip hop instrumental', 'lo-fi hip hop', 'boom bap beats'] },
+  { id: 'bossa', nome: 'Bossa Nova', descricao: 'Bossa nova brasileira para relaxar', icon: '🌴', seeds: ['bossa nova', 'brazilian jazz', 'bossa nova study'] },
+];
+
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 1): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetch(url, options);
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || options.signal?.aborted) {
+        throw err;
+      }
+      if (attempt >= retries) {
+        throw err;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 650));
+    }
+  }
+  return fetch(url, options);
+}
+
 interface SpotifyStudyHubProps {
   onToast?: (type: 'success' | 'error', message: string) => void;
   standalone?: boolean;
 }
 
 export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, standalone = false }) => {
+  const onToastRef = useRef(onToast);
+  onToastRef.current = onToast;
   const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistOption>(() => {
     const saved = localStorage.getItem('vesthub_spotify_playlist');
     if (saved) {
@@ -260,7 +292,10 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
   }, []);
 
   // Verificar status do Spotify no backend
-  const checkSpotifyStatus = useCallback(async (explicitToken?: string) => {
+  const checkSpotifyStatus = useCallback(async (explicitToken?: string, signal?: AbortSignal) => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return;
+    }
     try {
       const token = explicitToken || (typeof window !== 'undefined' ? localStorage.getItem('spotify_access_token') : null);
       const refresh = typeof window !== 'undefined' ? localStorage.getItem('spotify_refresh_token') : null;
@@ -269,7 +304,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
       if (token) headers['Authorization'] = `Bearer ${token}`;
       if (refresh) headers['x-refresh-token'] = refresh;
 
-      const res = await fetch('/api/spotify/status', { headers });
+      const res = await fetchWithRetry('/api/spotify/status', { headers, signal });
       if (!res.ok) return;
       const data = await res.json();
       setIsConnected(data.connected || false);
@@ -284,49 +319,74 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
       } else {
         setUserProfile(null);
       }
-    } catch (err) {
-      console.error('Erro ao verificar status do Spotify:', err);
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || signal?.aborted) return;
+      console.warn('Spotify status indisponível no momento:', err?.message || err);
     }
   }, []);
 
   // Buscar músicas de um estilo específico
-  const fetchEstiloTracks = useCallback(async (estiloId: string) => {
+  const fetchEstiloTracks = useCallback(async (estiloId: string, signal?: AbortSignal) => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return;
+    }
     setSelectedEstiloId(estiloId);
     setIsLoadingEstiloTracks(true);
     try {
-      const res = await spotifyFetch(`/api/spotify/buscar-por-estilo?estilo=${encodeURIComponent(estiloId)}`);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('spotify_access_token') : null;
+      const refresh = typeof window !== 'undefined' ? localStorage.getItem('spotify_refresh_token') : null;
+      const headers: Record<string, string> = {};
+      if (token && token !== 'null' && token !== 'undefined') headers['Authorization'] = `Bearer ${token}`;
+      if (refresh && refresh !== 'null' && refresh !== 'undefined') headers['x-refresh-token'] = refresh;
+
+      const res = await fetchWithRetry(`/api/spotify/buscar-por-estilo?estilo=${encodeURIComponent(estiloId)}`, { headers, signal });
       if (res.ok) {
         const data = await res.json();
         setEstiloTracks(data.musicas || []);
       }
-    } catch (err) {
-      console.warn('Erro ao carregar faixas do estilo:', err);
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || signal?.aborted) return;
+      console.warn('Faixas do estilo indisponíveis no momento:', err?.message || err);
     } finally {
-      setIsLoadingEstiloTracks(false);
+      if (!signal?.aborted) {
+        setIsLoadingEstiloTracks(false);
+      }
     }
-  }, [spotifyFetch]);
+  }, []);
 
   // Carregar lista de estilos musicais pré-definidos
-  const loadEstilos = useCallback(async () => {
+  const loadEstilos = useCallback(async (signal?: AbortSignal) => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setEstilosList(DEFAULT_ESTILOS_FALLBACK);
+      return;
+    }
     try {
       setIsLoadingEstilos(true);
-      const res = await fetch('/api/spotify/estilos');
+      const res = await fetchWithRetry('/api/spotify/estilos', { signal });
       if (res.ok) {
         const data = await res.json();
-        const list: EstiloMusicalItem[] = data.estilos || [];
+        const list: EstiloMusicalItem[] = data.estilos || DEFAULT_ESTILOS_FALLBACK;
         setEstilosList(list);
         if (list.length > 0) {
-          fetchEstiloTracks(list[0].id);
+          fetchEstiloTracks(list[0].id, signal);
         }
+      } else {
+        setEstilosList(DEFAULT_ESTILOS_FALLBACK);
       }
-    } catch (err) {
-      console.error('Erro ao carregar estilos:', err);
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || signal?.aborted) return;
+      console.warn('Usando lista local de estilos musicais:', err?.message || err);
+      setEstilosList(DEFAULT_ESTILOS_FALLBACK);
     } finally {
-      setIsLoadingEstilos(false);
+      if (!signal?.aborted) {
+        setIsLoadingEstilos(false);
+      }
     }
   }, [fetchEstiloTracks]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     // 1. Detectar tokens no hash da URL (#access_token=...&refresh_token=...) ou query param
     if (typeof window !== 'undefined') {
       if (window.location.hash && window.location.hash.includes('access_token=')) {
@@ -336,30 +396,30 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
         const refresh = hashParams.get('refresh_token');
         if (token) localStorage.setItem('spotify_access_token', token);
         if (refresh) localStorage.setItem('spotify_refresh_token', refresh);
-        checkSpotifyStatus(token || undefined);
-        if (onToast) onToast('success', 'Spotify conectado com sucesso!');
+        checkSpotifyStatus(token || undefined, controller.signal);
+        onToastRef.current?.('success', 'Spotify conectado com sucesso!');
         window.history.replaceState({}, document.title, window.location.pathname);
       } else {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('spotify_connected') === 'true') {
-          checkSpotifyStatus();
-          if (onToast) onToast('success', 'Spotify conectado com sucesso!');
+          checkSpotifyStatus(undefined, controller.signal);
+          onToastRef.current?.('success', 'Spotify conectado com sucesso!');
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
         } else if (urlParams.get('spotify_error')) {
           const err = urlParams.get('spotify_error');
-          if (onToast) onToast('error', `Erro ao autorizar Spotify: ${err}`);
+          onToastRef.current?.('error', `Erro ao autorizar Spotify: ${err}`);
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
         } else {
-          checkSpotifyStatus();
+          checkSpotifyStatus(undefined, controller.signal);
         }
       }
     }
 
     // 2. Listener para mensagens de sucesso de popup OAuth (postMessage)
     if (typeof window !== 'undefined') {
-      (window as any).vestHubToast = onToast;
+      (window as any).vestHubToast = onToastRef.current;
     }
 
     const handleMessage = (event: MessageEvent) => {
@@ -369,11 +429,11 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
         if (token) localStorage.setItem('spotify_access_token', token);
         if (refresh_token) localStorage.setItem('spotify_refresh_token', refresh_token);
         checkSpotifyStatus(token);
-        if (onToast) onToast('success', 'Spotify conectado com sucesso!');
+        onToastRef.current?.('success', 'Spotify conectado com sucesso!');
         setIsConnecting(false);
       } else if (event.data?.type === 'SPOTIFY_AUTH_ERROR' || event.data?.type === 'spotify_auth_error') {
         const msg = event.data.message || event.data.error || 'Erro desconhecido';
-        if (onToast) onToast('error', `Erro ao autorizar Spotify: ${msg}`);
+        onToastRef.current?.('error', `Erro ao autorizar Spotify: ${msg}`);
         setIsConnecting(false);
       }
     };
@@ -385,12 +445,13 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
 
     window.addEventListener('message', handleMessage);
     window.addEventListener('spotify:connected', handleExternalConnected);
-    loadEstilos();
+    loadEstilos(controller.signal);
     return () => {
+      controller.abort();
       window.removeEventListener('message', handleMessage);
       window.removeEventListener('spotify:connected', handleExternalConnected);
     };
-  }, [checkSpotifyStatus, loadEstilos, onToast]);
+  }, [checkSpotifyStatus, loadEstilos]);
 
   // Buscar e sincronizar a letra da música que o usuário está ouvindo no Spotify
   const fetchSpotifyLyrics = useCallback(async (trackName: string, artistName: string, durationMs?: number, image?: string | null, album?: string) => {
@@ -553,7 +614,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
         authWindow.close();
       }
       setIsConnecting(false);
-      console.error('Erro ao conectar Spotify:', err);
+      console.warn('Erro ao conectar Spotify:', err);
       if (onToast) onToast('error', 'Verifique o Redirect URI e credenciais no Spotify Dashboard.');
       setShowConfigModal(true);
     }
@@ -622,7 +683,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
         setUserPlaylists(data.playlists || []);
       }
     } catch (err) {
-      console.error('Erro ao carregar playlists:', err);
+      console.warn('Erro ao carregar playlists:', err);
     }
   };
 
@@ -728,7 +789,7 @@ export const SpotifyStudyHub: React.FC<SpotifyStudyHubProps> = ({ onToast, stand
         if (onToast) onToast('error', errData.error || 'Erro ao carregar faixas da playlist.');
       }
     } catch (err) {
-      console.error('Erro ao carregar faixas da playlist:', err);
+      console.warn('Erro ao carregar faixas da playlist:', err);
       if (onToast) onToast('error', 'Erro ao carregar faixas da playlist.');
     } finally {
       setIsLoadingUserPlaylistTracks(false);
